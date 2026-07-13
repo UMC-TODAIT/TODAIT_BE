@@ -39,3 +39,4 @@ spring:
 app:
   email-verification:
     code-ttl-minutes: ${EMAIL_VERIFICATION_CODE_TTL_MINUTES:5}
+    verified-ttl-minutes: ${EMAIL_VERIFICATION_VERIFIED_TTL_MINUTES:30}
