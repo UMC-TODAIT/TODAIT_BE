@@ -6,6 +6,8 @@ import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.MemberOAuthAccount;
 import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
+import com.example.TODAIT__BE.domain.member.exeption.MemberException;
+import com.example.TODAIT__BE.domain.member.exeption.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.repository.MemberOAuthAccountRepository;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.infra.oauth.dto.KakaoUserInfo;
@@ -17,7 +19,6 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class OAuthService {
 
     private final MemberOAuthAccountRepository memberOAuthAccountRepository;
@@ -35,7 +36,7 @@ public class OAuthService {
 
         }
         if(kakaoUserInfo.email() != null && memberRepository.existsByEmail(kakaoUserInfo.email())){
-            throw new IllegalStateException("이미 가입된 이메일입니다.");
+            throw new MemberException(MemberErrorCode.ALREADY_REGISTERED_EMAIL);
         }
         return requireOnboarding(provider, kakaoUserInfo);
     }
@@ -80,7 +81,7 @@ public class OAuthService {
     private void validateLoginAvailable(Member member) {
 
         if(member.getStatus() != MemberStatus.ACTIVE) {
-            throw new IllegalStateException("로그인 할 수 없는 회원 상태입니다.");
+            throw new MemberException(MemberErrorCode.INVALID_MEMBER_STATUS);
         }
 
     }

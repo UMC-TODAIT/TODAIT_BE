@@ -27,6 +27,7 @@ public class MemberOAuthAccount extends BaseEntity {
     private Member member;
 
     @Column(name = "provider", nullable = false)
+    @Enumerated(EnumType.STRING)
     private OAuthProvider provider;
 
     @Column(name = "provider_user_id", nullable = false)

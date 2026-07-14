@@ -5,6 +5,7 @@ import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +17,8 @@ import java.util.Map;
 
 @Component
 public class JwtTokenProvider {
+    private static final int MIN_SECRET_KEY_BYTES = 32;
+
     @Value("${jwt.secret}")
     private String secretKey;
 
@@ -27,6 +30,14 @@ public class JwtTokenProvider {
 
     @Value("${jwt.onboarding-token-expiration}")
     private long onboardingTokenExpiration;
+
+    @PostConstruct
+    private void validateSecretKey() {
+        int secretKeyBytes = secretKey.getBytes(StandardCharsets.UTF_8).length;
+        if (secretKeyBytes < MIN_SECRET_KEY_BYTES) {
+            throw new IllegalStateException("jwt.secret must be at least 32 bytes.");
+        }
+    }
 
     public String createAccessToken(Member member) {
         Map<String, Object> claims = new HashMap<>();
@@ -123,6 +134,10 @@ public class JwtTokenProvider {
         return Long.valueOf(getSubject(token));
     }
 
+    public String getRole(String token) {
+        return parseClaims(token).get("role", String.class);
+    }
+
     public OAuthProvider getOAuthProvider(String token){
         String provider = parseClaims(token).get("provider",String.class);
         return OAuthProvider.valueOf(provider);
@@ -142,3 +157,4 @@ public class JwtTokenProvider {
 
 
 }
+

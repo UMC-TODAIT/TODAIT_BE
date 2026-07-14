@@ -4,9 +4,10 @@ package com.example.TODAIT__BE.infra.oauth;
 import com.example.TODAIT__BE.infra.oauth.dto.KakaoTokenResponse;
 import com.example.TODAIT__BE.infra.oauth.dto.KakaoUserInfo;
 import com.example.TODAIT__BE.infra.oauth.dto.KakaoUserResponse;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -15,8 +16,14 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
-@RequiredArgsConstructor
 public class KakaoOAuthClient {
+    private final RestClient restClient;
+
+    public KakaoOAuthClient(@Qualifier("kakaoRequestFactory") ClientHttpRequestFactory kakaoRequestFactory) {
+        this.restClient = RestClient.builder()
+                .requestFactory(kakaoRequestFactory)
+                .build();
+    }
     @Value("${spring.security.oauth2.client.registration.kakao.client-id}")
     private String clientId;
 
@@ -47,7 +54,6 @@ public class KakaoOAuthClient {
     @Value("${spring.security.oauth2.client.provider.kakao.token-uri}")
     private String tokenUri;
 
-    private final RestClient restClient = RestClient.create();
     private String requestAccessToken(String code) {
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
         formData.add("grant_type", "authorization_code");
