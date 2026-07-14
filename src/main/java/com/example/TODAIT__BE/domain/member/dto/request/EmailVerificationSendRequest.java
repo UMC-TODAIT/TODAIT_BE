@@ -8,4 +8,7 @@ public record EmailVerificationSendRequest(
         @Email(message = "올바르지 않은 이메일 형식입니다.")
         String email
 ) {
+    public EmailVerificationSendRequest {
+        email = email == null ? null : email.trim();
+    }
 }

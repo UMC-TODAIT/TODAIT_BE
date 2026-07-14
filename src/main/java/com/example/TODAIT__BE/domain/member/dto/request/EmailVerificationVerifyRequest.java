@@ -11,4 +11,7 @@ public record EmailVerificationVerifyRequest(
         @NotBlank(message = "인증번호는 필수입니다.")
         String code
 ) {
+    public EmailVerificationVerifyRequest {
+        email = email == null ? null : email.trim();
+    }
 }
