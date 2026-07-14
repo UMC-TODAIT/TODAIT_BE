@@ -48,6 +48,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    private boolean isNumeric(String value) {
+        return value.chars().allMatch(Character::isDigit);
+    }
     private String resolveToken(HttpServletRequest request) {
         String authorization = request.getHeader(AUTHORIZATION_HEADER);
         if (authorization == null || !authorization.startsWith(BEARER_PREFIX)) {
