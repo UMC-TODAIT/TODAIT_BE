@@ -20,7 +20,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
             select distinct p
             from Place p
             join p.area a
-            where lower(p.name) like lower(concat('%', :keyword, '%'))
+            where lower(p.name) like lower(concat('%', :keyword, '%')) escape '!'
               and p.exposureStatus = :exposureStatus
               and p.isActive = true
               and p.latitude is not null

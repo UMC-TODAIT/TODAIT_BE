@@ -25,7 +25,7 @@ public class PlaceService {
 
         List<PlaceResponse> places = placeRepository
                 .searchExposablePlacesByName(
-                        keyword.trim(),
+                        escapeLikeKeyword(keyword.trim()),
                         PlaceExposureStatus.ACTIVE
                 )
                 .stream()
@@ -33,5 +33,12 @@ public class PlaceService {
                 .toList();
 
         return new PlaceSearchResponse(places);
+    }
+
+    private String escapeLikeKeyword(String keyword) {
+        return keyword
+                .replace("!", "!!")
+                .replace("%", "!%")
+                .replace("_", "!_");
     }
 }
