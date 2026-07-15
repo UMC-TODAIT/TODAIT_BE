@@ -39,7 +39,7 @@ class EmailVerificationAsyncServiceTest {
                 eq("[TODAIT] 이메일 인증번호 안내"),
                 contains("123456")
         );
-        verify(emailVerificationRedisRepository, never()).deleteCodeIfMatches(anyString(), anyString());
+        verify(emailVerificationRedisRepository, never()).deleteCodeAndCooldownIfMatches(anyString(), anyString());
     }
 
     @Test
@@ -54,6 +54,6 @@ class EmailVerificationAsyncServiceTest {
 
         assertThatCode(() -> asyncService.sendVerificationCodeAsync("test@example.com", "123456"))
                 .doesNotThrowAnyException();
-        verify(emailVerificationRedisRepository).deleteCodeIfMatches("test@example.com", "123456");
+        verify(emailVerificationRedisRepository).deleteCodeAndCooldownIfMatches("test@example.com", "123456");
     }
 }

@@ -29,7 +29,7 @@ public class EmailVerificationAsyncService {
         try {
             mailSender.send(email, SUBJECT, createVerificationText(code));
         } catch (ProjectException e) {
-            emailVerificationRedisRepository.deleteCodeIfMatches(email, code);
+            emailVerificationRedisRepository.deleteCodeAndCooldownIfMatches(email, code);
             log.warn("Failed to send email verification code. email={}", maskEmail(email), e);
         }
     }

@@ -31,10 +31,11 @@ public class EmailVerificationRedisRepository {
                     return 1
                     """, Long.class);
 
-    private static final DefaultRedisScript<Long> DELETE_CODE_IF_MATCHES_SCRIPT =
+    private static final DefaultRedisScript<Long> DELETE_CODE_AND_COOLDOWN_IF_MATCHES_SCRIPT =
             new DefaultRedisScript<>("""
                     if redis.call('get', KEYS[1]) == ARGV[1] then
                         redis.call('del', KEYS[1])
+                        redis.call('del', KEYS[2])
                         return 1
                     end
 
@@ -108,14 +109,12 @@ public class EmailVerificationRedisRepository {
         return Long.valueOf(1L).equals(result);
     }
 
-    public boolean deleteCodeIfMatches(String email, String code) {
-        Long result = redisTemplate.execute(
-                DELETE_CODE_IF_MATCHES_SCRIPT,
-                List.of(codeKey(email)),
+    public void deleteCodeAndCooldownIfMatches(String email, String code) {
+        redisTemplate.execute(
+                DELETE_CODE_AND_COOLDOWN_IF_MATCHES_SCRIPT,
+                List.of(codeKey(email), resendCooldownKey(email)),
                 code
         );
-
-        return Long.valueOf(1L).equals(result);
     }
 
     public VerifyCodeResult verifyCodeAndMarkVerified(String email, String code) {
