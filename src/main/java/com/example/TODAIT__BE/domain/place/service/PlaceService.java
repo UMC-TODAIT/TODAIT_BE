@@ -24,7 +24,7 @@ public class PlaceService {
         }
 
         List<PlaceResponse> places = placeRepository
-                .findByNameContainingAndExposureStatus(keyword, PlaceExposureStatus.ACTIVE)
+                .findDistinctByNameContainingAndExposureStatus(keyword, PlaceExposureStatus.ACTIVE)
                 .stream()
                 .map(PlaceResponse::from)
                 .toList();
