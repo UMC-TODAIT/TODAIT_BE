@@ -1,22 +1,36 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
+
   application:
     name: "TODAIT_BE"
 
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver # MySQL JDBC ???? ??? ??
-    url: ${DB_URL} # jdbc:mysql://localhost:3306/{???????}
-    username: ${DB_USER} # MySQL ?? ??
-    password: ${DB_PW} # MySQL ????
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PW}
 
-  jpa:
-    database: mysql # ??? ?????? ?? ?? (MySQL)
-    database-platform: org.hibernate.dialect.MySQLDialect # Hibernate?? ??? MySQL ??(dialect) ??
-    show-sql: true # ??? SQL ??? ??? ???? ?? ??
-    hibernate:
-      ddl-auto: update # ?????? ?? ? ?????? ???? ??? ??
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
     properties:
-      hibernate:
-        format_sql: true # ???? SQL ??? ?? ?? ???
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:false}
+          connectiontimeout: ${MAIL_SMTP_CONNECTIONTIMEOUT:5000}
+          timeout: ${MAIL_SMTP_TIMEOUT:5000}
+          writetimeout: ${MAIL_SMTP_WRITETIMEOUT:5000}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS_ENABLE:false}
 
   security:
     oauth2:
@@ -36,10 +50,29 @@ spring:
             token-uri: "https://kauth.kakao.com/oauth/token"
             user-info-uri: "https://kapi.kakao.com/v2/user/me"
             user-name-attribute: id
+
+  jpa:
+    database: mysql # ??? ?????? ?? ?? (MySQL)
+    database-platform: org.hibernate.dialect.MySQLDialect # Hibernate?? ??? MySQL ??(dialect) ??
+    show-sql: true # ??? SQL ??? ??? ???? ?? ??
+    hibernate:
+      ddl-auto: update # ?????? ?? ? ?????? ???? ??? ??
+    properties:
+      hibernate:
+        format_sql: true # ???? SQL ??? ?? ?? ???
+
+app:
+  mail:
+    from: ${MAIL_FROM:}
+  email-verification:
+    code-ttl-minutes: ${EMAIL_VERIFICATION_CODE_TTL_MINUTES:5}
+    verified-ttl-minutes: ${EMAIL_VERIFICATION_VERIFIED_TTL_MINUTES:30}
+    resend-cooldown-seconds: ${EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS:60}
+    verify-failure-ttl-minutes: ${EMAIL_VERIFICATION_VERIFY_FAILURE_TTL_MINUTES:5}
+    max-verify-failures: ${EMAIL_VERIFICATION_MAX_VERIFY_FAILURES:5}
+
 jwt:
   secret: ${JWT_SECRET}
   access-token-expiration: 3600000
   refresh-token-expiration: 1209600000
   onboarding-token-expiration: 600000
-
-
