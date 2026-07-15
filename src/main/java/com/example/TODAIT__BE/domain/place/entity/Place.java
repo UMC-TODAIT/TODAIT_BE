@@ -1,6 +1,7 @@
 package com.example.TODAIT__BE.domain.place.entity;
 
 import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
+import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
@@ -67,4 +68,8 @@ public class Place {
     @Enumerated(EnumType.STRING)
     @Column(name = "exposure_status", nullable = false)
     private PlaceExposureStatus exposureStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "review_status", nullable = false)
+    private PlaceReviewStatus reviewStatus;
 }
