@@ -7,7 +7,7 @@ import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationSendRe
 import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationVerifyResponse;
 import com.example.TODAIT__BE.global.apiPayload.exception.ProjectException;
 import com.example.TODAIT__BE.global.util.RandomCodeGenerator;
-import com.example.TODAIT__BE.infra.mail.EmailVerificationMailService;
+import com.example.TODAIT__BE.infra.mail.EmailVerificationAsyncService;
 import com.example.TODAIT__BE.infra.redis.EmailVerificationRedisRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -24,18 +24,18 @@ public class EmailVerificationService {
     );
 
     private final EmailVerificationRedisRepository emailVerificationRedisRepository;
-    private final EmailVerificationMailService emailVerificationMailService;
+    private final EmailVerificationAsyncService emailVerificationAsyncService;
     private final RandomCodeGenerator randomCodeGenerator;
     private final long codeTtlMinutes;
 
     public EmailVerificationService(
             EmailVerificationRedisRepository emailVerificationRedisRepository,
-            EmailVerificationMailService emailVerificationMailService,
+            EmailVerificationAsyncService emailVerificationAsyncService,
             RandomCodeGenerator randomCodeGenerator,
             @Value("${app.email-verification.code-ttl-minutes}") long codeTtlMinutes
     ) {
         this.emailVerificationRedisRepository = emailVerificationRedisRepository;
-        this.emailVerificationMailService = emailVerificationMailService;
+        this.emailVerificationAsyncService = emailVerificationAsyncService;
         this.randomCodeGenerator = randomCodeGenerator;
         this.codeTtlMinutes = codeTtlMinutes;
     }
@@ -50,13 +50,7 @@ public class EmailVerificationService {
 
         String code = randomCodeGenerator.generateNumericCode();
         saveCode(email, code);
-
-        try {
-            emailVerificationMailService.sendVerificationCode(email, code);
-        } catch (ProjectException e) {
-            emailVerificationRedisRepository.deleteCode(email);
-            throw e;
-        }
+        emailVerificationAsyncService.sendVerificationCodeAsync(email, code);
 
         return new EmailVerificationSendResponse(email, codeTtlMinutes);
     }
