@@ -25,7 +25,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String ACCESS_TOKEN_TYPE = "ACCESS";
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(
@@ -37,19 +37,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (token != null && jwtTokenProvider.validateToken(token)
                 && ACCESS_TOKEN_TYPE.equals(jwtTokenProvider.getTokenType(token))) {
-            Long memberId = jwtTokenProvider.getMemberId(token);
-            String role = jwtTokenProvider.getRole(token);
-            MemberRole memberRole = resolveMemberRole(role);
-            if (memberRole == null) {
+            AuthMember authMember = resolveAuthMember(token);
+            if (authMember == null) {
                 writeUnauthorizedResponse(response);
                 return;
             }
-            AuthMember authMember = new AuthMember(memberId, memberRole);
 
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     authMember,
                     null,
-                    List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                    List.of(new SimpleGrantedAuthority("ROLE_" + authMember.role().name()))
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
@@ -65,9 +62,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return authorization.substring(BEARER_PREFIX.length());
     }
 
-    private MemberRole resolveMemberRole(String role) {
+    private AuthMember resolveAuthMember(String token) {
         try {
-            return MemberRole.valueOf(role);
+            Long memberId = jwtTokenProvider.getMemberId(token);
+            MemberRole role = MemberRole.valueOf(jwtTokenProvider.getRole(token));
+            return new AuthMember(memberId, role);
         } catch (IllegalArgumentException | NullPointerException e) {
             return null;
         }
