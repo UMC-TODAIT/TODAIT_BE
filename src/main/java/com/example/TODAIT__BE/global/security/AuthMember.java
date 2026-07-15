@@ -1,4 +1,9 @@
 package com.example.TODAIT__BE.global.security;
 
-public class AuthMember {
+import com.example.TODAIT__BE.domain.member.enums.MemberRole;
+
+public record AuthMember(
+        Long memberId,
+        MemberRole role
+) {
 }
