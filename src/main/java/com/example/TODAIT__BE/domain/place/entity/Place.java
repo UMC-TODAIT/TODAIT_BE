@@ -4,7 +4,6 @@ import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
 import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
-import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,9 +14,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -80,13 +78,14 @@ public class Place {
     @JoinColumn(name = "primary_food_category_id", comment = "대표 음식 카테고리 FK")
     private FoodCategory primaryFoodCategory;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "place_mood_tag",
-            joinColumns = @JoinColumn(name = "place_id"),
-            inverseJoinColumns = @JoinColumn(name = "mood_tag_id")
-    )
-    private List<MoodTag> moodTags = new ArrayList<>();
+    @OneToMany(mappedBy = "place")
+    private List<PlaceMoodTag> placeMoodTags = new ArrayList<>();
+
+    @OneToMany(mappedBy = "place")
+    private List<PlaceFoodCategory> placeFoodCategories = new ArrayList<>();
+
+    @OneToMany(mappedBy = "place")
+    private List<PlaceImage> placeImages = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "exposure_status", nullable = false, comment = "사용자 앱 노출 상태")
