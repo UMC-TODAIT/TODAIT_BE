@@ -18,11 +18,21 @@ public class FoodCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", comment = "음식 카테고리 PK")
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, comment = "음식 카테고리 코드")
     private String code;
 
-    @Column(nullable = false)
+    @Column(nullable = false, comment = "음식 카테고리 표시명")
     private String name;
+
+    @Column(comment = "설명")
+    private String description;
+
+    @Column(name = "sort_order", nullable = false, comment = "노출 순서")
+    private Integer sortOrder = 0;
+
+    @Column(name = "is_active", nullable = false, comment = "사용 여부")
+    private Boolean isActive = true;
 }
