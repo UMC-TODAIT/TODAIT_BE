@@ -9,6 +9,7 @@ import com.example.TODAIT__BE.global.apiPayload.exception.ProjectException;
 import com.example.TODAIT__BE.global.util.RandomCodeGenerator;
 import com.example.TODAIT__BE.infra.mail.EmailVerificationAsyncService;
 import com.example.TODAIT__BE.infra.redis.EmailVerificationRedisRepository;
+import com.example.TODAIT__BE.infra.redis.EmailVerificationRedisRepository.VerifyCodeResult;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -63,23 +64,33 @@ public class EmailVerificationService {
             throw new ProjectException(EmailVerificationErrorCode.ALREADY_COMPLETED);
         }
 
-        String savedCode = emailVerificationRedisRepository.findCodeByEmail(email)
-                .orElseThrow(() -> new ProjectException(EmailVerificationErrorCode.CODE_NOT_FOUND));
-
-        if (!savedCode.equals(request.code().trim())) {
+        VerifyCodeResult result = emailVerificationRedisRepository.verifyCodeAndMarkVerified(
+                email,
+                request.code().trim()
+        );
+        if (result == VerifyCodeResult.CODE_NOT_FOUND) {
+            throw new ProjectException(EmailVerificationErrorCode.CODE_NOT_FOUND);
+        }
+        if (result == VerifyCodeResult.CODE_MISMATCH) {
             throw new ProjectException(EmailVerificationErrorCode.CODE_MISMATCH);
         }
-
-        emailVerificationRedisRepository.deleteCode(email);
-        emailVerificationRedisRepository.saveVerified(email);
+        if (result == VerifyCodeResult.VERIFY_ATTEMPT_EXCEEDED) {
+            throw new ProjectException(EmailVerificationErrorCode.VERIFY_ATTEMPT_EXCEEDED);
+        }
 
         return new EmailVerificationVerifyResponse(email, true);
     }
 
     private void saveCode(String email, String code) {
         try {
-            emailVerificationRedisRepository.saveCode(email, code);
+            boolean saved = emailVerificationRedisRepository.saveCodeIfNotCoolingDown(email, code);
+            if (!saved) {
+                throw new ProjectException(EmailVerificationErrorCode.RESEND_COOLDOWN);
+            }
         } catch (RuntimeException e) {
+            if (e instanceof ProjectException) {
+                throw e;
+            }
             throw new ProjectException(EmailVerificationErrorCode.STORE_FAILED);
         }
     }

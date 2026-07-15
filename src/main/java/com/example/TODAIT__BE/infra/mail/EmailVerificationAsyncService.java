@@ -1,6 +1,7 @@
 package com.example.TODAIT__BE.infra.mail;
 
 import com.example.TODAIT__BE.global.apiPayload.exception.ProjectException;
+import com.example.TODAIT__BE.infra.redis.EmailVerificationRedisRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -13,9 +14,14 @@ public class EmailVerificationAsyncService {
     private static final String SUBJECT = "[TODAIT] 이메일 인증번호 안내";
 
     private final MailSender mailSender;
+    private final EmailVerificationRedisRepository emailVerificationRedisRepository;
 
-    public EmailVerificationAsyncService(MailSender mailSender) {
+    public EmailVerificationAsyncService(
+            MailSender mailSender,
+            EmailVerificationRedisRepository emailVerificationRedisRepository
+    ) {
         this.mailSender = mailSender;
+        this.emailVerificationRedisRepository = emailVerificationRedisRepository;
     }
 
     @Async("mailTaskExecutor")
@@ -23,6 +29,7 @@ public class EmailVerificationAsyncService {
         try {
             mailSender.send(email, SUBJECT, createVerificationText(code));
         } catch (ProjectException e) {
+            emailVerificationRedisRepository.deleteCodeIfMatches(email, code);
             log.warn("Failed to send email verification code. email={}", maskEmail(email), e);
         }
     }

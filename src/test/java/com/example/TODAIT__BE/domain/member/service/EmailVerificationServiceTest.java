@@ -9,13 +9,12 @@ import com.example.TODAIT__BE.global.apiPayload.exception.ProjectException;
 import com.example.TODAIT__BE.global.util.RandomCodeGenerator;
 import com.example.TODAIT__BE.infra.mail.EmailVerificationAsyncService;
 import com.example.TODAIT__BE.infra.redis.EmailVerificationRedisRepository;
+import com.example.TODAIT__BE.infra.redis.EmailVerificationRedisRepository.VerifyCodeResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -56,6 +55,8 @@ class EmailVerificationServiceTest {
                 .willReturn(false);
         given(randomCodeGenerator.generateNumericCode())
                 .willReturn("123456");
+        given(emailVerificationRedisRepository.saveCodeIfNotCoolingDown("test@example.com", "123456"))
+                .willReturn(true);
 
         EmailVerificationSendResponse response = emailVerificationService.sendVerificationCode(
                 new EmailVerificationSendRequest(" Test@Example.com ")
@@ -63,7 +64,7 @@ class EmailVerificationServiceTest {
 
         assertThat(response.email()).isEqualTo("test@example.com");
         assertThat(response.expiresInMinutes()).isEqualTo(CODE_TTL_MINUTES);
-        verify(emailVerificationRedisRepository).saveCode("test@example.com", "123456");
+        verify(emailVerificationRedisRepository).saveCodeIfNotCoolingDown("test@example.com", "123456");
         verify(emailVerificationAsyncService).sendVerificationCodeAsync("test@example.com", "123456");
     }
 
@@ -76,36 +77,35 @@ class EmailVerificationServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(EmailVerificationErrorCode.INVALID_EMAIL_FORMAT);
 
-        verify(emailVerificationRedisRepository, never()).saveCode(anyString(), anyString());
+        verify(emailVerificationRedisRepository, never()).saveCodeIfNotCoolingDown(anyString(), anyString());
         verify(emailVerificationAsyncService, never()).sendVerificationCodeAsync(anyString(), anyString());
     }
 
     @Test
-    void sendVerificationCodeUpdatesCodeWhenSameEmailRequestsAgain() {
+    void sendVerificationCodeFailsWhenResendCooldownIsActive() {
         given(emailVerificationRedisRepository.isVerified("test@example.com"))
                 .willReturn(false);
         given(randomCodeGenerator.generateNumericCode())
-                .willReturn("111111", "222222");
+                .willReturn("123456");
+        given(emailVerificationRedisRepository.saveCodeIfNotCoolingDown("test@example.com", "123456"))
+                .willReturn(false);
 
-        emailVerificationService.sendVerificationCode(
+        assertThatThrownBy(() -> emailVerificationService.sendVerificationCode(
                 new EmailVerificationSendRequest("test@example.com")
-        );
-        emailVerificationService.sendVerificationCode(
-                new EmailVerificationSendRequest("TEST@example.com")
-        );
+        ))
+                .isInstanceOf(ProjectException.class)
+                .extracting("errorCode")
+                .isEqualTo(EmailVerificationErrorCode.RESEND_COOLDOWN);
 
-        verify(emailVerificationRedisRepository).saveCode("test@example.com", "111111");
-        verify(emailVerificationRedisRepository).saveCode("test@example.com", "222222");
-        verify(emailVerificationAsyncService).sendVerificationCodeAsync("test@example.com", "111111");
-        verify(emailVerificationAsyncService).sendVerificationCodeAsync("test@example.com", "222222");
+        verify(emailVerificationAsyncService, never()).sendVerificationCodeAsync(anyString(), anyString());
     }
 
     @Test
     void verifyCodeStoresVerifiedStateAndDeletesCode() {
         given(emailVerificationRedisRepository.isVerified("test@example.com"))
                 .willReturn(false);
-        given(emailVerificationRedisRepository.findCodeByEmail("test@example.com"))
-                .willReturn(Optional.of("123456"));
+        given(emailVerificationRedisRepository.verifyCodeAndMarkVerified("test@example.com", "123456"))
+                .willReturn(VerifyCodeResult.VERIFIED);
 
         EmailVerificationVerifyResponse response = emailVerificationService.verifyCode(
                 new EmailVerificationVerifyRequest(" Test@Example.com ", " 123456 ")
@@ -113,16 +113,15 @@ class EmailVerificationServiceTest {
 
         assertThat(response.email()).isEqualTo("test@example.com");
         assertThat(response.verified()).isTrue();
-        verify(emailVerificationRedisRepository).deleteCode("test@example.com");
-        verify(emailVerificationRedisRepository).saveVerified("test@example.com");
+        verify(emailVerificationRedisRepository).verifyCodeAndMarkVerified("test@example.com", "123456");
     }
 
     @Test
     void verifyCodeFailsWhenCodeMismatches() {
         given(emailVerificationRedisRepository.isVerified("test@example.com"))
                 .willReturn(false);
-        given(emailVerificationRedisRepository.findCodeByEmail("test@example.com"))
-                .willReturn(Optional.of("123456"));
+        given(emailVerificationRedisRepository.verifyCodeAndMarkVerified("test@example.com", "000000"))
+                .willReturn(VerifyCodeResult.CODE_MISMATCH);
 
         assertThatThrownBy(() -> emailVerificationService.verifyCode(
                 new EmailVerificationVerifyRequest("test@example.com", "000000")
@@ -131,16 +130,15 @@ class EmailVerificationServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(EmailVerificationErrorCode.CODE_MISMATCH);
 
-        verify(emailVerificationRedisRepository, never()).deleteCode("test@example.com");
-        verify(emailVerificationRedisRepository, never()).saveVerified("test@example.com");
+        verify(emailVerificationRedisRepository).verifyCodeAndMarkVerified("test@example.com", "000000");
     }
 
     @Test
     void verifyCodeFailsWhenCodeDoesNotExist() {
         given(emailVerificationRedisRepository.isVerified("test@example.com"))
                 .willReturn(false);
-        given(emailVerificationRedisRepository.findCodeByEmail("test@example.com"))
-                .willReturn(Optional.empty());
+        given(emailVerificationRedisRepository.verifyCodeAndMarkVerified("test@example.com", "123456"))
+                .willReturn(VerifyCodeResult.CODE_NOT_FOUND);
 
         assertThatThrownBy(() -> emailVerificationService.verifyCode(
                 new EmailVerificationVerifyRequest("test@example.com", "123456")
@@ -148,6 +146,21 @@ class EmailVerificationServiceTest {
                 .isInstanceOf(ProjectException.class)
                 .extracting("errorCode")
                 .isEqualTo(EmailVerificationErrorCode.CODE_NOT_FOUND);
+    }
+
+    @Test
+    void verifyCodeFailsWhenVerifyAttemptExceeded() {
+        given(emailVerificationRedisRepository.isVerified("test@example.com"))
+                .willReturn(false);
+        given(emailVerificationRedisRepository.verifyCodeAndMarkVerified("test@example.com", "123456"))
+                .willReturn(VerifyCodeResult.VERIFY_ATTEMPT_EXCEEDED);
+
+        assertThatThrownBy(() -> emailVerificationService.verifyCode(
+                new EmailVerificationVerifyRequest("test@example.com", "123456")
+        ))
+                .isInstanceOf(ProjectException.class)
+                .extracting("errorCode")
+                .isEqualTo(EmailVerificationErrorCode.VERIFY_ATTEMPT_EXCEEDED);
     }
 
     @Test
@@ -162,7 +175,7 @@ class EmailVerificationServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(EmailVerificationErrorCode.ALREADY_COMPLETED);
 
-        verify(emailVerificationRedisRepository, never()).saveCode(anyString(), anyString());
+        verify(emailVerificationRedisRepository, never()).saveCodeIfNotCoolingDown(anyString(), anyString());
         verify(emailVerificationAsyncService, never()).sendVerificationCodeAsync(anyString(), anyString());
     }
 
@@ -178,7 +191,7 @@ class EmailVerificationServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(EmailVerificationErrorCode.ALREADY_COMPLETED);
 
-        verify(emailVerificationRedisRepository, never()).findCodeByEmail("test@example.com");
+        verify(emailVerificationRedisRepository, never()).verifyCodeAndMarkVerified(anyString(), anyString());
     }
 
 }
