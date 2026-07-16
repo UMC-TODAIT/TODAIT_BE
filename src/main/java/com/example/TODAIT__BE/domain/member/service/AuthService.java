@@ -4,6 +4,7 @@ import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.RefreshToken;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
+import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.member.repository.RefreshTokenRepository;
 import com.example.TODAIT__BE.global.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -24,21 +25,34 @@ public class AuthService {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional
     public AuthTokenResponse.Token issueTokens(Member member){
-        String accessToken = jwtTokenProvider.createAccessToken(member);
-        String refreshToken = jwtTokenProvider.createRefreshToken(member);
+        LocalDateTime loginAt = LocalDateTime.now();
+
+        Member managedMember = memberRepository.findByIdForUpdate(member.getId())
+                .orElseThrow(() -> new IllegalStateException("토큰 발급 대상 회원을 찾을 수 없습니다."));
+
+        LocalDateTime issuedAt = LocalDateTime.now();
+
+        managedMember.updateLastLoginAt(loginAt);
+
+        String accessToken = jwtTokenProvider.createAccessToken(managedMember);
+        String refreshToken = jwtTokenProvider.createRefreshToken(managedMember);
         String refreshTokenHash = hashToken(refreshToken);
 
-        List<RefreshToken> activeTokens = refreshTokenRepository.findAllByMemberAndRevokedAtIsNull(member);
+        List<RefreshToken> activeTokens = refreshTokenRepository.findAllByMemberAndRevokedAtIsNull(managedMember);
         activeTokens.forEach(RefreshToken::revoke);
 
-        LocalDateTime expiresAt = LocalDateTime.now()
-                .plus(Duration.ofMillis(jwtTokenProvider.getRefreshTokenExpiration()));
+        LocalDateTime expiresAt = issuedAt.plus(
+                Duration.ofMillis(
+                        jwtTokenProvider.getRefreshTokenExpiration()
+                )
+        );
 
         RefreshToken newRefreshToken = RefreshToken.builder()
-                .member(member)
+                .member(managedMember)
                 .tokenHash(refreshTokenHash)
                 .expiresAt(expiresAt)
                 .build();
