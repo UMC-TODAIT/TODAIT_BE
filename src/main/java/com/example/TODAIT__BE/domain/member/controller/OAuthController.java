@@ -27,8 +27,7 @@ public class OAuthController {
     public ResponseEntity<ApiResponse<OAuthLoginResponse.OAuthLogin>> kakaoLogin(
             @Valid @RequestBody OAuthLoginRequest.KakaoAccessToken request
     ) {
-        KakaoUserInfo kakaoUserInfo = kakaoOAuthClient.getUserInfo(request.accessToken());
-        OAuthLoginResponse.OAuthLogin response = oAuthService.loginWithKakao(kakaoUserInfo);
+        OAuthLoginResponse.OAuthLogin response = oAuthService.loginWithKakao(request.accessToken());
 
         return ResponseEntity.ok(ApiResponse.onSuccess(GeneralSuccessCode.OK, response));
     }
@@ -38,8 +37,7 @@ public class OAuthController {
     public ResponseEntity<ApiResponse<OAuthLoginResponse.OAuthLogin>> googleLogin(
             @Valid @RequestBody OAuthLoginRequest.GoogleIdToken request
     ){
-        GoogleUserInfo googleUserInfo = googleOAuthClient.verifyIdToken(request.idToken());
-        OAuthLoginResponse.OAuthLogin response = oAuthService.loginWithGoogle(googleUserInfo);
+        OAuthLoginResponse.OAuthLogin response = oAuthService.loginWithGoogle(request.idToken());
 
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(

@@ -10,6 +10,8 @@ import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.exception.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.repository.MemberOAuthAccountRepository;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
+import com.example.TODAIT__BE.infra.oauth.GoogleOAuthClient;
+import com.example.TODAIT__BE.infra.oauth.KakaoOAuthClient;
 import com.example.TODAIT__BE.infra.oauth.dto.GoogleUserInfo;
 import com.example.TODAIT__BE.infra.oauth.dto.KakaoUserInfo;
 import lombok.RequiredArgsConstructor;
@@ -24,24 +26,28 @@ public class OAuthService {
     private final MemberOAuthAccountRepository memberOAuthAccountRepository;
     private final AuthService authService;
     private final MemberRepository memberRepository;
+    private final KakaoOAuthClient kakaoOAuthClient;
+    private final GoogleOAuthClient googleOAuthClient;
 
     public OAuthLoginResponse.OAuthLogin loginWithKakao(
-            KakaoUserInfo kakaoUserInfo
+            String accessToken
     ) {
+        KakaoUserInfo userInfo = kakaoOAuthClient.getUserInfo(accessToken);
         return loginWithOAuth(
                 OAuthProvider.KAKAO,
-                kakaoUserInfo.providerUserId(),
-                kakaoUserInfo.email()
+                userInfo.providerUserId(),
+                userInfo.email()
         );
     }
 
     public OAuthLoginResponse.OAuthLogin loginWithGoogle(
-            GoogleUserInfo googleUserInfo
+            String idToken
     ){
+        GoogleUserInfo userInfo = googleOAuthClient.verifyIdToken(idToken);
         return loginWithOAuth(
                 OAuthProvider.GOOGLE,
-                googleUserInfo.providerUserId(),
-                googleUserInfo.email()
+                userInfo.providerUserId(),
+                userInfo.email()
         );
     }
 
