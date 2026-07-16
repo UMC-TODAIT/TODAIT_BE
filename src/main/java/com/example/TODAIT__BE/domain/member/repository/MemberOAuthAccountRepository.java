@@ -10,4 +10,6 @@ public interface MemberOAuthAccountRepository extends JpaRepository<MemberOAuthA
 
    Optional<MemberOAuthAccount> findByProviderAndProviderUserId(OAuthProvider provider, String providerUserId);
 
+   boolean existsByProviderAndProviderUserId(OAuthProvider provider, String providerUserId);
+
 }
