@@ -33,6 +33,9 @@ public class AuthService {
 
         Member managedMember = memberRepository.findByIdForUpdate(member.getId())
                 .orElseThrow(() -> new IllegalStateException("토큰 발급 대상 회원을 찾을 수 없습니다."));
+
+        LocalDateTime issuedAt = LocalDateTime.now();
+
         managedMember.updateLastLoginAt(loginAt);
 
         String accessToken = jwtTokenProvider.createAccessToken(managedMember);
@@ -42,7 +45,7 @@ public class AuthService {
         List<RefreshToken> activeTokens = refreshTokenRepository.findAllByMemberAndRevokedAtIsNull(managedMember);
         activeTokens.forEach(RefreshToken::revoke);
 
-        LocalDateTime expiresAt = loginAt.plus(
+        LocalDateTime expiresAt = issuedAt.plus(
                 Duration.ofMillis(
                         jwtTokenProvider.getRefreshTokenExpiration()
                 )
