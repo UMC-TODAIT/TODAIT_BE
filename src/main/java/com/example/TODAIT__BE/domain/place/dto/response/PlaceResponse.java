@@ -25,7 +25,8 @@ public record PlaceResponse(
                 ? new FoodCategorySummary(place.getPrimaryFoodCategory().getId(), place.getPrimaryFoodCategory().getName())
                 : null;
 
-        List<MoodTagSummary> moodTags = place.getMoodTags().stream()
+        List<MoodTagSummary> moodTags = place.getPlaceMoodTags().stream()
+                .map(placeMoodTag -> placeMoodTag.getMoodTag())
                 .map(moodTag -> new MoodTagSummary(moodTag.getId(), moodTag.getName()))
                 .toList();
 

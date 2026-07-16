@@ -15,7 +15,13 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name="member_oauth_account")
+@Table(
+        name="member_oauth_account",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_member_oauth_provider_user",
+                columnNames = {"provider", "provider_user_id"}
+        )
+)
 public class MemberOAuthAccount extends BaseEntity {
 
     @Id
