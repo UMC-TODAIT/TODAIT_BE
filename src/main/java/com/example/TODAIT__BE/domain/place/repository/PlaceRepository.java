@@ -20,12 +20,13 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
             select distinct p
             from Place p
             join p.area a
+            join p.placeCategory pc
             where lower(p.name) like lower(concat('%', :keyword, '%')) escape '!'
               and p.exposureStatus = :exposureStatus
               and p.isActive = true
               and p.latitude is not null
               and p.longitude is not null
-              and p.placeCategory is not null
+              and pc.isActive = true
               and a.isActive = true
               and p.deletedAt is null
             """)
