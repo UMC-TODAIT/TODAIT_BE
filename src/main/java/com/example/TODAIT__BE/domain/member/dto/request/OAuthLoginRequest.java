@@ -8,4 +8,8 @@ public class OAuthLoginRequest {
             @NotBlank String code
     ){
     }
+
+    public record GoogleIdToken(
+            @NotBlank String idToken
+    ) {}
 }

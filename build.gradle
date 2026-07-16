@@ -43,7 +43,7 @@ dependencies {
 
 	// OAuth
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-
+	implementation 'com.google.api-client:google-api-client:2.7.2'
 }
 
 tasks.named('test') {
