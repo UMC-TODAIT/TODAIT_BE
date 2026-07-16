@@ -25,9 +25,9 @@ public class OAuthController {
 
     @PostMapping("/api/auth/kakao/login")
     public ResponseEntity<ApiResponse<OAuthLoginResponse.OAuthLogin>> kakaoLogin(
-            @Valid @RequestBody OAuthLoginRequest.Code request
+            @Valid @RequestBody OAuthLoginRequest.KakaoAccessToken request
     ) {
-        KakaoUserInfo kakaoUserInfo = kakaoOAuthClient.getUserInfo(request.code());
+        KakaoUserInfo kakaoUserInfo = kakaoOAuthClient.getUserInfo(request.accessToken());
         OAuthLoginResponse.OAuthLogin response = oAuthService.loginWithKakao(kakaoUserInfo);
 
         return ResponseEntity.ok(ApiResponse.onSuccess(GeneralSuccessCode.OK, response));

@@ -4,8 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 
 public class OAuthLoginRequest {
 
-    public record Code(
-            @NotBlank String code
+    public record KakaoAccessToken(
+            @NotBlank String accessToken
     ){
     }
 

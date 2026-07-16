@@ -8,6 +8,18 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum OAuthErrorCode implements BaseErrorCode {
+    INVALID_KAKAO_ACCESS_TOKEN(
+            HttpStatus.UNAUTHORIZED,
+            "AUTH401_1",
+            "유효하지 않은 카카오 액세스 토큰입니다."
+    ),
+
+    KAKAO_USER_INFO_REQUEST_FAILED(
+            HttpStatus.BAD_GATEWAY,
+            "AUTH502_2",
+            "카카오 사용자 정보 조회에 실패했습니다."
+    ),
+
     INVALID_GOOGLE_ID_TOKEN(
             HttpStatus.BAD_REQUEST,
             "AUTH400_1",
