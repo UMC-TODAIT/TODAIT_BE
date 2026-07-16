@@ -11,6 +11,7 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
@@ -36,7 +37,7 @@ public class KakaoOAuthClient {
         // accessToken 비어있음
         if(!StringUtils.hasText(accessToken)){
             throw new OAuthException(
-                    OAuthErrorCode.INVALID_GOOGLE_ID_TOKEN
+                    OAuthErrorCode.INVALID_KAKAO_ACCESS_TOKEN
             );
 
         }
@@ -71,6 +72,10 @@ public class KakaoOAuthClient {
                 );
             }
 
+            throw new OAuthException(
+                    OAuthErrorCode.KAKAO_USER_INFO_REQUEST_FAILED
+            );
+        }catch (HttpServerErrorException e){
             throw new OAuthException(
                     OAuthErrorCode.KAKAO_USER_INFO_REQUEST_FAILED
             );

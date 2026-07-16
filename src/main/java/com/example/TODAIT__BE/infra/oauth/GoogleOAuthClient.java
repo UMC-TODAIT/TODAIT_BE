@@ -35,11 +35,23 @@ public class GoogleOAuthClient {
     }
 
     public GoogleUserInfo verifyIdToken(String idTokenValue){
+        GoogleIdToken idToken;
+
         try{
-            GoogleIdToken idToken = verifier.verify(idTokenValue);
+            idToken = GoogleIdToken.parse(
+                    verifier.getJsonFactory(),
+                    idTokenValue
+            );
+        }catch (IOException | IllegalArgumentException e){
+            throw new OAuthException(
+                    OAuthErrorCode.INVALID_GOOGLE_ID_TOKEN
+            );
+        }
+
+        try{
 
             // 잘못된 토큰일 경우
-            if(idToken==null){
+            if(!verifier.verify(idToken)){
                 throw new OAuthException(
                         OAuthErrorCode.INVALID_GOOGLE_ID_TOKEN
                 );
@@ -50,7 +62,9 @@ public class GoogleOAuthClient {
             String providerUserId = payload.getSubject();
             String email = payload.getEmail();
 
-            if(!StringUtils.hasText(providerUserId)){
+            if(!StringUtils.hasText(providerUserId)
+                    || !StringUtils.hasText(email)
+                    || !Boolean.TRUE.equals(payload.getEmailVerified())){
                 throw new OAuthException(
                         OAuthErrorCode.INVALID_GOOGLE_ID_TOKEN
                 );
