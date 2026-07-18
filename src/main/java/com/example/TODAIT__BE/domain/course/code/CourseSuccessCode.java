@@ -11,6 +11,9 @@ public enum CourseSuccessCode implements BaseSuccessCode {
     COURSE_DRAFT_CREATE_OK(HttpStatus.CREATED,
             "COURSE201",
             "임시 코스 생성 성공"),
+    COURSE_SAVE_OK(HttpStatus.CREATED,
+            "COURSE201",
+            "코스 저장 성공"),
     ;
 
     private final HttpStatus status;
