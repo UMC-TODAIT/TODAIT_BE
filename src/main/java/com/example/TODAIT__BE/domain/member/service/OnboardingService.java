@@ -18,6 +18,8 @@ import com.example.TODAIT__BE.domain.member.repository.TermRepository;
 import com.example.TODAIT__BE.global.security.JwtTokenProvider;
 
 import lombok.RequiredArgsConstructor;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -82,15 +84,21 @@ public class OnboardingService {
 
         List<Term> activeTerms = termRepository.findAllByIsActiveTrue();
 
-        Set<TermType> activeTermTypes = new HashSet<>();
+        Map<TermType, Term> activeTermMap = new EnumMap<>(TermType.class);
 
         for (Term term : activeTerms) {
-            activeTermTypes.add(term.getTermType());
+            Term previous = activeTermMap.putIfAbsent(term.getTermType(), term);
+
+            if (previous != null) {
+                throw new IllegalStateException(
+                        "동일한 타입의 활성 약관이 여러 개 등록되어 있습니다."
+                );
+            }
         }
 
         // 프론트가 보낸 약관이 활성약관인지
         for (TermType requestedType : agreementMap.keySet()){
-            if(!activeTermTypes.contains(requestedType)){
+            if(!activeTermMap.containsKey(requestedType)){
                 throw new MemberException(
                         MemberErrorCode.INVALID_TERM
                 );
@@ -98,7 +106,7 @@ public class OnboardingService {
         }
 
         // 필수약관 동의 검사
-        for(Term term : activeTerms){
+        for(Term term : activeTermMap.values()){
             if(term.isRequired() && !Boolean.TRUE.equals(agreementMap.get(term.getTermType())
             )){
                 throw  new MemberException(MemberErrorCode.REQUIRED_TERM_NOT_AGREED);
@@ -107,26 +115,40 @@ public class OnboardingService {
 
         LocalDateTime now = LocalDateTime.now();
 
-        Member savedMember = memberRepository.save(
-                Member.builder()
-                        .email(email)
-                        .nickname(request.nickname())
-                        .build()
-        );
+        Member savedMember;
+        try {
+            savedMember = memberRepository.saveAndFlush(
+                    Member.builder()
+                            .email(email)
+                            .nickname(request.nickname())
+                            .build()
+            );
+        } catch (DataIntegrityViolationException exception) {
+            throw mapMemberIntegrityViolation(exception);
+        }
 
-        memberOAuthAccountRepository.save(
-                MemberOAuthAccount.builder()
-                        .member(savedMember)
-                        .provider(provider)
-                        .providerUserId(providerUserId)
-                        .providerEmail(email)
-                        .linkedAt(now)
-                        .build()
-        );
+        try {
+            memberOAuthAccountRepository.saveAndFlush(
+                    MemberOAuthAccount.builder()
+                            .member(savedMember)
+                            .provider(provider)
+                            .providerUserId(providerUserId)
+                            .providerEmail(email)
+                            .linkedAt(now)
+                            .build()
+            );
+        } catch (DataIntegrityViolationException exception) {
+            if (hasConstraint(exception, "uk_member_oauth_provider_user")) {
+                throw new MemberException(
+                        MemberErrorCode.ALREADY_REGISTERED_OAUTH_ACCOUNT
+                );
+            }
+            throw exception;
+        }
 
         List<MemberTermAgreement> agreements = new ArrayList<>();
 
-        for (Term term : activeTerms) {
+        for (Term term : activeTermMap.values()) {
             if (Boolean.TRUE.equals(
                     agreementMap.get(term.getTermType())
             )) {
@@ -144,5 +166,40 @@ public class OnboardingService {
         memberTermAgreementRepository.saveAll(agreements);
 
         return  authService.issueTokens(savedMember);
+    }
+
+    private RuntimeException mapMemberIntegrityViolation(
+            DataIntegrityViolationException exception
+    ) {
+        if (hasConstraint(exception, "uk_member_nickname")) {
+            return new MemberException(
+                    MemberErrorCode.ALREADY_REGISTERED_NICKNAME
+            );
+        }
+        if (hasConstraint(exception, "uk_member_email")) {
+            return new MemberException(
+                    MemberErrorCode.ALREADY_REGISTERED_EMAIL
+            );
+        }
+        return exception;
+    }
+
+    private boolean hasConstraint(
+            DataIntegrityViolationException exception,
+            String expectedConstraint
+    ) {
+        Throwable cause = exception;
+
+        while (cause != null) {
+            if (cause instanceof ConstraintViolationException violation
+                    && expectedConstraint.equalsIgnoreCase(
+                    violation.getConstraintName()
+            )) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+
+        return false;
     }
 }

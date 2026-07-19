@@ -16,13 +16,19 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Table(
         name = "term",
-        uniqueConstraints = @UniqueConstraint(
-                name = "uk_term_type_version",
-                columnNames = {
-                        "term_type",
-                        "version"
-                }
-        )
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_term_type_version",
+                        columnNames = {
+                                "term_type",
+                                "version"
+                        }
+                ),
+                @UniqueConstraint(
+                        name = "uk_term_active_type",
+                        columnNames = "active_term_type"
+                )
+        }
 )
 public class Term extends BaseEntity {
 
@@ -48,5 +54,14 @@ public class Term extends BaseEntity {
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
+
+    @Column(
+            name = "active_term_type",
+            insertable = false,
+            updatable = false,
+            columnDefinition = "VARCHAR(50) GENERATED ALWAYS AS "
+                    + "(CASE WHEN is_active THEN term_type ELSE NULL END) STORED"
+    )
+    private String activeTermType;
 
 }

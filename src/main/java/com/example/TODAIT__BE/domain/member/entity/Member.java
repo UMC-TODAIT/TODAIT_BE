@@ -16,20 +16,32 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name="member")
+@Table(
+        name = "member",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_member_email",
+                        columnNames = "email"
+                ),
+                @UniqueConstraint(
+                        name = "uk_member_nickname",
+                        columnNames = "nickname"
+                )
+        }
+)
 public class Member extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "email", unique = true)
+    @Column(name = "email")
     private String email;
 
     @Column(name = "password_hash")
     private String passwordHash;
 
-    @Column(name = "nickname", nullable = false, unique = true)
+    @Column(name = "nickname", nullable = false)
     private String nickname;
 
     @Column(name = "profile_image_url")
