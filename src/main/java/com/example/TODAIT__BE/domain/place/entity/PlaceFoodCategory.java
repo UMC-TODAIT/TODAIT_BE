@@ -1,6 +1,7 @@
 package com.example.TODAIT__BE.domain.place.entity;
 
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
+import com.example.TODAIT__BE.global.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -11,7 +12,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PlaceFoodCategory {
+public class PlaceFoodCategory extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,7 +43,4 @@ public class PlaceFoodCategory {
 
     @Column(name = "is_primary", nullable = false, comment = "대표 음식 카테고리 여부")
     private Boolean isPrimary = false;
-
-    @Column(name = "created_at", comment = "생성 시각")
-    private LocalDateTime createdAt;
 }
