@@ -4,6 +4,7 @@ import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.place.entity.Place;
+import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.global.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,6 +41,10 @@ public class Course extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "base_place_id", nullable = false)
     private Place basePlace;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "area_id", nullable = false)
+    private Area area;
 
     @Column(nullable = false)
     private String title;

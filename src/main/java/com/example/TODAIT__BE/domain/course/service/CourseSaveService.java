@@ -60,7 +60,7 @@ public class CourseSaveService {
 
     @Transactional
     public CourseSaveResponse saveCourse(Long courseDraftId, Long memberId, CourseSaveRequest request) {
-        CourseDraft courseDraft = courseDraftRepository.findById(courseDraftId)
+        CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
                 .orElseThrow(() -> new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
 
         if (!courseDraft.getMember().getId().equals(memberId)) {
@@ -85,10 +85,13 @@ public class CourseSaveService {
         }
 
         List<CourseDraftPlace> draftPlaces = validateAndGetDraftPlaces(courseDraft);
+        CourseDraftPlace baseDraftPlace = getBaseDraftPlace(courseDraft, draftPlaces);
+        Place basePlace = baseDraftPlace.getPlace();
 
         Course course = courseRepository.save(Course.builder()
                 .member(courseDraft.getMember())
-                .basePlace(courseDraft.getBasePlace())
+                .basePlace(basePlace)
+                .area(basePlace.getArea())
                 .title(title)
                 .memo(request.memo())
                 .visibility(CourseVisibility.PRIVATE)
@@ -130,12 +133,7 @@ public class CourseSaveService {
         List<CourseDraftPlace> draftPlaces =
                 courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(courseDraft);
 
-        List<CourseDraftPlace> basePlaces = draftPlaces.stream()
-                .filter(draftPlace -> draftPlace.getPlaceRole() == PlaceRole.BASE)
-                .toList();
-        if (basePlaces.size() != 1 || !basePlaces.get(0).getVisitOrder().equals(1)) {
-            throw new CourseException(CourseErrorCode.INVALID_BASE_PLACE);
-        }
+        getBaseDraftPlace(courseDraft, draftPlaces);
 
         Set<Long> placeIds = new HashSet<>();
         for (CourseDraftPlace draftPlace : draftPlaces) {
@@ -148,6 +146,10 @@ public class CourseSaveService {
                 .filter(draftPlace -> draftPlace.getPlaceRole() == PlaceRole.SELECTED)
                 .sorted(Comparator.comparing(CourseDraftPlace::getVisitOrder))
                 .toList();
+        if (selectedPlaces.isEmpty()) {
+            throw new CourseException(CourseErrorCode.INVALID_SELECTED_PLACE);
+        }
+
         for (int i = 0; i < selectedPlaces.size(); i++) {
             int expectedOrder = SELECTED_PLACE_START_ORDER + i;
             if (!selectedPlaces.get(i).getVisitOrder().equals(expectedOrder)) {
@@ -156,6 +158,24 @@ public class CourseSaveService {
         }
 
         return draftPlaces;
+    }
+
+    private CourseDraftPlace getBaseDraftPlace(CourseDraft courseDraft, List<CourseDraftPlace> draftPlaces) {
+        List<CourseDraftPlace> basePlaces = draftPlaces.stream()
+                .filter(draftPlace -> draftPlace.getPlaceRole() == PlaceRole.BASE)
+                .toList();
+        if (basePlaces.size() != 1 || !basePlaces.get(0).getVisitOrder().equals(1)) {
+            throw new CourseException(CourseErrorCode.INVALID_BASE_PLACE);
+        }
+
+        CourseDraftPlace baseDraftPlace = basePlaces.get(0);
+        if (courseDraft.getBasePlace() == null
+                || baseDraftPlace.getPlace() == null
+                || !baseDraftPlace.getPlace().getId().equals(courseDraft.getBasePlace().getId())) {
+            throw new CourseException(CourseErrorCode.INVALID_BASE_PLACE);
+        }
+
+        return baseDraftPlace;
     }
 
     private List<CourseMoodTagResponse> saveCourseMoodTags(Course course, List<MoodTag> moodTags) {

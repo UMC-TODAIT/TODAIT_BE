@@ -12,7 +12,7 @@ public enum CourseSuccessCode implements BaseSuccessCode {
             "COURSE201",
             "임시 코스 생성 성공"),
     COURSE_SAVE_OK(HttpStatus.CREATED,
-            "COURSE201",
+            "COURSE_SAVE201",
             "코스 저장 성공"),
     ;
 

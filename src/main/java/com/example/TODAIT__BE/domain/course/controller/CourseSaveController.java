@@ -9,6 +9,7 @@ import com.example.TODAIT__BE.global.security.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,12 +27,14 @@ public class CourseSaveController {
 
     @PostMapping("/{courseDraftId}/courses")
     @Operation(summary = "코스 저장", description = "임시 코스를 최종 코스로 확정하여 저장합니다.")
-    public ApiResponse<CourseSaveResponse> saveCourse(
+    public ResponseEntity<ApiResponse<CourseSaveResponse>> saveCourse(
             @PathVariable Long courseDraftId,
             @AuthenticationPrincipal AuthMember authMember,
             @RequestBody CourseSaveRequest request
     ) {
         CourseSaveResponse result = courseSaveService.saveCourse(courseDraftId, authMember.memberId(), request);
-        return ApiResponse.onSuccess(CourseSuccessCode.COURSE_SAVE_OK, result);
+        return ResponseEntity
+                .status(CourseSuccessCode.COURSE_SAVE_OK.getStatus())
+                .body(ApiResponse.onSuccess(CourseSuccessCode.COURSE_SAVE_OK, result));
     }
 }
