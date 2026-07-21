@@ -53,4 +53,8 @@ public class CourseDraft extends BaseEntity {
 
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
+
+    public void changeStatus(CourseDraftStatus status) {
+        this.status = status;
+    }
 }
