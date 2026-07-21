@@ -45,7 +45,7 @@ public class OAuthController {
     ) {
         OAuthLoginResponse.OAuthLogin response = oAuthService.loginWithKakao(request.accessToken());
 
-        return ResponseEntity.ok(ApiResponse.onSuccess(GeneralSuccessCode.OK, response));
+        return ApiResponse.onSuccessResponse(GeneralSuccessCode.OK, response);
     }
 
 
@@ -63,12 +63,6 @@ public class OAuthController {
     ){
         OAuthLoginResponse.OAuthLogin response = oAuthService.loginWithGoogle(request.idToken());
 
-        return ResponseEntity.ok(
-                ApiResponse.onSuccess(
-                    GeneralSuccessCode.OK,
-                    response
-                )
-
-        );
+        return ApiResponse.onSuccessResponse(GeneralSuccessCode.OK, response);
     }
 }
