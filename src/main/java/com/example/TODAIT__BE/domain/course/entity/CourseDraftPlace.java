@@ -10,16 +10,28 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "course_draft_place")
+@Table(
+        name = "course_draft_place",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_course_draft_place_draft_visit_order",
+                columnNames = {"course_draft_id", "visit_order"}
+        ),
+        indexes = @Index(
+                name = "idx_course_draft_place_draft_visit_order",
+                columnList = "course_draft_id, visit_order"
+        )
+)
 @Getter
 @Builder
 @AllArgsConstructor

@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,13 +28,15 @@ public class CourseDraftPlaceController {
 
     @PatchMapping("/{courseDraftId}/places/order")
     @Operation(summary = "선택 장소 순서 변경", description = "임시 코스에 담긴 선택 장소들의 방문 순서를 일괄 변경합니다.")
-    public ApiResponse<PlaceOrderUpdateResponse> updatePlaceOrder(
+    public ResponseEntity<ApiResponse<PlaceOrderUpdateResponse>> updatePlaceOrder(
             @PathVariable Long courseDraftId,
             @AuthenticationPrincipal AuthMember authMember,
             @Valid @RequestBody PlaceOrderUpdateRequest request
     ) {
         PlaceOrderUpdateResponse result =
                 courseDraftPlaceService.updatePlaceOrder(courseDraftId, authMember.memberId(), request);
-        return ApiResponse.onSuccess(CourseSuccessCode.PLACE_ORDER_UPDATE_OK, result);
+        return ResponseEntity
+                .status(CourseSuccessCode.PLACE_ORDER_UPDATE_OK.getStatus())
+                .body(ApiResponse.onSuccess(CourseSuccessCode.PLACE_ORDER_UPDATE_OK, result));
     }
 }

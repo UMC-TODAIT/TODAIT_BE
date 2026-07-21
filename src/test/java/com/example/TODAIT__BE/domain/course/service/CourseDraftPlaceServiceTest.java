@@ -8,6 +8,7 @@ import com.example.TODAIT__BE.domain.course.dto.request.PlaceOrderUpdateRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.PlaceOrderUpdateRequest.PlaceOrderItem;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
+import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
@@ -15,6 +16,7 @@ import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepositor
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.place.entity.Place;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +45,12 @@ class CourseDraftPlaceServiceTest {
     }
 
     private CourseDraft courseDraft(Long id, Member owner) {
-        return CourseDraft.builder().id(id).member(owner).build();
+        return CourseDraft.builder()
+                .id(id)
+                .member(owner)
+                .status(CourseDraftStatus.ORDERING)
+                .expiresAt(LocalDateTime.now().plusHours(1))
+                .build();
     }
 
     private CourseDraftPlace draftPlace(Long id, PlaceRole role, int visitOrder) {
@@ -102,6 +109,42 @@ class CourseDraftPlaceServiceTest {
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseErrorCode.BASE_PLACE_NOT_REORDERABLE);
+    }
+
+    @Test
+    void throwsWhenDraftIsCompleted() {
+        CourseDraft draft = CourseDraft.builder()
+                .id(10L)
+                .member(member(1L))
+                .status(CourseDraftStatus.COMPLETED)
+                .expiresAt(LocalDateTime.now().plusHours(1))
+                .build();
+        given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
+
+        PlaceOrderUpdateRequest request = new PlaceOrderUpdateRequest(List.of(new PlaceOrderItem(101L, 2)));
+
+        assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 1L, request))
+                .isInstanceOf(CourseException.class)
+                .extracting("errorCode")
+                .isEqualTo(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
+    }
+
+    @Test
+    void throwsWhenDraftIsExpired() {
+        CourseDraft draft = CourseDraft.builder()
+                .id(10L)
+                .member(member(1L))
+                .status(CourseDraftStatus.ORDERING)
+                .expiresAt(LocalDateTime.now().minusHours(1))
+                .build();
+        given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
+
+        PlaceOrderUpdateRequest request = new PlaceOrderUpdateRequest(List.of(new PlaceOrderItem(101L, 2)));
+
+        assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 1L, request))
+                .isInstanceOf(CourseException.class)
+                .extracting("errorCode")
+                .isEqualTo(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
     }
 
     @Test
