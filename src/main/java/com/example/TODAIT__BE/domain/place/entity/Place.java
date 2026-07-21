@@ -5,6 +5,7 @@ import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
+import com.example.TODAIT__BE.global.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -29,7 +30,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "place")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Place {
+public class Place extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

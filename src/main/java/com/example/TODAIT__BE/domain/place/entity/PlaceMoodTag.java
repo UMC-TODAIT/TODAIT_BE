@@ -2,6 +2,7 @@ package com.example.TODAIT__BE.domain.place.entity;
 
 import com.example.TODAIT__BE.domain.place.enums.PlaceTagSource;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
+import com.example.TODAIT__BE.global.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,7 +16,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,7 +30,7 @@ import lombok.NoArgsConstructor;
 )
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PlaceMoodTag {
+public class PlaceMoodTag extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,7 +54,4 @@ public class PlaceMoodTag {
 
     @Column(name = "is_confirmed", nullable = false, comment = "검수 확정 여부")
     private Boolean isConfirmed = true;
-
-    @Column(name = "created_at", comment = "생성 시각")
-    private LocalDateTime createdAt;
 }

@@ -29,14 +29,13 @@ public class AuthService {
 
     @Transactional
     public AuthTokenResponse.Token issueTokens(Member member){
-        LocalDateTime loginAt = LocalDateTime.now();
 
         Member managedMember = memberRepository.findByIdForUpdate(member.getId())
                 .orElseThrow(() -> new IllegalStateException("토큰 발급 대상 회원을 찾을 수 없습니다."));
 
         LocalDateTime issuedAt = LocalDateTime.now();
 
-        managedMember.updateLastLoginAt(loginAt);
+        managedMember.updateLastLoginAt(issuedAt);
 
         String accessToken = jwtTokenProvider.createAccessToken(managedMember);
         String refreshToken = jwtTokenProvider.createRefreshToken(managedMember);

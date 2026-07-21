@@ -1,5 +1,6 @@
 package com.example.TODAIT__BE.domain.taxonomy.entity;
 
+import com.example.TODAIT__BE.global.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "place_category")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PlaceCategory {
+public class PlaceCategory extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
