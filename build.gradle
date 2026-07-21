@@ -13,6 +13,12 @@ java {
 	}
 }
 
+dependencyManagement {
+	imports {
+		mavenBom 'com.fasterxml.jackson:jackson-bom:2.22.1'
+	}
+}
+
 repositories {
 	mavenCentral()
 }
@@ -36,9 +42,9 @@ dependencies {
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.2'
 
 	//Jwt
-	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
-	implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
-	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+	implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+	implementation 'io.jsonwebtoken:jjwt-impl:0.13.0'
+	implementation 'io.jsonwebtoken:jjwt-jackson:0.13.0'
 	implementation 'org.springframework.boot:spring-boot-configuration-processor'
 
 	// OAuth
