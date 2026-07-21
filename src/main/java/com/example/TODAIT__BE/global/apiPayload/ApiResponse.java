@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.http.ResponseEntity;
 
 @Getter
 @AllArgsConstructor
@@ -27,6 +28,10 @@ public class ApiResponse<T> {
 
     public static <T> ApiResponse<T> onSuccess(BaseSuccessCode code, T result){
         return  new ApiResponse<>(true, code.getCode(), code.getMessage(), result);
+    }
+    public static <T> ResponseEntity<ApiResponse<T>> onSuccessResponse(BaseSuccessCode code, T result){
+        return ResponseEntity.status(code.getStatus())
+                .body(onSuccess(code, result));
     }
     public static <T> ApiResponse<T> onFailure(BaseErrorCode code, T result){
         return new ApiResponse<>(false, code.getCode(), code.getMessage(), result);
