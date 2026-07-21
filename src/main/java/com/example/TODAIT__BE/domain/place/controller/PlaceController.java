@@ -7,6 +7,7 @@ import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,10 +23,10 @@ public class PlaceController {
 
     @GetMapping("/search")
     @Operation(summary = "장소명 검색", description = "keyword를 기준으로 노출 가능한 장소를 검색합니다.")
-    public ApiResponse<PlaceSearchResponse> searchPlaces(
+    public ResponseEntity<ApiResponse<PlaceSearchResponse>> searchPlaces(
             @RequestParam(required = false) String keyword
     ) {
         PlaceSearchResponse result = placeService.searchPlaces(keyword);
-        return ApiResponse.onSuccess(PlaceSuccessCode.PLACE_SEARCH_OK, result);
+        return ApiResponse.onSuccessResponse(PlaceSuccessCode.PLACE_SEARCH_OK, result);
     }
 }

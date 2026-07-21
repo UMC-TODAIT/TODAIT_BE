@@ -7,6 +7,7 @@ import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,8 +22,8 @@ public class PlaceCategoryController {
 
     @GetMapping
     @Operation(summary = "장소 카테고리 목록 조회", description = "활성화된 장소 대분류(카페/식당/액티비티/바) 목록을 조회합니다.")
-    public ApiResponse<PlaceCategoryListResponse> getPlaceCategories() {
+    public ResponseEntity<ApiResponse<PlaceCategoryListResponse>> getPlaceCategories() {
         PlaceCategoryListResponse result = placeCategoryService.getPlaceCategories();
-        return ApiResponse.onSuccess(TaxonomySuccessCode.PLACE_CATEGORY_LIST_OK, result);
+        return ApiResponse.onSuccessResponse(TaxonomySuccessCode.PLACE_CATEGORY_LIST_OK, result);
     }
 }
