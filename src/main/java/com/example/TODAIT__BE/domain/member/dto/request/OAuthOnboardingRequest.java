@@ -1,6 +1,5 @@
 package com.example.TODAIT__BE.domain.member.dto.request;
 
-import com.example.TODAIT__BE.domain.member.enums.TermType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
@@ -18,14 +17,7 @@ public class OAuthOnboardingRequest {
             String nickname,
 
             @NotEmpty
-            List<@Valid TermAgreement> termAgreements
-    ){}
-
-    public record TermAgreement(
-            @NotNull
-            TermType termType,
-            @NotNull
-            Boolean agreed
+            List<@Valid TermAgreementRequest> termAgreements
     ){}
 
 }
