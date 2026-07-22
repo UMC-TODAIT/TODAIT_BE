@@ -110,5 +110,6 @@ jobs:
             --retry 20 \
             --retry-delay 3 \
             --retry-connrefused \
+            --retry-all-errors \
             http://127.0.0.1:8080/v3/api-docs > /dev/null
           REMOTE
