@@ -1,0 +1,34 @@
+services:
+  redis:
+    image: redis:7
+    container_name: todait-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: todait-be
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DB_URL: ${DB_URL:?set DB_URL in .env}
+      DB_USER: ${DB_USER:?set DB_USER in .env}
+      DB_PW: ${DB_PW:?set DB_PW in .env}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+    ports:
+      - "8080:8080"
+
+volumes:
+  redis-data:
