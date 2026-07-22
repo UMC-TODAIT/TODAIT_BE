@@ -4,14 +4,16 @@ services:
     container_name: todait-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root1234
-      MYSQL_DATABASE: todait
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: ${DB_NAME:-todait}
+      MYSQL_USER: ${DB_USER:?set DB_USER in .env}
+      MYSQL_PASSWORD: ${DB_PW:?set DB_PW in .env}
     ports:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-uroot", "-proot1234"]
+      test: ["CMD", "mysqladmin", "ping", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -40,9 +42,7 @@ services:
     env_file:
       - .env
     environment:
-      DB_URL: jdbc:mysql://mysql:3306/todait
-      DB_USER: root
-      DB_PW: root1234
+      DB_URL: jdbc:mysql://mysql:3306/${DB_NAME:-todait}
       REDIS_HOST: redis
       REDIS_PORT: 6379
     ports:
