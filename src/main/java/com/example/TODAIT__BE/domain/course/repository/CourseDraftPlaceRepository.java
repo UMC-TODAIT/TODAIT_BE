@@ -1,4 +1,11 @@
 package com.example.TODAIT__BE.domain.course.repository;
 
-public interface CourseDraftPlaceRepository {
+import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
+import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface CourseDraftPlaceRepository extends JpaRepository<CourseDraftPlace, Long> {
+
+    List<CourseDraftPlace> findByCourseDraftOrderByVisitOrderAsc(CourseDraft courseDraft);
 }
