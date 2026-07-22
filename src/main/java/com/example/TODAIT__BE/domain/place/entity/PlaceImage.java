@@ -1,6 +1,7 @@
 package com.example.TODAIT__BE.domain.place.entity;
 
 import com.example.TODAIT__BE.domain.place.enums.PlaceImageType;
+import com.example.TODAIT__BE.global.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,7 +13,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "place_image")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PlaceImage {
+public class PlaceImage extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,7 +47,4 @@ public class PlaceImage {
 
     @Column(name = "is_primary", nullable = false, comment = "대표 이미지 여부")
     private Boolean isPrimary = false;
-
-    @Column(name = "created_at", comment = "생성 시각")
-    private LocalDateTime createdAt;
 }

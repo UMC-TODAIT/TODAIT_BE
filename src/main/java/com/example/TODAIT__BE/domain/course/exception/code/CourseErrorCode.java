@@ -18,6 +18,8 @@ public enum CourseErrorCode implements BaseErrorCode {
     FOOD_CATEGORY_NOT_SELECTED(HttpStatus.BAD_REQUEST, "COURSE_FOOD400", "임시 코스에 선택된 음식 카테고리가 없습니다."),
     INVALID_BASE_PLACE(HttpStatus.BAD_REQUEST, "COURSE_BASE400", "기준 장소가 정확히 1개 설정되어야 합니다."),
     INVALID_SELECTED_PLACE(HttpStatus.BAD_REQUEST, "COURSE_PLACE400", "선택 장소 구성이 올바르지 않습니다."),
+    INVALID_COURSE_DRAFT_STATUS(HttpStatus.BAD_REQUEST, "COURSE_DRAFT400", "수정할 수 없는 임시 코스 상태입니다."),
+    SELECTED_PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "COURSE_PLACE404", "임시 코스에 속하지 않은 선택 장소가 포함되어 있습니다."),
     INVALID_VISIT_ORDER(HttpStatus.BAD_REQUEST, "COURSE_ORDER400", "방문 순서가 올바르지 않습니다."),
     ;
 

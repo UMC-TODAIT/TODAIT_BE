@@ -19,7 +19,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "course_draft_place")
+@Table(
+        name = "course_draft_place",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_course_draft_place_draft_visit_order",
+                columnNames = {"course_draft_id", "visit_order"}
+        ),
+        indexes = @Index(
+                name = "idx_course_draft_place_draft_visit_order",
+                columnList = "course_draft_id, visit_order"
+        )
+)
 @Getter
 @Builder
 @AllArgsConstructor
@@ -47,4 +57,8 @@ public class CourseDraftPlace {
 
     @Column
     private String memo;
+
+    public void updateVisitOrder(Integer visitOrder) {
+        this.visitOrder = visitOrder;
+    }
 }
