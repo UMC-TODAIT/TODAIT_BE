@@ -1,6 +1,7 @@
 package com.example.TODAIT__BE.domain.member.controller;
 
 import com.example.TODAIT__BE.domain.member.code.EmailVerificationSuccessCode;
+import com.example.TODAIT__BE.domain.member.controller.docs.EmailVerificationControllerDocs;
 import com.example.TODAIT__BE.domain.member.dto.request.EmailVerificationSendRequest;
 import com.example.TODAIT__BE.domain.member.dto.request.EmailVerificationVerifyRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationSendResponse;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth/email")
-public class EmailVerificationController {
+public class EmailVerificationController implements EmailVerificationControllerDocs {
 
     private final EmailVerificationService emailVerificationService;
 
@@ -24,6 +25,7 @@ public class EmailVerificationController {
     }
 
     @PostMapping("/send-code")
+    @Override
     public ApiResponse<EmailVerificationSendResponse> sendVerificationCode(
             @Valid @RequestBody EmailVerificationSendRequest request
     ) {
@@ -32,6 +34,7 @@ public class EmailVerificationController {
     }
 
     @PostMapping("/verify-code")
+    @Override
     public ApiResponse<EmailVerificationVerifyResponse> verifyCode(
             @Valid @RequestBody EmailVerificationVerifyRequest request
     ) {

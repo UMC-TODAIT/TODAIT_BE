@@ -11,6 +11,9 @@ public enum CourseSuccessCode implements BaseSuccessCode {
     COURSE_DRAFT_CREATE_OK(HttpStatus.CREATED,
             "COURSE201",
             "임시 코스 생성 성공"),
+    PLACE_ORDER_UPDATE_OK(HttpStatus.OK,
+            "COURSE200",
+            "코스 장소 순서 변경 성공"),
     ;
 
     private final HttpStatus status;
