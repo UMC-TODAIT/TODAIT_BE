@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -50,7 +51,7 @@ public class OnboardingService {
 
         String providerUserId = jwtTokenProvider.getSubject(onboardingToken);
         OAuthProvider provider = jwtTokenProvider.getOAuthProvider(onboardingToken);
-        String email = jwtTokenProvider.getEmail(onboardingToken);
+        String email = normalizeEmail(jwtTokenProvider.getEmail(onboardingToken));
 
 
         if(memberRepository.existsByNickname(request.nickname())){
@@ -122,5 +123,11 @@ public class OnboardingService {
         memberTermAgreementRepository.saveAll(agreements);
 
         return  authService.issueTokens(savedMember);
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null
+                ? null
+                : email.trim().toLowerCase(Locale.ROOT);
     }
 }
