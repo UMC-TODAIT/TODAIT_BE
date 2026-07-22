@@ -9,7 +9,8 @@ services:
       MYSQL_USER: ${DB_USER:?set DB_USER in .env}
       MYSQL_PASSWORD: ${DB_PW:?set DB_PW in .env}
     ports:
-      - "3306:3306"
+      # 로컬 개발용: 호스트의 loopback 인터페이스에만 노출 (외부 노출 방지)
+      - "127.0.0.1:3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
@@ -23,7 +24,8 @@ services:
     container_name: todait-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      # 로컬 개발용: 호스트의 loopback 인터페이스에만 노출 (외부 노출 방지)
+      - "127.0.0.1:6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
