@@ -19,7 +19,11 @@ public enum CourseSuccessCode implements BaseSuccessCode {
     FOOD_CATEGORY_SAVE_OK(HttpStatus.OK,
             "COURSE200_2",
             "음식 카테고리 저장 성공"),
-  
+
+    COURSE_SAVE_OK(HttpStatus.CREATED,
+            "COURSE_SAVE201",
+            "코스 저장 성공"),
+
     PLACE_ORDER_UPDATE_OK(HttpStatus.OK,
             "COURSE200",
             "코스 장소 순서 변경 성공"),

@@ -1,4 +1,7 @@
 package com.example.TODAIT__BE.domain.course.repository;
 
-public interface CourseFoodCategoryRepository {
+import com.example.TODAIT__BE.domain.course.entity.CourseFoodCategory;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface CourseFoodCategoryRepository extends JpaRepository<CourseFoodCategory, Long> {
 }
