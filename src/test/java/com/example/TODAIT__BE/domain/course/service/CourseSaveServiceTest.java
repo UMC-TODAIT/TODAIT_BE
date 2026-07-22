@@ -88,15 +88,10 @@ class CourseSaveServiceTest {
     }
 
     private CourseDraft courseDraft(Long id, Member owner, CourseDraftStatus status) {
-        return courseDraft(id, owner, status, null);
-    }
-
-    private CourseDraft courseDraft(Long id, Member owner, CourseDraftStatus status, Place basePlace) {
         return CourseDraft.builder()
                 .id(id)
                 .member(owner)
                 .status(status)
-                .basePlace(basePlace)
                 .expiresAt(LocalDateTime.now().plusHours(1))
                 .build();
     }
@@ -252,7 +247,7 @@ class CourseSaveServiceTest {
         Place basePlace = mock(Place.class);
         given(basePlace.getId()).willReturn(100L);
 
-        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING, basePlace);
+        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         MoodTag moodTag = mock(MoodTag.class);
@@ -306,7 +301,7 @@ class CourseSaveServiceTest {
         given(selectedPlace.getLongitude()).willReturn(127.2);
         given(selectedPlace.getPlaceCategory()).willReturn(placeCategory);
 
-        CourseDraft draft = courseDraft(10L, owner, CourseDraftStatus.ORDERING, basePlace);
+        CourseDraft draft = courseDraft(10L, owner, CourseDraftStatus.ORDERING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         MoodTag moodTag = mock(MoodTag.class);
