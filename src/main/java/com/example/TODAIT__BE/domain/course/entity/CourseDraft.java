@@ -2,7 +2,6 @@ package com.example.TODAIT__BE.domain.course.entity;
 
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.member.entity.Member;
-import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.global.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,10 +39,6 @@ public class CourseDraft extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CourseDraftStatus status;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "base_place_id")
-    private Place basePlace;
 
     @Column(name = "user_latitude")
     private Double userLatitude;

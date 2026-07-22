@@ -83,8 +83,9 @@ public class CourseSaveService {
             throw new CourseException(CourseErrorCode.FOOD_CATEGORY_NOT_SELECTED);
         }
 
-        List<CourseDraftPlace> draftPlaces = validateAndGetDraftPlaces(courseDraft);
-        CourseDraftPlace baseDraftPlace = getBaseDraftPlace(courseDraft, draftPlaces);
+        ValidatedDraftPlaces validatedDraftPlaces = validateAndGetDraftPlaces(courseDraft);
+        List<CourseDraftPlace> draftPlaces = validatedDraftPlaces.draftPlaces();
+        CourseDraftPlace baseDraftPlace = validatedDraftPlaces.baseDraftPlace();
         Place basePlace = baseDraftPlace.getPlace();
 
         Course course = courseRepository.save(Course.builder()
@@ -138,11 +139,11 @@ public class CourseSaveService {
         }
     }
 
-    private List<CourseDraftPlace> validateAndGetDraftPlaces(CourseDraft courseDraft) {
+    private ValidatedDraftPlaces validateAndGetDraftPlaces(CourseDraft courseDraft) {
         List<CourseDraftPlace> draftPlaces =
                 courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(courseDraft);
 
-        getBaseDraftPlace(courseDraft, draftPlaces);
+        CourseDraftPlace baseDraftPlace = getBaseDraftPlace(draftPlaces);
 
         Set<Long> placeIds = new HashSet<>();
         for (CourseDraftPlace draftPlace : draftPlaces) {
@@ -166,10 +167,16 @@ public class CourseSaveService {
             }
         }
 
-        return draftPlaces;
+        return new ValidatedDraftPlaces(draftPlaces, baseDraftPlace);
     }
 
-    private CourseDraftPlace getBaseDraftPlace(CourseDraft courseDraft, List<CourseDraftPlace> draftPlaces) {
+    private record ValidatedDraftPlaces(
+            List<CourseDraftPlace> draftPlaces,
+            CourseDraftPlace baseDraftPlace
+    ) {
+    }
+
+    private CourseDraftPlace getBaseDraftPlace(List<CourseDraftPlace> draftPlaces) {
         List<CourseDraftPlace> basePlaces = draftPlaces.stream()
                 .filter(draftPlace -> draftPlace.getPlaceRole() == PlaceRole.BASE)
                 .toList();
@@ -178,9 +185,7 @@ public class CourseSaveService {
         }
 
         CourseDraftPlace baseDraftPlace = basePlaces.get(0);
-        if (courseDraft.getBasePlace() == null
-                || baseDraftPlace.getPlace() == null
-                || !baseDraftPlace.getPlace().getId().equals(courseDraft.getBasePlace().getId())) {
+        if (baseDraftPlace.getPlace() == null) {
             throw new CourseException(CourseErrorCode.INVALID_BASE_PLACE);
         }
 
