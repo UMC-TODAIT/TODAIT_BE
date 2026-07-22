@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -46,6 +48,7 @@ jobs:
       EC2_HOST: ${{ vars.EC2_HOST }}
       EC2_USER: ${{ vars.EC2_USER }}
       EC2_PORT: ${{ vars.EC2_PORT }}
+      EC2_KNOWN_HOSTS: ${{ vars.EC2_KNOWN_HOSTS }}
       EC2_SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
 
     steps:
@@ -55,6 +58,7 @@ jobs:
           test -n "$EC2_HOST"
           test -n "$EC2_USER"
           test -n "$EC2_PORT"
+          test -n "$EC2_KNOWN_HOSTS"
           test -n "$EC2_SSH_PRIVATE_KEY"
 
       - name: Configure SSH
@@ -63,7 +67,7 @@ jobs:
           install -m 700 -d ~/.ssh
           printf '%s\n' "$EC2_SSH_PRIVATE_KEY" > ~/.ssh/todait.pem
           chmod 600 ~/.ssh/todait.pem
-          ssh-keyscan -p "$EC2_PORT" -H "$EC2_HOST" >> ~/.ssh/known_hosts
+          printf '%s\n' "$EC2_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
       - name: Deploy to EC2
