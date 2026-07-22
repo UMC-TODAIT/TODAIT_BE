@@ -29,6 +29,7 @@ import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.example.TODAIT__BE.domain.taxonomy.repository.MoodTagRepository;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -67,9 +68,7 @@ public class CourseSaveService {
             throw new CourseException(CourseErrorCode.NOT_COURSE_DRAFT_OWNER);
         }
 
-        if (courseDraft.getStatus() == CourseDraftStatus.COMPLETED) {
-            throw new CourseException(CourseErrorCode.COURSE_DRAFT_ALREADY_COMPLETED);
-        }
+        validateSavableDraft(courseDraft);
 
         String title = request.title();
         if (title == null || title.isBlank()) {
@@ -127,6 +126,16 @@ public class CourseSaveService {
         return moodTagIds.stream()
                 .map(moodTagsById::get)
                 .toList();
+    }
+
+    private void validateSavableDraft(CourseDraft courseDraft) {
+        if (courseDraft.getStatus() == CourseDraftStatus.COMPLETED) {
+            throw new CourseException(CourseErrorCode.COURSE_DRAFT_ALREADY_COMPLETED);
+        }
+        if (courseDraft.getStatus() == CourseDraftStatus.ABANDONED
+                || courseDraft.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new CourseException(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
+        }
     }
 
     private List<CourseDraftPlace> validateAndGetDraftPlaces(CourseDraft courseDraft) {

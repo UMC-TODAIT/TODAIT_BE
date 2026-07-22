@@ -36,6 +36,7 @@ import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import com.example.TODAIT__BE.domain.taxonomy.repository.MoodTagRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -96,6 +97,7 @@ class CourseSaveServiceTest {
                 .member(owner)
                 .status(status)
                 .basePlace(basePlace)
+                .expiresAt(LocalDateTime.now().plusHours(1))
                 .build();
     }
 
@@ -130,6 +132,56 @@ class CourseSaveServiceTest {
     }
 
     @Test
+    void throwsWhenCourseDraftAbandoned() {
+        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ABANDONED);
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+
+        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L));
+
+        assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
+                .isInstanceOf(CourseException.class)
+                .extracting("errorCode")
+                .isEqualTo(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
+
+        verify(courseRepository, never()).save(any());
+    }
+
+    @Test
+    void throwsWhenCourseDraftExpired() {
+        CourseDraft draft = CourseDraft.builder()
+                .id(10L)
+                .member(member(1L))
+                .status(CourseDraftStatus.ORDERING)
+                .expiresAt(LocalDateTime.now().minusHours(1))
+                .build();
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+
+        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L));
+
+        assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
+                .isInstanceOf(CourseException.class)
+                .extracting("errorCode")
+                .isEqualTo(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
+
+        verify(courseRepository, never()).save(any());
+    }
+
+    @Test
+    void throwsWhenCourseTitleBlank() {
+        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING);
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+
+        CourseSaveRequest request = new CourseSaveRequest(" ", "메모", List.of(1L));
+
+        assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
+                .isInstanceOf(CourseException.class)
+                .extracting("errorCode")
+                .isEqualTo(CourseErrorCode.INVALID_COURSE_TITLE);
+
+        verify(courseRepository, never()).save(any());
+    }
+
+    @Test
     void throwsWhenMoodTagCountExceedsMax() {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
@@ -142,6 +194,26 @@ class CourseSaveServiceTest {
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
+
+        verify(courseRepository, never()).save(any());
+    }
+
+    @Test
+    void throwsWhenFoodCategoryNotSelected() {
+        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING);
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+
+        MoodTag moodTag = mock(MoodTag.class);
+        given(moodTag.getId()).willReturn(1L);
+        given(moodTagRepository.findAllById(List.of(1L))).willReturn(List.of(moodTag));
+        given(courseDraftFoodCategoryRepository.findByCourseDraft(draft)).willReturn(List.of());
+
+        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L));
+
+        assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
+                .isInstanceOf(CourseException.class)
+                .extracting("errorCode")
+                .isEqualTo(CourseErrorCode.FOOD_CATEGORY_NOT_SELECTED);
 
         verify(courseRepository, never()).save(any());
     }
