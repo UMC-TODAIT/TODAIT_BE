@@ -128,7 +128,7 @@ public class CourseSaveService {
         if (courseDraft.getStatus() == CourseDraftStatus.COMPLETED) {
             throw new CourseException(CourseErrorCode.COURSE_DRAFT_ALREADY_COMPLETED);
         }
-        if (courseDraft.getStatus() == CourseDraftStatus.ABANDONED
+        if (courseDraft.getStatus() != CourseDraftStatus.ORDERING
                 || courseDraft.getExpiresAt().isBefore(LocalDateTime.now())) {
             throw new CourseException(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
         }

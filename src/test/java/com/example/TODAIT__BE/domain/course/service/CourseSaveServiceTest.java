@@ -143,6 +143,21 @@ class CourseSaveServiceTest {
     }
 
     @Test
+    void throwsWhenCourseDraftIsNotOrdering() {
+        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.FOOD_SELECTING);
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+
+        CourseSaveRequest request = new CourseSaveRequest("제목", "메모");
+
+        assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
+                .isInstanceOf(CourseException.class)
+                .extracting("errorCode")
+                .isEqualTo(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
+
+        verify(courseRepository, never()).save(any());
+    }
+
+    @Test
     void throwsWhenCourseDraftExpired() {
         CourseDraft draft = CourseDraft.builder()
                 .id(10L)
