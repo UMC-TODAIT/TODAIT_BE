@@ -6,6 +6,7 @@ import com.example.TODAIT__BE.domain.place.dto.response.PlaceSearchResponse;
 import com.example.TODAIT__BE.domain.place.service.PlaceService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,10 +21,10 @@ public class PlaceController implements PlaceControllerDocs {
 
     @GetMapping("/search")
     @Override
-    public ApiResponse<PlaceSearchResponse> searchPlaces(
+    public ResponseEntity<ApiResponse<PlaceSearchResponse>> searchPlaces(
             @RequestParam(required = false) String keyword
     ) {
         PlaceSearchResponse result = placeService.searchPlaces(keyword);
-        return ApiResponse.onSuccess(PlaceSuccessCode.PLACE_SEARCH_OK, result);
+        return ApiResponse.onSuccessResponse(PlaceSuccessCode.PLACE_SEARCH_OK, result);
     }
 }

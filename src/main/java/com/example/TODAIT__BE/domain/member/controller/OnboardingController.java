@@ -43,9 +43,7 @@ public class OnboardingController implements OnboardingControllerDocs {
 
       AuthTokenResponse.Token response = onboardingService.complete(onboardingToken,request);
 
-      return ResponseEntity.ok(
-              ApiResponse.onSuccess(MemberSuccessCode.ONBOARDING_COMPLETED,response)
-      );
+      return ApiResponse.onSuccessResponse(MemberSuccessCode.ONBOARDING_COMPLETED,response);
 
 
     }

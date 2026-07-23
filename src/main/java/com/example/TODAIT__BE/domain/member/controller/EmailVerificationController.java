@@ -9,6 +9,7 @@ import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationVerify
 import com.example.TODAIT__BE.domain.member.service.EmailVerificationService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,19 +27,19 @@ public class EmailVerificationController implements EmailVerificationControllerD
 
     @PostMapping("/send-code")
     @Override
-    public ApiResponse<EmailVerificationSendResponse> sendVerificationCode(
+    public ResponseEntity<ApiResponse<EmailVerificationSendResponse>> sendVerificationCode(
             @Valid @RequestBody EmailVerificationSendRequest request
     ) {
         EmailVerificationSendResponse response = emailVerificationService.sendVerificationCode(request);
-        return ApiResponse.onSuccess(EmailVerificationSuccessCode.CODE_SENT, response);
+        return ApiResponse.onSuccessResponse(EmailVerificationSuccessCode.CODE_SENT, response);
     }
 
     @PostMapping("/verify-code")
     @Override
-    public ApiResponse<EmailVerificationVerifyResponse> verifyCode(
+    public ResponseEntity<ApiResponse<EmailVerificationVerifyResponse>> verifyCode(
             @Valid @RequestBody EmailVerificationVerifyRequest request
     ) {
         EmailVerificationVerifyResponse response = emailVerificationService.verifyCode(request);
-        return ApiResponse.onSuccess(EmailVerificationSuccessCode.COMPLETED, response);
+        return ApiResponse.onSuccessResponse(EmailVerificationSuccessCode.COMPLETED, response);
     }
 }
