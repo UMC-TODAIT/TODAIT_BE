@@ -16,6 +16,7 @@ import com.example.TODAIT__BE.domain.taxonomy.repository.FoodCategoryRepository;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +46,8 @@ public class CourseDraftFoodCategoryService {
             throw new CourseException(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
         }
 
+        validateUpdatableStatus(courseDraft);
+
         List<Long> foodCategoryIds = request.foodCategoryIds();
 
         if (foodCategoryIds == null || foodCategoryIds.size() < MIN_FOOD_CATEGORY_COUNT) {
@@ -57,16 +60,7 @@ public class CourseDraftFoodCategoryService {
 
         List<FoodCategory> foodCategories = validateAndGetFoodCategories(foodCategoryIds);
 
-        courseDraftFoodCategoryRepository.deleteByCourseDraft(courseDraft);
-
-        for (FoodCategory foodCategory : foodCategories) {
-            courseDraftFoodCategoryRepository.save(
-                    CourseDraftFoodCategory.builder()
-                            .courseDraft(courseDraft)
-                            .foodCategory(foodCategory)
-                            .build()
-            );
-        }
+        updateFoodCategories(courseDraft, foodCategories);
 
         courseDraft.changeStatus(CourseDraftStatus.BASE_PLACE_SELECTING);
 
@@ -75,6 +69,12 @@ public class CourseDraftFoodCategoryService {
                 courseDraft.getStatus(),
                 foodCategories
         );
+    }
+
+    private void validateUpdatableStatus(CourseDraft courseDraft) {
+        if (courseDraft.getStatus() != CourseDraftStatus.FOOD_SELECTING) {
+            throw new CourseException(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
+        }
     }
 
     private List<FoodCategory> validateAndGetFoodCategories(List<Long> foodCategoryIds) {
@@ -88,5 +88,30 @@ public class CourseDraftFoodCategoryService {
         return foodCategoryIds.stream()
                 .map(foodCategoriesById::get)
                 .toList();
+    }
+
+    private void updateFoodCategories(CourseDraft courseDraft, List<FoodCategory> foodCategories) {
+        List<CourseDraftFoodCategory> existingFoodCategories =
+                courseDraftFoodCategoryRepository.findByCourseDraft(courseDraft);
+        Set<Long> requestedFoodCategoryIds = foodCategories.stream()
+                .map(FoodCategory::getId)
+                .collect(Collectors.toSet());
+        Set<Long> existingFoodCategoryIds = existingFoodCategories.stream()
+                .map(courseDraftFoodCategory -> courseDraftFoodCategory.getFoodCategory().getId())
+                .collect(Collectors.toSet());
+
+        List<CourseDraftFoodCategory> foodCategoriesToDelete = existingFoodCategories.stream()
+                .filter(courseDraftFoodCategory ->
+                        !requestedFoodCategoryIds.contains(courseDraftFoodCategory.getFoodCategory().getId()))
+                .toList();
+        courseDraftFoodCategoryRepository.deleteAll(foodCategoriesToDelete);
+
+        foodCategories.stream()
+                .filter(foodCategory -> !existingFoodCategoryIds.contains(foodCategory.getId()))
+                .map(foodCategory -> CourseDraftFoodCategory.builder()
+                        .courseDraft(courseDraft)
+                        .foodCategory(foodCategory)
+                        .build())
+                .forEach(courseDraftFoodCategoryRepository::save);
     }
 }
