@@ -14,7 +14,7 @@ public interface CourseDraftMoodTagControllerDocs {
 
     @Operation(
             summary = "분위기 태그 선택 저장",
-            description = "임시 코스에 분위기 태그 선택값을 전체 교체 저장하고, 상태를 FOOD_SELECTING으로 변경합니다."
+            description = "임시 코스에 분위기 태그 2개 이상 6개 이하의 선택값을 diff 방식으로 저장하고, 상태를 FOOD_SELECTING으로 변경합니다."
     )
     @SecurityRequirement(name = "JWT TOKEN")
     ResponseEntity<ApiResponse<CourseDraftMoodTagSaveResponse>> saveMoodTags(

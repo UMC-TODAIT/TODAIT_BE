@@ -193,6 +193,23 @@ class CourseSaveServiceTest {
     }
 
     @Test
+    void throwsWhenMoodTagCountIsLessThanMin() {
+        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING);
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+
+        CourseSaveRequest request = new CourseSaveRequest("제목", "메모");
+        given(courseDraftMoodTagRepository.findByCourseDraft(draft))
+                .willReturn(List.of(CourseDraftMoodTag.builder().moodTag(mock(MoodTag.class)).build()));
+
+        assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
+                .isInstanceOf(CourseException.class)
+                .extracting("errorCode")
+                .isEqualTo(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
+
+        verify(courseRepository, never()).save(any());
+    }
+
+    @Test
     void throwsWhenMoodTagCountExceedsMax() {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
@@ -223,7 +240,10 @@ class CourseSaveServiceTest {
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         given(courseDraftMoodTagRepository.findByCourseDraft(draft))
-                .willReturn(List.of(CourseDraftMoodTag.builder().moodTag(mock(MoodTag.class)).build()));
+                .willReturn(List.of(
+                        CourseDraftMoodTag.builder().moodTag(mock(MoodTag.class)).build(),
+                        CourseDraftMoodTag.builder().moodTag(mock(MoodTag.class)).build()
+                ));
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft)).willReturn(List.of());
 
         CourseSaveRequest request = new CourseSaveRequest("제목", "메모");
@@ -242,7 +262,10 @@ class CourseSaveServiceTest {
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         given(courseDraftMoodTagRepository.findByCourseDraft(draft))
-                .willReturn(List.of(CourseDraftMoodTag.builder().moodTag(mock(MoodTag.class)).build()));
+                .willReturn(List.of(
+                        CourseDraftMoodTag.builder().moodTag(mock(MoodTag.class)).build(),
+                        CourseDraftMoodTag.builder().moodTag(mock(MoodTag.class)).build()
+                ));
 
         CourseDraftFoodCategory draftFoodCategory = CourseDraftFoodCategory.builder().build();
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft)).willReturn(List.of(draftFoodCategory));
@@ -274,7 +297,10 @@ class CourseSaveServiceTest {
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         given(courseDraftMoodTagRepository.findByCourseDraft(draft))
-                .willReturn(List.of(CourseDraftMoodTag.builder().moodTag(mock(MoodTag.class)).build()));
+                .willReturn(List.of(
+                        CourseDraftMoodTag.builder().moodTag(mock(MoodTag.class)).build(),
+                        CourseDraftMoodTag.builder().moodTag(mock(MoodTag.class)).build()
+                ));
 
         CourseDraftFoodCategory draftFoodCategory = CourseDraftFoodCategory.builder().build();
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft)).willReturn(List.of(draftFoodCategory));
@@ -330,11 +356,20 @@ class CourseSaveServiceTest {
         given(moodTag.getId()).willReturn(1L);
         given(moodTag.getCode()).willReturn("CALM");
         given(moodTag.getName()).willReturn("차분한");
+        MoodTag secondMoodTag = mock(MoodTag.class);
+        given(secondMoodTag.getId()).willReturn(2L);
+        given(secondMoodTag.getCode()).willReturn("HIP");
+        given(secondMoodTag.getName()).willReturn("힙한");
         CourseDraftMoodTag draftMoodTag = CourseDraftMoodTag.builder()
                 .courseDraft(draft)
                 .moodTag(moodTag)
                 .build();
-        given(courseDraftMoodTagRepository.findByCourseDraft(draft)).willReturn(List.of(draftMoodTag));
+        CourseDraftMoodTag secondDraftMoodTag = CourseDraftMoodTag.builder()
+                .courseDraft(draft)
+                .moodTag(secondMoodTag)
+                .build();
+        given(courseDraftMoodTagRepository.findByCourseDraft(draft))
+                .willReturn(List.of(draftMoodTag, secondDraftMoodTag));
 
         FoodCategory foodCategory = mock(FoodCategory.class);
         given(foodCategory.getId()).willReturn(5L);
@@ -374,7 +409,7 @@ class CourseSaveServiceTest {
         assertThat(response.title()).isEqualTo("course title");
         assertThat(response.memo()).isEqualTo("course memo");
         assertThat(response.placeCount()).isEqualTo(2);
-        assertThat(response.moodTags()).hasSize(1);
+        assertThat(response.moodTags()).hasSize(2);
         assertThat(response.foodCategories()).hasSize(1);
         assertThat(response.places()).hasSize(2);
         assertThat(response.places().get(0).placeRole()).isEqualTo(PlaceRole.BASE);
@@ -389,7 +424,7 @@ class CourseSaveServiceTest {
         assertThat(savedCourse.getArea()).isEqualTo(area);
         assertThat(savedCourse.getPlaceCount()).isEqualTo(2);
 
-        verify(courseMoodTagRepository).save(any(CourseMoodTag.class));
+        verify(courseMoodTagRepository, times(2)).save(any(CourseMoodTag.class));
         verify(courseFoodCategoryRepository).save(any(CourseFoodCategory.class));
         verify(coursePlaceRepository, times(2)).save(any(CoursePlace.class));
         verify(courseDraftRepository).save(draft);

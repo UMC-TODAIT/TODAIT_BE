@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CourseDraftMoodTagService {
 
-    private static final int MIN_MOOD_TAG_COUNT = 1;
+    private static final int MIN_MOOD_TAG_COUNT = 2;
     private static final int MAX_MOOD_TAG_COUNT = 6;
 
     private final CourseDraftRepository courseDraftRepository;

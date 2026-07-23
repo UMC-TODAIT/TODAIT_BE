@@ -46,7 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CourseSaveService {
 
-    private static final int MIN_MOOD_TAG_COUNT = 1;
+    private static final int MIN_MOOD_TAG_COUNT = 2;
     private static final int MAX_MOOD_TAG_COUNT = 6;
     private static final int SELECTED_PLACE_START_ORDER = 2;
 

@@ -14,7 +14,7 @@ public interface CourseDraftFoodCategoryControllerDocs {
 
     @Operation(
             summary = "음식 카테고리 선택 저장",
-            description = "임시 코스에 음식 카테고리 선택값을 전체 교체 저장하고, 상태를 BASE_PLACE_SELECTING으로 변경합니다."
+            description = "임시 코스에 음식 카테고리 선택값을 diff 방식으로 저장하고, 상태를 BASE_PLACE_SELECTING으로 변경합니다."
     )
     @SecurityRequirement(name = "JWT TOKEN")
     ResponseEntity<ApiResponse<CourseDraftFoodCategorySaveResponse>> saveFoodCategories(

@@ -91,24 +91,48 @@ class CourseDraftMoodTagServiceTest {
     void keepsOrderingStatusWhenMoodTagsAreUpdatedFromSaveScreen() {
         CourseDraft draft = draft(CourseDraftStatus.ORDERING);
         MoodTag moodTag = moodTag(1L, "CALM", "차분한");
+        MoodTag secondMoodTag = moodTag(2L, "HIP", "힙한");
         CourseDraftMoodTag existingMoodTag = CourseDraftMoodTag.builder()
                 .courseDraft(draft)
                 .moodTag(moodTag)
                 .build();
+        CourseDraftMoodTag secondExistingMoodTag = CourseDraftMoodTag.builder()
+                .courseDraft(draft)
+                .moodTag(secondMoodTag)
+                .build();
 
         given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
-        given(moodTagRepository.findAllById(List.of(1L))).willReturn(List.of(moodTag));
-        given(courseDraftMoodTagRepository.findByCourseDraft(draft)).willReturn(List.of(existingMoodTag));
+        given(moodTagRepository.findAllById(List.of(1L, 2L))).willReturn(List.of(moodTag, secondMoodTag));
+        given(courseDraftMoodTagRepository.findByCourseDraft(draft))
+                .willReturn(List.of(existingMoodTag, secondExistingMoodTag));
 
         CourseDraftMoodTagSaveResponse response = courseDraftMoodTagService.saveMoodTags(
                 10L,
                 1L,
-                new CourseDraftMoodTagSaveRequest(List.of(1L))
+                new CourseDraftMoodTagSaveRequest(List.of(1L, 2L))
         );
 
         verify(courseDraftMoodTagRepository).deleteAll(List.of());
         verify(courseDraftMoodTagRepository, never()).save(any());
         assertThat(response.status()).isEqualTo(CourseDraftStatus.ORDERING);
+    }
+
+    @Test
+    void throwsWhenMoodTagCountIsLessThanMinimum() {
+        CourseDraft draft = draft(CourseDraftStatus.MOOD_SELECTING);
+        given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
+
+        assertThatThrownBy(() -> courseDraftMoodTagService.saveMoodTags(
+                10L,
+                1L,
+                new CourseDraftMoodTagSaveRequest(List.of(1L))
+        ))
+                .isInstanceOf(CourseException.class)
+                .extracting("errorCode")
+                .isEqualTo(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
+
+        verify(moodTagRepository, never()).findAllById(any());
+        verify(courseDraftMoodTagRepository, never()).findByCourseDraft(any());
     }
 
     @Test
