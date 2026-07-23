@@ -29,10 +29,6 @@ import lombok.NoArgsConstructor;
         ),
         indexes = {
                 @Index(
-                        name = "idx_course_draft_place_draft_visit_order",
-                        columnList = "course_draft_id, visit_order"
-                ),
-                @Index(
                         name = "idx_course_draft_place_draft_role",
                         columnList = "course_draft_id, place_role"
                 )
