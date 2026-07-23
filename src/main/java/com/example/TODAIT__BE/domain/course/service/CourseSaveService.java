@@ -28,8 +28,10 @@ import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
 import com.example.TODAIT__BE.domain.place.entity.Place;
+import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomyErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
+import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -63,7 +65,7 @@ public class CourseSaveService {
                 .orElseThrow(() -> new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
 
         if (!courseDraft.getMember().getId().equals(memberId)) {
-            throw new CourseException(CourseErrorCode.NOT_COURSE_DRAFT_OWNER);
+            throw new CourseException(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
         }
 
         validateSavableDraft(courseDraft);
@@ -119,7 +121,7 @@ public class CourseSaveService {
                 .map(CourseDraftMoodTag::getMoodTag)
                 .toList();
         if (moodTags.stream().anyMatch(moodTag -> moodTag == null)) {
-            throw new CourseException(CourseErrorCode.MOOD_TAG_NOT_FOUND);
+            throw new TaxonomyException(TaxonomyErrorCode.MOOD_TAG_NOT_FOUND);
         }
         return moodTags;
     }

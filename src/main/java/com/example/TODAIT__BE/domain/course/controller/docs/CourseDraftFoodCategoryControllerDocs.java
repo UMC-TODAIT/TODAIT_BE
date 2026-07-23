@@ -7,6 +7,7 @@ import com.example.TODAIT__BE.global.security.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
 
 @Tag(name = "Course Draft", description = "임시 코스(코스 생성 플로우) 관련 API")
 public interface CourseDraftFoodCategoryControllerDocs {
@@ -16,7 +17,7 @@ public interface CourseDraftFoodCategoryControllerDocs {
             description = "임시 코스에 음식 카테고리 선택값을 전체 교체 저장하고, 상태를 BASE_PLACE_SELECTING으로 변경합니다."
     )
     @SecurityRequirement(name = "JWT TOKEN")
-    ApiResponse<CourseDraftFoodCategorySaveResponse> saveFoodCategories(
+    ResponseEntity<ApiResponse<CourseDraftFoodCategorySaveResponse>> saveFoodCategories(
             Long courseDraftId,
             AuthMember authMember,
             CourseDraftFoodCategorySaveRequest request

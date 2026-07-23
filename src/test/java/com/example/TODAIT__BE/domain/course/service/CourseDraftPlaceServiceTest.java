@@ -72,7 +72,7 @@ class CourseDraftPlaceServiceTest {
         assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 2L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.NOT_COURSE_DRAFT_OWNER);
+                .isEqualTo(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
     }
 
     @Test

@@ -8,6 +8,7 @@ import com.example.TODAIT__BE.domain.course.service.CourseDraftMoodTagService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.AuthMember;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -24,7 +25,7 @@ public class CourseDraftMoodTagController implements CourseDraftMoodTagControlle
 
     @PutMapping("/{courseDraftId}/mood-tags")
     @Override
-    public ApiResponse<CourseDraftMoodTagSaveResponse> saveMoodTags(
+    public ResponseEntity<ApiResponse<CourseDraftMoodTagSaveResponse>> saveMoodTags(
             @PathVariable Long courseDraftId,
             @AuthenticationPrincipal AuthMember authMember,
             @RequestBody CourseDraftMoodTagSaveRequest request
@@ -34,6 +35,8 @@ public class CourseDraftMoodTagController implements CourseDraftMoodTagControlle
                 authMember.memberId(),
                 request
         );
-        return ApiResponse.onSuccess(CourseSuccessCode.MOOD_TAG_SAVE_OK, result);
+        return ResponseEntity
+                .status(CourseSuccessCode.MOOD_TAG_SAVE_OK.getStatus())
+                .body(ApiResponse.onSuccess(CourseSuccessCode.MOOD_TAG_SAVE_OK, result));
     }
 }

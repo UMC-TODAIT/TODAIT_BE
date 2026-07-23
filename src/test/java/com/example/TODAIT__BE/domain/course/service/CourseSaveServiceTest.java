@@ -107,7 +107,7 @@ class CourseSaveServiceTest {
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 2L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.NOT_COURSE_DRAFT_OWNER);
+                .isEqualTo(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
 
         verify(courseRepository, never()).save(any());
     }

@@ -6,6 +6,7 @@ import com.example.TODAIT__BE.domain.taxonomy.dto.response.PlaceCategoryListResp
 import com.example.TODAIT__BE.domain.taxonomy.service.PlaceCategoryService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,8 +20,10 @@ public class PlaceCategoryController implements PlaceCategoryControllerDocs {
 
     @GetMapping
     @Override
-    public ApiResponse<PlaceCategoryListResponse> getPlaceCategories() {
+    public ResponseEntity<ApiResponse<PlaceCategoryListResponse>> getPlaceCategories() {
         PlaceCategoryListResponse result = placeCategoryService.getPlaceCategories();
-        return ApiResponse.onSuccess(TaxonomySuccessCode.PLACE_CATEGORY_LIST_OK, result);
+        return ResponseEntity
+                .status(TaxonomySuccessCode.PLACE_CATEGORY_LIST_OK.getStatus())
+                .body(ApiResponse.onSuccess(TaxonomySuccessCode.PLACE_CATEGORY_LIST_OK, result));
     }
 }

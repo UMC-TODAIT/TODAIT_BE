@@ -39,7 +39,7 @@ public class CourseDraftPlaceService {
                 .orElseThrow(() -> new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
 
         if (!courseDraft.getMember().getId().equals(memberId)) {
-            throw new CourseException(CourseErrorCode.NOT_COURSE_DRAFT_OWNER);
+            throw new CourseException(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
         }
         validateEditableDraft(courseDraft);
 
