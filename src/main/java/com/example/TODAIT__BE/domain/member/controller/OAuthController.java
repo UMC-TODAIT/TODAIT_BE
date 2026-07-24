@@ -1,11 +1,11 @@
 package com.example.TODAIT__BE.domain.member.controller;
 
+import com.example.TODAIT__BE.domain.member.code.OAuthSuccessCode;
 import com.example.TODAIT__BE.domain.member.controller.docs.OAuthControllerDocs;
 import com.example.TODAIT__BE.domain.member.dto.request.OAuthLoginRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.OAuthLoginResponse;
 import com.example.TODAIT__BE.domain.member.service.OAuthService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
-import com.example.TODAIT__BE.global.apiPayload.code.GeneralSuccessCode;
 import com.example.TODAIT__BE.infra.oauth.GoogleOAuthClient;
 import com.example.TODAIT__BE.infra.oauth.KakaoOAuthClient;
 import jakarta.validation.Valid;
@@ -29,7 +29,9 @@ public class OAuthController implements OAuthControllerDocs {
     ) {
         OAuthLoginResponse.OAuthLogin response = oAuthService.loginWithKakao(request.accessToken());
 
-        return ApiResponse.onSuccessResponse(GeneralSuccessCode.OK, response);
+        return ResponseEntity
+                .status(OAuthSuccessCode.OAUTH_LOGIN_OK.getStatus())
+                .body(ApiResponse.onSuccess(OAuthSuccessCode.OAUTH_LOGIN_OK, response));
     }
 
 
@@ -40,6 +42,8 @@ public class OAuthController implements OAuthControllerDocs {
     ){
         OAuthLoginResponse.OAuthLogin response = oAuthService.loginWithGoogle(request.idToken());
 
-        return ApiResponse.onSuccessResponse(GeneralSuccessCode.OK, response);
+        return ResponseEntity
+                .status(OAuthSuccessCode.OAUTH_LOGIN_OK.getStatus())
+                .body(ApiResponse.onSuccess(OAuthSuccessCode.OAUTH_LOGIN_OK, response));
     }
 }

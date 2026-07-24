@@ -31,7 +31,9 @@ public class EmailVerificationController implements EmailVerificationControllerD
             @Valid @RequestBody EmailVerificationSendRequest request
     ) {
         EmailVerificationSendResponse response = emailVerificationService.sendVerificationCode(request);
-        return ApiResponse.onSuccessResponse(EmailVerificationSuccessCode.CODE_SENT, response);
+        return ResponseEntity
+                .status(EmailVerificationSuccessCode.CODE_SENT.getStatus())
+                .body(ApiResponse.onSuccess(EmailVerificationSuccessCode.CODE_SENT, response));
     }
 
     @PostMapping("/verify-code")
@@ -40,6 +42,8 @@ public class EmailVerificationController implements EmailVerificationControllerD
             @Valid @RequestBody EmailVerificationVerifyRequest request
     ) {
         EmailVerificationVerifyResponse response = emailVerificationService.verifyCode(request);
-        return ApiResponse.onSuccessResponse(EmailVerificationSuccessCode.COMPLETED, response);
+        return ResponseEntity
+                .status(EmailVerificationSuccessCode.COMPLETED.getStatus())
+                .body(ApiResponse.onSuccess(EmailVerificationSuccessCode.COMPLETED, response));
     }
 }

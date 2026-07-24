@@ -26,6 +26,8 @@ public class CourseDraftController implements CourseDraftControllerDocs {
             @AuthenticationPrincipal AuthMember authMember
     ) {
         CourseDraftCreateResponse result = courseDraftService.createCourseDraft(authMember.memberId());
-        return ApiResponse.onSuccessResponse(CourseSuccessCode.COURSE_DRAFT_CREATE_OK, result);
+        return ResponseEntity
+                .status(CourseSuccessCode.COURSE_DRAFT_CREATE_OK.getStatus())
+                .body(ApiResponse.onSuccess(CourseSuccessCode.COURSE_DRAFT_CREATE_OK, result));
     }
 }

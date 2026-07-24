@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface CourseDraftFoodCategoryRepository extends JpaRepository<CourseDraftFoodCategory, Long> {
 
     List<CourseDraftFoodCategory> findByCourseDraft(CourseDraft courseDraft);
+
+    void deleteByCourseDraft(CourseDraft courseDraft);
 }

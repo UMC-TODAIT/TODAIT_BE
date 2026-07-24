@@ -22,6 +22,8 @@ public class PlaceCategoryController implements PlaceCategoryControllerDocs {
     @Override
     public ResponseEntity<ApiResponse<PlaceCategoryListResponse>> getPlaceCategories() {
         PlaceCategoryListResponse result = placeCategoryService.getPlaceCategories();
-        return ApiResponse.onSuccessResponse(TaxonomySuccessCode.PLACE_CATEGORY_LIST_OK, result);
+        return ResponseEntity
+                .status(TaxonomySuccessCode.PLACE_CATEGORY_LIST_OK.getStatus())
+                .body(ApiResponse.onSuccess(TaxonomySuccessCode.PLACE_CATEGORY_LIST_OK, result));
     }
 }

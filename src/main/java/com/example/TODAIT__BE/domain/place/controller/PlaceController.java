@@ -25,6 +25,8 @@ public class PlaceController implements PlaceControllerDocs {
             @RequestParam(required = false) String keyword
     ) {
         PlaceSearchResponse result = placeService.searchPlaces(keyword);
-        return ApiResponse.onSuccessResponse(PlaceSuccessCode.PLACE_SEARCH_OK, result);
+        return ResponseEntity
+                .status(PlaceSuccessCode.PLACE_SEARCH_OK.getStatus())
+                .body(ApiResponse.onSuccess(PlaceSuccessCode.PLACE_SEARCH_OK, result));
     }
 }

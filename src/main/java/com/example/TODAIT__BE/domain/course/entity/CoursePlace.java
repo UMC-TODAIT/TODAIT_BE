@@ -13,13 +13,20 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "course_place")
+@Table(
+        name = "course_place",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_course_place_course_visit_order",
+                columnNames = {"course_id", "visit_order"}
+        )
+)
 @Getter
 @Builder
 @AllArgsConstructor
@@ -35,7 +42,7 @@ public class CoursePlace {
     private Course course;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "place_id")
+    @JoinColumn(name = "place_id", nullable = false)
     private Place place;
 
     @Column(name = "visit_order", nullable = false)
