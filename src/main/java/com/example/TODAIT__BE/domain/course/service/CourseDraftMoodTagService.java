@@ -40,7 +40,7 @@ public class CourseDraftMoodTagService {
             Long memberId,
             CourseDraftMoodTagSaveRequest request
     ) {
-        CourseDraft courseDraft = courseDraftRepository.findById(courseDraftId)
+        CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
                 .orElseThrow(() -> new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
 
         if (!courseDraft.getMember().getId().equals(memberId)) {

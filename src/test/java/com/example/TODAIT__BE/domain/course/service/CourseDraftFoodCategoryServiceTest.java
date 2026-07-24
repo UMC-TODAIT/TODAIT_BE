@@ -67,7 +67,7 @@ class CourseDraftFoodCategoryServiceTest {
                 .foodCategory(keptFoodCategory)
                 .build();
 
-        given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
         given(foodCategoryRepository.findAllById(List.of(2L, 3L)))
                 .willReturn(List.of(keptFoodCategory, addedFoodCategory));
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft))
@@ -79,6 +79,7 @@ class CourseDraftFoodCategoryServiceTest {
                 new CourseDraftFoodCategorySaveRequest(List.of(2L, 3L))
         );
 
+        verify(courseDraftRepository).findByIdForUpdate(10L);
         verify(courseDraftFoodCategoryRepository).deleteAll(List.of(oldDraftFoodCategory));
 
         ArgumentCaptor<CourseDraftFoodCategory> saveCaptor = ArgumentCaptor.forClass(CourseDraftFoodCategory.class);
@@ -91,7 +92,7 @@ class CourseDraftFoodCategoryServiceTest {
     @Test
     void throwsWhenFoodCategoriesAreUpdatedInUnsupportedStatus() {
         CourseDraft draft = draft(CourseDraftStatus.ORDERING);
-        given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         assertThatThrownBy(() -> courseDraftFoodCategoryService.saveFoodCategories(
                 10L,

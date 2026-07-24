@@ -67,7 +67,7 @@ class CourseDraftMoodTagServiceTest {
                 .moodTag(keptMoodTag)
                 .build();
 
-        given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
         given(moodTagRepository.findAllById(List.of(2L, 3L))).willReturn(List.of(keptMoodTag, addedMoodTag));
         given(courseDraftMoodTagRepository.findByCourseDraft(draft))
                 .willReturn(List.of(oldDraftMoodTag, keptDraftMoodTag));
@@ -78,6 +78,7 @@ class CourseDraftMoodTagServiceTest {
                 new CourseDraftMoodTagSaveRequest(List.of(2L, 3L))
         );
 
+        verify(courseDraftRepository).findByIdForUpdate(10L);
         verify(courseDraftMoodTagRepository).deleteAll(List.of(oldDraftMoodTag));
 
         ArgumentCaptor<CourseDraftMoodTag> saveCaptor = ArgumentCaptor.forClass(CourseDraftMoodTag.class);
@@ -101,7 +102,7 @@ class CourseDraftMoodTagServiceTest {
                 .moodTag(secondMoodTag)
                 .build();
 
-        given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
         given(moodTagRepository.findAllById(List.of(1L, 2L))).willReturn(List.of(moodTag, secondMoodTag));
         given(courseDraftMoodTagRepository.findByCourseDraft(draft))
                 .willReturn(List.of(existingMoodTag, secondExistingMoodTag));
@@ -120,7 +121,7 @@ class CourseDraftMoodTagServiceTest {
     @Test
     void throwsWhenMoodTagCountIsLessThanMinimum() {
         CourseDraft draft = draft(CourseDraftStatus.MOOD_SELECTING);
-        given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         assertThatThrownBy(() -> courseDraftMoodTagService.saveMoodTags(
                 10L,
@@ -138,7 +139,7 @@ class CourseDraftMoodTagServiceTest {
     @Test
     void throwsWhenMoodTagsAreUpdatedInUnsupportedStatus() {
         CourseDraft draft = draft(CourseDraftStatus.FOOD_SELECTING);
-        given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         assertThatThrownBy(() -> courseDraftMoodTagService.saveMoodTags(
                 10L,
