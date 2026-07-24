@@ -4,10 +4,11 @@ import com.example.TODAIT__BE.domain.taxonomy.dto.response.PlaceCategoryListResp
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
 
 @Tag(name = "Taxonomy", description = "장소 대분류/지역 등 기준 정보 조회 API")
 public interface PlaceCategoryControllerDocs {
 
     @Operation(summary = "장소 카테고리 목록 조회", description = "활성화된 장소 대분류(카페/식당/액티비티/바) 목록을 조회합니다.")
-    ApiResponse<PlaceCategoryListResponse> getPlaceCategories();
+    ResponseEntity<ApiResponse<PlaceCategoryListResponse>> getPlaceCategories();
 }

@@ -7,6 +7,7 @@ import com.example.TODAIT__BE.domain.course.service.CourseDraftService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.AuthMember;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,10 +22,12 @@ public class CourseDraftController implements CourseDraftControllerDocs {
 
     @PostMapping
     @Override
-    public ApiResponse<CourseDraftCreateResponse> createCourseDraft(
+    public ResponseEntity<ApiResponse<CourseDraftCreateResponse>> createCourseDraft(
             @AuthenticationPrincipal AuthMember authMember
     ) {
         CourseDraftCreateResponse result = courseDraftService.createCourseDraft(authMember.memberId());
-        return ApiResponse.onSuccess(CourseSuccessCode.COURSE_DRAFT_CREATE_OK, result);
+        return ResponseEntity
+                .status(CourseSuccessCode.COURSE_DRAFT_CREATE_OK.getStatus())
+                .body(ApiResponse.onSuccess(CourseSuccessCode.COURSE_DRAFT_CREATE_OK, result));
     }
 }

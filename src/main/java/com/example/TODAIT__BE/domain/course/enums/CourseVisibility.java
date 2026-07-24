@@ -1,4 +1,7 @@
 package com.example.TODAIT__BE.domain.course.enums;
 
 public enum CourseVisibility {
+    PRIVATE,
+    PUBLIC,
+    RECOMMENDED
 }
