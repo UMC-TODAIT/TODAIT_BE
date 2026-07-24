@@ -37,4 +37,17 @@ public class SignRequest {
         }
     }
 
+    public record Login(
+            @NotBlank
+            @Email
+            String email,
+
+            @NotBlank
+            String password
+    ){
+        public Login {
+            email = email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+        }
+    }
+
 }
