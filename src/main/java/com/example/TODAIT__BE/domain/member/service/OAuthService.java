@@ -10,7 +10,7 @@ import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.repository.MemberOAuthAccountRepository;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
-import com.example.TODAIT__BE.domain.member.support.MemberInputNormalizer;
+import com.example.TODAIT__BE.domain.member.support.MemberInputService;
 import com.example.TODAIT__BE.infra.oauth.GoogleOAuthClient;
 import com.example.TODAIT__BE.infra.oauth.KakaoOAuthClient;
 import com.example.TODAIT__BE.infra.oauth.dto.GoogleUserInfo;
@@ -57,7 +57,7 @@ public class OAuthService {
             String providerUserId,
             String email
     ){
-        String normalizedEmail = MemberInputNormalizer.normalizeEmail(email);
+        String normalizedEmail = MemberInputService.normalizeEmail(email);
         Optional<MemberOAuthAccount> result = memberOAuthAccountRepository.findByProviderAndProviderUserId(
                 provider,
                 providerUserId

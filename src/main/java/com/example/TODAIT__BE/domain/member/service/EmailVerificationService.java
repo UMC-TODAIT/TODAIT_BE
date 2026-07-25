@@ -5,6 +5,7 @@ import com.example.TODAIT__BE.domain.member.dto.request.EmailVerificationSendReq
 import com.example.TODAIT__BE.domain.member.dto.request.EmailVerificationVerifyRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationSendResponse;
 import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationVerifyResponse;
+import com.example.TODAIT__BE.domain.member.support.MemberInputService;
 import com.example.TODAIT__BE.global.apiPayload.exception.ProjectException;
 import com.example.TODAIT__BE.global.util.RandomCodeGenerator;
 import com.example.TODAIT__BE.infra.mail.EmailVerificationAsyncService;
@@ -13,16 +14,8 @@ import com.example.TODAIT__BE.infra.redis.EmailVerificationRedisRepository.Verif
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Locale;
-import java.util.regex.Pattern;
-
 @Service
 public class EmailVerificationService {
-
-    private static final Pattern EMAIL_PATTERN = Pattern.compile(
-            "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$",
-            Pattern.CASE_INSENSITIVE
-    );
 
     private final EmailVerificationRedisRepository emailVerificationRedisRepository;
     private final EmailVerificationAsyncService emailVerificationAsyncService;
@@ -96,16 +89,10 @@ public class EmailVerificationService {
     }
 
     private String normalizeAndValidateEmail(String email) {
-        if (email == null) {
+        if (!MemberInputService.isValidEmail(email)) {
             throw new ProjectException(EmailVerificationErrorCode.INVALID_EMAIL_FORMAT);
         }
 
-        String normalizedEmail = email.trim()
-                .toLowerCase(Locale.ROOT);
-        if (!EMAIL_PATTERN.matcher(normalizedEmail).matches()) {
-            throw new ProjectException(EmailVerificationErrorCode.INVALID_EMAIL_FORMAT);
-        }
-
-        return normalizedEmail;
+        return MemberInputService.normalizeEmail(email);
     }
 }

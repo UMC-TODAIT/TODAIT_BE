@@ -12,7 +12,7 @@ import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.repository.MemberOAuthAccountRepository;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
-import com.example.TODAIT__BE.domain.member.support.MemberInputNormalizer;
+import com.example.TODAIT__BE.domain.member.support.MemberInputService;
 import com.example.TODAIT__BE.global.security.JwtTokenProvider;
 
 import lombok.RequiredArgsConstructor;
@@ -49,10 +49,10 @@ public class OnboardingService {
 
         String providerUserId = jwtTokenProvider.getSubject(onboardingToken);
         OAuthProvider provider = jwtTokenProvider.getOAuthProvider(onboardingToken);
-        String email = MemberInputNormalizer.normalizeEmail(
+        String email = MemberInputService.normalizeEmail(
                 jwtTokenProvider.getEmail(onboardingToken)
         );
-        String nickname = MemberInputNormalizer.normalizeNickname(request.nickname());
+        String nickname = MemberInputService.normalizeNickname(request.nickname());
 
 
         if(memberRepository.existsByNickname(nickname)){
