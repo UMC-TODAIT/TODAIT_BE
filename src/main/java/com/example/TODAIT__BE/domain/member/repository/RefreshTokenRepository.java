@@ -15,4 +15,5 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken,Long>
 
     List<RefreshToken> findAllByMemberAndRevokedAtIsNull(Member member);
 
+    Optional<RefreshToken> findByTokenHash(String tokenHash);
 }
