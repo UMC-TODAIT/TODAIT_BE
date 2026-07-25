@@ -28,10 +28,8 @@ public class TokenController implements TokenControllerDocs {
             ){
         TokenRefreshResponse.AccessToken response = tokenRefreshService.refresh(request);
 
-        return ResponseEntity.ok(ApiResponse.onSuccess(
-                AuthSuccessCode.TOKEN_REFRESHED,
-                response
-            )
-        );
+        return ResponseEntity
+                .status(AuthSuccessCode.TOKEN_REFRESHED.getStatus())
+                .body(ApiResponse.onSuccess(AuthSuccessCode.TOKEN_REFRESHED, response));
     }
 }

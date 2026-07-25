@@ -10,7 +10,7 @@ import org.springframework.http.HttpStatus;
 public enum AuthSuccessCode implements BaseSuccessCode {
     TOKEN_REFRESHED(
             HttpStatus.OK,
-            "AUTH200_1",
+            "AUTH200_2",
             "Access Token이 재발급되었습니다."
     );
 
