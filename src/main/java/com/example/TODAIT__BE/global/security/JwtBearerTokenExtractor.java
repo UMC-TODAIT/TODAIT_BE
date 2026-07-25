@@ -10,7 +10,7 @@ public final class JwtBearerTokenExtractor {
     }
 
     public static Optional<String> extract(String authorization) {
-        if (authorization == null || !authorization.startsWith(BEARER_PREFIX)) {
+        if (authorization == null || !hasBearerPrefix(authorization)) {
             return Optional.empty();
         }
 
@@ -20,5 +20,15 @@ public final class JwtBearerTokenExtractor {
         }
 
         return Optional.of(token);
+    }
+
+    private static boolean hasBearerPrefix(String authorization) {
+        return authorization.regionMatches(
+                true,
+                0,
+                BEARER_PREFIX,
+                0,
+                BEARER_PREFIX.length()
+        );
     }
 }
