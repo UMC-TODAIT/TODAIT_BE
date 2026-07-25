@@ -10,6 +10,7 @@ import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.repository.MemberOAuthAccountRepository;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
+import com.example.TODAIT__BE.domain.member.support.MemberInputNormalizer;
 import com.example.TODAIT__BE.infra.oauth.GoogleOAuthClient;
 import com.example.TODAIT__BE.infra.oauth.KakaoOAuthClient;
 import com.example.TODAIT__BE.infra.oauth.dto.GoogleUserInfo;
@@ -56,6 +57,7 @@ public class OAuthService {
             String providerUserId,
             String email
     ){
+        String normalizedEmail = MemberInputNormalizer.normalizeEmail(email);
         Optional<MemberOAuthAccount> result = memberOAuthAccountRepository.findByProviderAndProviderUserId(
                 provider,
                 providerUserId
@@ -66,7 +68,7 @@ public class OAuthService {
             return loginExistingMember(member,provider);
         }
 
-        if(email != null && memberRepository.existsByEmail(email)){
+        if(normalizedEmail != null && memberRepository.existsByEmail(normalizedEmail)){
             throw  new MemberException(
                     MemberErrorCode.ALREADY_REGISTERED_EMAIL
             );
@@ -75,7 +77,7 @@ public class OAuthService {
         return requireOnboarding(
                 provider,
                 providerUserId,
-                email
+                normalizedEmail
         );
     }
 
