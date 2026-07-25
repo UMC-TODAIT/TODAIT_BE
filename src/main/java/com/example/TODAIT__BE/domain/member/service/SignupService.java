@@ -6,6 +6,7 @@ import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.MemberTermAgreement;
 import com.example.TODAIT__BE.domain.member.entity.Term;
+import com.example.TODAIT__BE.domain.member.exception.MemberIntegrityViolationMapper;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.member.repository.MemberTermAgreementRepository;
