@@ -1,10 +1,10 @@
 package com.example.TODAIT__BE.domain.member.dto.request;
 
+import com.example.TODAIT__BE.domain.member.support.MemberInputNormalizer;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
 import java.util.List;
-import java.util.Locale;
 
 public class SignRequest {
 
@@ -32,8 +32,8 @@ public class SignRequest {
             List<@Valid TermAgreementRequest> termAgreements
     ){
         public SignUp {
-            nickname = nickname == null ? null : nickname.trim();
-            email = email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+            nickname = MemberInputNormalizer.normalizeNickname(nickname);
+            email = MemberInputNormalizer.normalizeEmail(email);
         }
     }
 

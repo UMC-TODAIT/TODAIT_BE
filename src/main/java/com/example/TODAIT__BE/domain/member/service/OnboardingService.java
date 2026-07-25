@@ -14,6 +14,7 @@ import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.repository.MemberOAuthAccountRepository;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.member.repository.MemberTermAgreementRepository;
+import com.example.TODAIT__BE.domain.member.support.MemberInputNormalizer;
 import com.example.TODAIT__BE.global.security.JwtTokenProvider;
 
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -52,10 +52,13 @@ public class OnboardingService {
 
         String providerUserId = jwtTokenProvider.getSubject(onboardingToken);
         OAuthProvider provider = jwtTokenProvider.getOAuthProvider(onboardingToken);
-        String email = normalizeEmail(jwtTokenProvider.getEmail(onboardingToken));
+        String email = MemberInputNormalizer.normalizeEmail(
+                jwtTokenProvider.getEmail(onboardingToken)
+        );
+        String nickname = MemberInputNormalizer.normalizeNickname(request.nickname());
 
 
-        if(memberRepository.existsByNickname(request.nickname())){
+        if(memberRepository.existsByNickname(nickname)){
             throw new MemberException(MemberErrorCode.ALREADY_REGISTERED_NICKNAME);
         }
 
@@ -79,7 +82,7 @@ public class OnboardingService {
             savedMember = memberRepository.saveAndFlush(
                     Member.builder()
                             .email(email)
-                            .nickname(request.nickname())
+                            .nickname(nickname)
                             .build()
             );
         } catch (DataIntegrityViolationException exception) {
@@ -124,11 +127,5 @@ public class OnboardingService {
         memberTermAgreementRepository.saveAll(agreements);
 
         return  authService.issueTokens(savedMember);
-    }
-
-    private String normalizeEmail(String email) {
-        return email == null
-                ? null
-                : email.trim().toLowerCase(Locale.ROOT);
     }
 }
