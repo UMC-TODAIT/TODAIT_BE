@@ -9,7 +9,6 @@ import com.example.TODAIT__BE.domain.member.entity.Term;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
 import com.example.TODAIT__BE.domain.member.enums.TermType;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
-import com.example.TODAIT__BE.global.security.JwtTokenProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,8 +32,6 @@ import static org.mockito.Mockito.verify;
 class OnboardingServiceTest {
 
     @Mock
-    private JwtTokenProvider jwtTokenProvider;
-    @Mock
     private AuthService authService;
     @Mock
     private TermAgreementValidator termAgreementValidator;
@@ -48,7 +45,6 @@ class OnboardingServiceTest {
     @BeforeEach
     void setUp() {
         onboardingService = new OnboardingService(
-                jwtTokenProvider,
                 authService,
                 termAgreementValidator,
                 memberRegistrationService,
@@ -59,7 +55,9 @@ class OnboardingServiceTest {
     @Test
     void completeRejectsInvalidOnboardingToken() {
         OAuthOnboardingRequest.Complete request = onboardingRequest("tester");
-        given(jwtTokenProvider.validateToken("token")).willReturn(false);
+        willThrow(new MemberException(MemberErrorCode.INVALID_ONBOARDING_TOKEN))
+                .given(authService)
+                .validateOAuthOnboardingToken("token");
 
         assertThatThrownBy(() -> onboardingService.complete("token", request))
                 .isInstanceOf(MemberException.class)
@@ -82,9 +80,6 @@ class OnboardingServiceTest {
         AuthTokenResponse.Token token = new AuthTokenResponse.Token("access", "refresh");
 
         givenValidOnboardingToken("token");
-        given(jwtTokenProvider.getSubject("token")).willReturn("provider-user-id");
-        given(jwtTokenProvider.getOAuthProvider("token")).willReturn(OAuthProvider.GOOGLE);
-        given(jwtTokenProvider.getEmail("token")).willReturn(" User@Example.com ");
         given(termAgreementValidator.validateAndGetAgreedTerms(request.termAgreements()))
                 .willReturn(agreedTerms);
         given(memberRegistrationService.saveMember(any(Member.class))).willReturn(savedMember);
@@ -118,9 +113,6 @@ class OnboardingServiceTest {
     void completeRejectsDuplicateNickname() {
         OAuthOnboardingRequest.Complete request = onboardingRequest("tester");
         givenValidOnboardingToken("token");
-        given(jwtTokenProvider.getSubject("token")).willReturn("provider-user-id");
-        given(jwtTokenProvider.getOAuthProvider("token")).willReturn(OAuthProvider.GOOGLE);
-        given(jwtTokenProvider.getEmail("token")).willReturn("user@example.com");
         willThrow(new MemberException(MemberErrorCode.ALREADY_REGISTERED_NICKNAME))
                 .given(memberDuplicateValidator)
                 .validateNicknameAvailable("tester");
@@ -134,8 +126,12 @@ class OnboardingServiceTest {
     }
 
     private void givenValidOnboardingToken(String token) {
-        given(jwtTokenProvider.validateToken(token)).willReturn(true);
-        given(jwtTokenProvider.isOAuthOnboardingToken(token)).willReturn(true);
+        given(authService.validateOAuthOnboardingToken(token))
+                .willReturn(new AuthService.OAuthOnboardingTokenClaims(
+                        OAuthProvider.GOOGLE,
+                        "provider-user-id",
+                        " User@Example.com "
+                ));
     }
 
     private OAuthOnboardingRequest.Complete onboardingRequest(String nickname) {

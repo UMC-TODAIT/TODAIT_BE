@@ -6,10 +6,7 @@ import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.Term;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
-import com.example.TODAIT__BE.domain.member.exception.MemberException;
-import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
-import com.example.TODAIT__BE.global.security.JwtTokenProvider;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,7 +19,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OnboardingService {
 
-    private final JwtTokenProvider jwtTokenProvider;
     private final AuthService authService;
     private final TermAgreementValidator termAgreementValidator;
     private final MemberRegistrationService memberRegistrationService;
@@ -33,17 +29,12 @@ public class OnboardingService {
         String onboardingToken,
         OAuthOnboardingRequest.Complete request
     ){
-        //온보딩 토큰 검증
-        if(!jwtTokenProvider.validateToken(onboardingToken)
-                || !jwtTokenProvider.isOAuthOnboardingToken(onboardingToken)){
-            throw new MemberException(MemberErrorCode.INVALID_ONBOARDING_TOKEN);
-        }
-
-
-        String providerUserId = jwtTokenProvider.getSubject(onboardingToken);
-        OAuthProvider provider = jwtTokenProvider.getOAuthProvider(onboardingToken);
+        AuthService.OAuthOnboardingTokenClaims claims =
+                authService.validateOAuthOnboardingToken(onboardingToken);
+        String providerUserId = claims.providerUserId();
+        OAuthProvider provider = claims.provider();
         String email = MemberInputPolicy.normalizeEmail(
-                jwtTokenProvider.getEmail(onboardingToken)
+                claims.email()
         );
         String nickname = request.nickname();
 
