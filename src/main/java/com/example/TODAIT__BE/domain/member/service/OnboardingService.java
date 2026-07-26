@@ -4,18 +4,14 @@ package com.example.TODAIT__BE.domain.member.service;
 import com.example.TODAIT__BE.domain.member.dto.request.OAuthOnboardingRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
-import com.example.TODAIT__BE.domain.member.entity.MemberOAuthAccount;
 import com.example.TODAIT__BE.domain.member.entity.Term;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
-import com.example.TODAIT__BE.domain.member.exception.MemberIntegrityViolationMapper;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
-import com.example.TODAIT__BE.domain.member.repository.MemberOAuthAccountRepository;
 import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
 import com.example.TODAIT__BE.global.security.JwtTokenProvider;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,10 +23,8 @@ import java.util.List;
 public class OnboardingService {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final MemberOAuthAccountRepository memberOAuthAccountRepository;
     private final AuthService authService;
     private final TermAgreementValidator termAgreementValidator;
-    private final MemberIntegrityViolationMapper integrityViolationMapper;
     private final MemberRegistrationService memberRegistrationService;
     private final MemberDuplicateValidator memberDuplicateValidator;
 
@@ -72,27 +66,13 @@ public class OnboardingService {
                         .build()
         );
 
-        try {
-            memberOAuthAccountRepository.saveAndFlush(
-                    MemberOAuthAccount.builder()
-                            .member(savedMember)
-                            .provider(provider)
-                            .providerUserId(providerUserId)
-                            .providerEmail(email)
-                            .linkedAt(now)
-                            .build()
-            );
-        } catch (DataIntegrityViolationException exception) {
-            if (integrityViolationMapper.hasConstraint(
-                    exception,
-                    "uk_member_oauth_provider_user"
-            )) {
-                throw new MemberException(
-                        MemberErrorCode.ALREADY_REGISTERED_OAUTH_ACCOUNT
-                );
-            }
-            throw exception;
-        }
+        memberRegistrationService.saveOAuthAccount(
+                savedMember,
+                provider,
+                providerUserId,
+                email,
+                now
+        );
 
         memberRegistrationService.saveTermAgreements(savedMember, agreedTerms, now);
 
