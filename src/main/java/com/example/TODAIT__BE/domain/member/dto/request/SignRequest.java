@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.member.dto.request;
 
-import com.example.TODAIT__BE.domain.member.support.MemberInputService;
+import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -36,8 +36,8 @@ public class SignRequest {
             List<@Valid TermAgreementRequest> termAgreements
     ){
         public SignUp {
-            nickname = MemberInputService.normalizeNickname(nickname);
-            email = MemberInputService.normalizeEmail(email);
+            nickname = MemberInputPolicy.normalizeNickname(nickname);
+            email = MemberInputPolicy.normalizeEmail(email);
         }
     }
 

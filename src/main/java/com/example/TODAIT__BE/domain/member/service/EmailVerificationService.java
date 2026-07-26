@@ -5,7 +5,7 @@ import com.example.TODAIT__BE.domain.member.dto.request.EmailVerificationSendReq
 import com.example.TODAIT__BE.domain.member.dto.request.EmailVerificationVerifyRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationSendResponse;
 import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationVerifyResponse;
-import com.example.TODAIT__BE.domain.member.support.MemberInputService;
+import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
 import com.example.TODAIT__BE.global.apiPayload.exception.ProjectException;
 import com.example.TODAIT__BE.global.util.RandomCodeGenerator;
 import com.example.TODAIT__BE.infra.mail.EmailVerificationAsyncService;
@@ -89,10 +89,10 @@ public class EmailVerificationService {
     }
 
     private String normalizeAndValidateEmail(String email) {
-        if (!MemberInputService.isValidEmail(email)) {
+        if (!MemberInputPolicy.isValidEmail(email)) {
             throw new ProjectException(EmailVerificationErrorCode.INVALID_EMAIL_FORMAT);
         }
 
-        return MemberInputService.normalizeEmail(email);
+        return MemberInputPolicy.normalizeEmail(email);
     }
 }

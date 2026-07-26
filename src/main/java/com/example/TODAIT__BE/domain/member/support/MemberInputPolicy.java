@@ -3,14 +3,14 @@ package com.example.TODAIT__BE.domain.member.support;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-public final class MemberInputService {
+public final class MemberInputPolicy {
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
             "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$",
             Pattern.CASE_INSENSITIVE
     );
 
-    private MemberInputService() {
+    private MemberInputPolicy() {
     }
 
     public static String normalizeEmail(String email) {
