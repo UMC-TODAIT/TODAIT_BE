@@ -45,7 +45,7 @@ public class OnboardingService {
         String email = MemberInputPolicy.normalizeEmail(
                 jwtTokenProvider.getEmail(onboardingToken)
         );
-        String nickname = MemberInputPolicy.normalizeNickname(request.nickname());
+        String nickname = request.nickname();
 
 
         memberDuplicateValidator.validateNicknameAvailable(nickname);
