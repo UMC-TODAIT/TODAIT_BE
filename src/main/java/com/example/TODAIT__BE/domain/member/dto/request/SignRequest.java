@@ -50,7 +50,7 @@ public class SignRequest {
             String password
     ){
         public Login {
-            email = email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+            email = MemberInputPolicy.normalizeEmail(email);
         }
     }
 
