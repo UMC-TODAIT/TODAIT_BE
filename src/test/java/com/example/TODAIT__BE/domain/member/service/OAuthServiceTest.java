@@ -24,6 +24,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,6 +40,8 @@ class OAuthServiceTest {
     private KakaoOAuthClient kakaoOAuthClient;
     @Mock
     private GoogleOAuthClient googleOAuthClient;
+    @Mock
+    private MemberLoginValidator memberLoginValidator;
 
     private OAuthService oAuthService;
 
@@ -49,7 +52,8 @@ class OAuthServiceTest {
                 authService,
                 memberRepository,
                 kakaoOAuthClient,
-                googleOAuthClient
+                googleOAuthClient,
+                memberLoginValidator
         );
     }
 
@@ -126,6 +130,9 @@ class OAuthServiceTest {
                 OAuthProvider.KAKAO,
                 "provider-user-id"
         )).willReturn(Optional.of(account));
+        willThrow(new MemberException(MemberErrorCode.INVALID_MEMBER_STATUS))
+                .given(memberLoginValidator)
+                .validateLoginAvailable(member);
 
         assertThatThrownBy(() -> oAuthService.loginWithKakao("kakao-token"))
                 .isInstanceOf(MemberException.class)

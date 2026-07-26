@@ -4,7 +4,6 @@ import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
 import com.example.TODAIT__BE.domain.member.dto.response.OAuthLoginResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.MemberOAuthAccount;
-import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
@@ -29,6 +28,7 @@ public class OAuthService {
     private final MemberRepository memberRepository;
     private final KakaoOAuthClient kakaoOAuthClient;
     private final GoogleOAuthClient googleOAuthClient;
+    private final MemberLoginValidator memberLoginValidator;
 
     public OAuthLoginResponse.OAuthLogin loginWithKakao(
             String accessToken
@@ -83,7 +83,7 @@ public class OAuthService {
 
     //기존 회원 처리
     private OAuthLoginResponse.OAuthLogin loginExistingMember(Member member, OAuthProvider provider) {
-        validateLoginAvailable(member);
+        memberLoginValidator.validateLoginAvailable(member);
 
         AuthTokenResponse.Token tokenResponse = authService.issueTokens(member);
 
@@ -119,11 +119,4 @@ public class OAuthService {
                 .build();
     }
 
-    private void validateLoginAvailable(Member member) {
-
-        if(member.getStatus() != MemberStatus.ACTIVE) {
-            throw new MemberException(MemberErrorCode.INVALID_MEMBER_STATUS);
-        }
-
-    }
 }
