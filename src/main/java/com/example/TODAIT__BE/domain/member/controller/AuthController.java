@@ -4,6 +4,7 @@ import com.example.TODAIT__BE.domain.member.code.MemberSuccessCode;
 import com.example.TODAIT__BE.domain.member.controller.docs.AuthControllerDocs;
 import com.example.TODAIT__BE.domain.member.dto.request.SignRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
+import com.example.TODAIT__BE.domain.member.service.EmailLoginService;
 import com.example.TODAIT__BE.domain.member.service.SignupService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import jakarta.validation.Valid;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController implements AuthControllerDocs {
     private final SignupService signupService;
+    private final EmailLoginService emailLoginService;
 
     @PostMapping("/api/auth/signup")
     @Override
@@ -33,4 +35,18 @@ public class AuthController implements AuthControllerDocs {
                         );
     }
 
+    @PostMapping("/api/auth/login")
+    @Override
+    public ResponseEntity<ApiResponse<AuthTokenResponse.Token>> login(
+            @Valid @RequestBody SignRequest.Login request
+    ){
+        AuthTokenResponse.Token response = emailLoginService.login(request);
+
+        return ResponseEntity.ok(
+                ApiResponse.onSuccess(
+                        MemberSuccessCode.LOGIN_COMPLETED,
+                        response
+                )
+        );
+    }
 }

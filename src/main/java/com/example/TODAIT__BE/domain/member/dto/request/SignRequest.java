@@ -41,4 +41,17 @@ public class SignRequest {
         }
     }
 
+    public record Login(
+            @NotBlank
+            @Email
+            String email,
+
+            @NotBlank
+            String password
+    ){
+        public Login {
+            email = MemberInputPolicy.normalizeEmail(email);
+        }
+    }
+
 }
