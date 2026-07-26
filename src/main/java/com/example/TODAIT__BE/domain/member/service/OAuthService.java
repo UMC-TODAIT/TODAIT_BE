@@ -5,10 +5,7 @@ import com.example.TODAIT__BE.domain.member.dto.response.OAuthLoginResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.MemberOAuthAccount;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
-import com.example.TODAIT__BE.domain.member.exception.MemberException;
-import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.repository.MemberOAuthAccountRepository;
-import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
 import com.example.TODAIT__BE.infra.oauth.GoogleOAuthClient;
 import com.example.TODAIT__BE.infra.oauth.KakaoOAuthClient;
@@ -25,10 +22,10 @@ public class OAuthService {
 
     private final MemberOAuthAccountRepository memberOAuthAccountRepository;
     private final AuthService authService;
-    private final MemberRepository memberRepository;
     private final KakaoOAuthClient kakaoOAuthClient;
     private final GoogleOAuthClient googleOAuthClient;
     private final MemberLoginValidator memberLoginValidator;
+    private final MemberDuplicateValidator memberDuplicateValidator;
 
     public OAuthLoginResponse.OAuthLogin loginWithKakao(
             String accessToken
@@ -68,11 +65,7 @@ public class OAuthService {
             return loginExistingMember(member,provider);
         }
 
-        if(normalizedEmail != null && memberRepository.existsByEmail(normalizedEmail)){
-            throw  new MemberException(
-                    MemberErrorCode.ALREADY_REGISTERED_EMAIL
-            );
-        }
+        memberDuplicateValidator.validateEmailAvailable(normalizedEmail);
 
         return requireOnboarding(
                 provider,

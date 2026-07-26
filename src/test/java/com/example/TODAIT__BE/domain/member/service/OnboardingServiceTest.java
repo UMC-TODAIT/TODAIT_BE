@@ -12,7 +12,6 @@ import com.example.TODAIT__BE.domain.member.enums.TermType;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.exception.MemberIntegrityViolationMapper;
 import com.example.TODAIT__BE.domain.member.repository.MemberOAuthAccountRepository;
-import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.global.security.JwtTokenProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -38,8 +38,6 @@ class OnboardingServiceTest {
 
     @Mock
     private JwtTokenProvider jwtTokenProvider;
-    @Mock
-    private MemberRepository memberRepository;
     @Mock
     private MemberOAuthAccountRepository memberOAuthAccountRepository;
     @Mock
@@ -50,6 +48,8 @@ class OnboardingServiceTest {
     private MemberIntegrityViolationMapper integrityViolationMapper;
     @Mock
     private MemberRegistrationService memberRegistrationService;
+    @Mock
+    private MemberDuplicateValidator memberDuplicateValidator;
 
     private OnboardingService onboardingService;
 
@@ -57,12 +57,12 @@ class OnboardingServiceTest {
     void setUp() {
         onboardingService = new OnboardingService(
                 jwtTokenProvider,
-                memberRepository,
                 memberOAuthAccountRepository,
                 authService,
                 termAgreementValidator,
                 integrityViolationMapper,
-                memberRegistrationService
+                memberRegistrationService,
+                memberDuplicateValidator
         );
     }
 
@@ -95,12 +95,6 @@ class OnboardingServiceTest {
         given(jwtTokenProvider.getSubject("token")).willReturn("provider-user-id");
         given(jwtTokenProvider.getOAuthProvider("token")).willReturn(OAuthProvider.GOOGLE);
         given(jwtTokenProvider.getEmail("token")).willReturn(" User@Example.com ");
-        given(memberRepository.existsByNickname("tester")).willReturn(false);
-        given(memberOAuthAccountRepository.existsByProviderAndProviderUserId(
-                OAuthProvider.GOOGLE,
-                "provider-user-id"
-        )).willReturn(false);
-        given(memberRepository.existsByEmail("user@example.com")).willReturn(false);
         given(termAgreementValidator.validateAndGetAgreedTerms(request.termAgreements()))
                 .willReturn(agreedTerms);
         given(memberRegistrationService.saveMember(any(Member.class))).willReturn(savedMember);
@@ -139,7 +133,9 @@ class OnboardingServiceTest {
         given(jwtTokenProvider.getSubject("token")).willReturn("provider-user-id");
         given(jwtTokenProvider.getOAuthProvider("token")).willReturn(OAuthProvider.GOOGLE);
         given(jwtTokenProvider.getEmail("token")).willReturn("user@example.com");
-        given(memberRepository.existsByNickname("tester")).willReturn(true);
+        willThrow(new MemberException(MemberErrorCode.ALREADY_REGISTERED_NICKNAME))
+                .given(memberDuplicateValidator)
+                .validateNicknameAvailable("tester");
 
         assertThatThrownBy(() -> onboardingService.complete("token", request))
                 .isInstanceOf(MemberException.class)
@@ -164,12 +160,6 @@ class OnboardingServiceTest {
         given(jwtTokenProvider.getSubject("token")).willReturn("provider-user-id");
         given(jwtTokenProvider.getOAuthProvider("token")).willReturn(OAuthProvider.GOOGLE);
         given(jwtTokenProvider.getEmail("token")).willReturn("user@example.com");
-        given(memberRepository.existsByNickname("tester")).willReturn(false);
-        given(memberOAuthAccountRepository.existsByProviderAndProviderUserId(
-                OAuthProvider.GOOGLE,
-                "provider-user-id"
-        )).willReturn(false);
-        given(memberRepository.existsByEmail("user@example.com")).willReturn(false);
         given(termAgreementValidator.validateAndGetAgreedTerms(request.termAgreements()))
                 .willReturn(List.of(serviceTerm));
         given(memberRegistrationService.saveMember(any(Member.class))).willReturn(savedMember);

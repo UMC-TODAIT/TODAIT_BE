@@ -11,7 +11,6 @@ import com.example.TODAIT__BE.domain.member.exception.MemberIntegrityViolationMa
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.repository.MemberOAuthAccountRepository;
-import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
 import com.example.TODAIT__BE.global.security.JwtTokenProvider;
 
@@ -28,12 +27,12 @@ import java.util.List;
 public class OnboardingService {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final MemberRepository memberRepository;
     private final MemberOAuthAccountRepository memberOAuthAccountRepository;
     private final AuthService authService;
     private final TermAgreementValidator termAgreementValidator;
     private final MemberIntegrityViolationMapper integrityViolationMapper;
     private final MemberRegistrationService memberRegistrationService;
+    private final MemberDuplicateValidator memberDuplicateValidator;
 
     @Transactional
     public AuthTokenResponse.Token complete(
@@ -55,17 +54,9 @@ public class OnboardingService {
         String nickname = MemberInputPolicy.normalizeNickname(request.nickname());
 
 
-        if(memberRepository.existsByNickname(nickname)){
-            throw new MemberException(MemberErrorCode.ALREADY_REGISTERED_NICKNAME);
-        }
-
-        if(memberOAuthAccountRepository.existsByProviderAndProviderUserId(provider,providerUserId)){
-            throw new MemberException(MemberErrorCode.ALREADY_REGISTERED_OAUTH_ACCOUNT);
-        }
-
-        if(email != null && memberRepository.existsByEmail(email)){
-            throw  new MemberException(MemberErrorCode.ALREADY_REGISTERED_EMAIL);
-        }
+        memberDuplicateValidator.validateNicknameAvailable(nickname);
+        memberDuplicateValidator.validateOAuthAccountAvailable(provider, providerUserId);
+        memberDuplicateValidator.validateEmailAvailable(email);
 
         List<Term> agreedTerms =
                 termAgreementValidator.validateAndGetAgreedTerms(
