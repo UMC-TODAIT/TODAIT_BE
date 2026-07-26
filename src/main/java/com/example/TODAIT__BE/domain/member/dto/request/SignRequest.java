@@ -1,10 +1,14 @@
 package com.example.TODAIT__BE.domain.member.dto.request;
 
+import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 import java.util.List;
-import java.util.Locale;
 
 public class SignRequest {
 
@@ -32,8 +36,8 @@ public class SignRequest {
             List<@Valid TermAgreementRequest> termAgreements
     ){
         public SignUp {
-            nickname = nickname == null ? null : nickname.trim();
-            email = email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+            nickname = MemberInputPolicy.normalizeNickname(nickname);
+            email = MemberInputPolicy.normalizeEmail(email);
         }
     }
 

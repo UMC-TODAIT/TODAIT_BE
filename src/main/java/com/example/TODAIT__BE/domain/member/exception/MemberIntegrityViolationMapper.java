@@ -1,7 +1,6 @@
-package com.example.TODAIT__BE.domain.member.service;
+package com.example.TODAIT__BE.domain.member.exception;
 
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
-import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
