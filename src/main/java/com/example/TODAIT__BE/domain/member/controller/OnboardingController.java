@@ -8,6 +8,7 @@ import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.code.MemberSuccessCode;
 import com.example.TODAIT__BE.domain.member.service.OnboardingService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
+import com.example.TODAIT__BE.global.security.JwtBearerTokenExtractor;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -22,7 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class OnboardingController implements OnboardingControllerDocs {
 
-    private static final String BEARER_PREFIX = "Bearer ";
     private final OnboardingService onboardingService;
 
     @PatchMapping("/api/members/me/onboarding")
@@ -39,7 +39,10 @@ public class OnboardingController implements OnboardingControllerDocs {
             @RequestBody
             OAuthOnboardingRequest.Complete request
     ){
-      String onboardingToken = extractBearerToken(authorization);
+      String onboardingToken = JwtBearerTokenExtractor.extract(authorization)
+              .orElseThrow(() -> new MemberException(
+                      MemberErrorCode.INVALID_ONBOARDING_TOKEN
+              ));
 
       AuthTokenResponse.Token response = onboardingService.complete(onboardingToken,request);
 
@@ -49,21 +52,4 @@ public class OnboardingController implements OnboardingControllerDocs {
 
 
     }
-
-
-    private String extractBearerToken(String authorization){
-        if(authorization == null || !authorization.startsWith(BEARER_PREFIX)){
-            throw new MemberException(MemberErrorCode.INVALID_ONBOARDING_TOKEN);
-        }
-
-        String token = authorization.substring(BEARER_PREFIX.length());
-
-        if(token.isBlank()){
-            throw new MemberException(MemberErrorCode.INVALID_ONBOARDING_TOKEN);
-        }
-
-        return token;
-    }
-
-
 }

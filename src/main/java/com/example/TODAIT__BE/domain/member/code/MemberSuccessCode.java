@@ -14,6 +14,12 @@ public enum MemberSuccessCode implements BaseSuccessCode {
             HttpStatus.OK,
             "MEMBER200_1",
             "소셜 회원가입이 완료되었습니다."
+    ),
+
+    SIGNUP_COMPLETED(
+            HttpStatus.CREATED,
+            "MEMBER201_1",
+            "회원가입이 완료되었습니다."
     );
 
     private final HttpStatus status;

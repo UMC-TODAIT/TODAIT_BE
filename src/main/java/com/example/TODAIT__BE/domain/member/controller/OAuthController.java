@@ -6,20 +6,18 @@ import com.example.TODAIT__BE.domain.member.dto.request.OAuthLoginRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.OAuthLoginResponse;
 import com.example.TODAIT__BE.domain.member.service.OAuthService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
-import com.example.TODAIT__BE.infra.oauth.GoogleOAuthClient;
-import com.example.TODAIT__BE.infra.oauth.KakaoOAuthClient;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
 @RequiredArgsConstructor
 public class OAuthController implements OAuthControllerDocs {
 
-    private final KakaoOAuthClient kakaoOAuthClient;
-    private final GoogleOAuthClient googleOAuthClient;
     private final OAuthService oAuthService;
 
     @PostMapping("/api/auth/kakao/login")
