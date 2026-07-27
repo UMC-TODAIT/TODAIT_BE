@@ -26,6 +26,12 @@ public enum MemberSuccessCode implements BaseSuccessCode {
             HttpStatus.OK,
             "MEMBER200_2",
             "로그인이 완료되었습니다."
+    ),
+
+    NICKNAME_RETRIEVED(
+            HttpStatus.OK,
+        "MEMBER200_3",
+                "회원 닉네임 조회 성공"
     );
 
     private final HttpStatus status;

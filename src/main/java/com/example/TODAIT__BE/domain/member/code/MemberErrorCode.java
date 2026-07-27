@@ -67,6 +67,12 @@ public enum MemberErrorCode implements BaseErrorCode {
             HttpStatus.UNAUTHORIZED,
             "AUTH401_2",
             "이메일 또는 비밀번호가 올바르지 않습니다."
+    ),
+
+    MEMBER_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+        "MEMBER404_1",
+                "회원 정보를 찾을 수 없습니다."
     );
 
     private final HttpStatus status;
