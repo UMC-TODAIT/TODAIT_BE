@@ -8,7 +8,7 @@ import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.code.MemberSuccessCode;
 import com.example.TODAIT__BE.domain.member.service.OnboardingService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
-import com.example.TODAIT__BE.global.security.JwtBearerTokenExtractor;
+import com.example.TODAIT__BE.global.security.token.JwtBearerTokenExtractor;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;

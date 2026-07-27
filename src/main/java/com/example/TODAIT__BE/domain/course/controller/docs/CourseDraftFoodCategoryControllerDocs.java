@@ -3,7 +3,7 @@ package com.example.TODAIT__BE.domain.course.controller.docs;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftFoodCategorySaveRequest;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftFoodCategorySaveResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
-import com.example.TODAIT__BE.global.security.AuthMember;
+import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;

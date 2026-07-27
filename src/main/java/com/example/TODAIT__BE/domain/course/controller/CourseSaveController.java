@@ -5,7 +5,7 @@ import com.example.TODAIT__BE.domain.course.dto.request.CourseSaveRequest;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse;
 import com.example.TODAIT__BE.domain.course.service.CourseSaveService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
-import com.example.TODAIT__BE.global.security.AuthMember;
+import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

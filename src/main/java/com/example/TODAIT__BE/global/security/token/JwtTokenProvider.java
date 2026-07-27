@@ -1,4 +1,4 @@
-package com.example.TODAIT__BE.global.security;
+package com.example.TODAIT__BE.global.security.token;
 
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;

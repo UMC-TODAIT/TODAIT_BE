@@ -1,8 +1,11 @@
-package com.example.TODAIT__BE.global.security;
+package com.example.TODAIT__BE.global.security.filter;
 
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.apiPayload.code.GeneralErrorCode;
+import com.example.TODAIT__BE.global.security.principal.AuthMember;
+import com.example.TODAIT__BE.global.security.token.JwtBearerTokenExtractor;
+import com.example.TODAIT__BE.global.security.token.JwtTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
