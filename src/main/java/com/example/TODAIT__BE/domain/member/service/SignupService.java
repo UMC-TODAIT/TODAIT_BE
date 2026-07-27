@@ -6,7 +6,6 @@ import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.Term;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
-import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.infra.redis.EmailVerificationRedisRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,19 +19,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SignupService {
 
-    private final MemberRepository memberRepository;
     private final EmailVerificationRedisRepository emailVerificationRedisRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
     private final TermAgreementValidator termAgreementValidator;
     private final MemberRegistrationService memberRegistrationService;
+    private final MemberDuplicateValidator memberDuplicateValidator;
 
     @Transactional
     public AuthTokenResponse.Token signup(
             SignRequest.SignUp request
     ){
         validateEmailVerification(request.email());
-        validateMemberDuplicate(request.email(), request.nickname());
+        memberDuplicateValidator.validateEmailAvailable(request.email());
+        memberDuplicateValidator.validateNicknameAvailable(request.nickname());
 
         List<Term> agreedTerms =
                 termAgreementValidator.validateAndGetAgreedTerms(
@@ -62,12 +62,4 @@ public class SignupService {
         }
     }
 
-    private void validateMemberDuplicate(String email, String nickname){
-        if(memberRepository.existsByEmail(email)){
-            throw new MemberException(MemberErrorCode.ALREADY_REGISTERED_EMAIL);
-        }
-        if(memberRepository.existsByNickname(nickname)){
-            throw new MemberException(MemberErrorCode.ALREADY_REGISTERED_NICKNAME);
-        }
-    }
 }

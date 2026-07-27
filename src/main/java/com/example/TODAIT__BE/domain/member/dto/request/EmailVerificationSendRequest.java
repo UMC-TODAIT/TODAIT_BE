@@ -1,5 +1,6 @@
 package com.example.TODAIT__BE.domain.member.dto.request;
 
+import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
@@ -9,6 +10,6 @@ public record EmailVerificationSendRequest(
         String email
 ) {
     public EmailVerificationSendRequest {
-        email = email == null ? null : email.trim();
+        email = MemberInputPolicy.normalizeEmail(email);
     }
 }

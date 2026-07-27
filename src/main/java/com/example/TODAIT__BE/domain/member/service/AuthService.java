@@ -1,22 +1,22 @@
 package com.example.TODAIT__BE.domain.member.service;
 
+import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.RefreshToken;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
+import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.member.repository.RefreshTokenRepository;
-import com.example.TODAIT__BE.global.security.JwtTokenProvider;
+import com.example.TODAIT__BE.global.security.token.JwtTokenProvider;
+import com.example.TODAIT__BE.global.security.token.RefreshTokenHasher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.HexFormat;
 import java.util.List;
 
 @Service
@@ -26,6 +26,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final MemberRepository memberRepository;
+    private final RefreshTokenHasher refreshTokenHasher;
 
     @Transactional
     public AuthTokenResponse.Token issueTokens(Member member){
@@ -39,7 +40,7 @@ public class AuthService {
 
         String accessToken = jwtTokenProvider.createAccessToken(managedMember);
         String refreshToken = jwtTokenProvider.createRefreshToken(managedMember);
-        String refreshTokenHash = hashToken(refreshToken);
+        String refreshTokenHash = refreshTokenHasher.hash(refreshToken);
 
         List<RefreshToken> activeTokens = refreshTokenRepository.findAllByMemberAndRevokedAtIsNull(managedMember);
         activeTokens.forEach(RefreshToken::revoke);
@@ -76,15 +77,24 @@ public class AuthService {
         );
     }
 
-    private String hashToken(String token){
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(hash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("토큰 해시 생성에 실패했습니다.", e);
+    public OAuthOnboardingTokenClaims validateOAuthOnboardingToken(String onboardingToken) {
+        if (!jwtTokenProvider.validateToken(onboardingToken)
+                || !jwtTokenProvider.isOAuthOnboardingToken(onboardingToken)) {
+            throw new MemberException(MemberErrorCode.INVALID_ONBOARDING_TOKEN);
         }
+
+        return new OAuthOnboardingTokenClaims(
+                jwtTokenProvider.getOAuthProvider(onboardingToken),
+                jwtTokenProvider.getSubject(onboardingToken),
+                jwtTokenProvider.getEmail(onboardingToken)
+        );
     }
 
+    public record OAuthOnboardingTokenClaims(
+            OAuthProvider provider,
+            String providerUserId,
+            String email
+    ) {
+    }
 
 }

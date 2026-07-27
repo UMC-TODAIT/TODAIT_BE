@@ -6,7 +6,7 @@ import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftMoodTagSaveRe
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftMoodTagSaveResponse;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftMoodTagService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
-import com.example.TODAIT__BE.global.security.AuthMember;
+import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

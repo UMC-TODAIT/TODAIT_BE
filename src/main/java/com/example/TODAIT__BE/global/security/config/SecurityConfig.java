@@ -1,5 +1,7 @@
-package com.example.TODAIT__BE.global.security;
+package com.example.TODAIT__BE.global.security.config;
 
+import com.example.TODAIT__BE.global.security.filter.JwtAuthenticationFilter;
+import com.example.TODAIT__BE.global.security.token.JwtTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;

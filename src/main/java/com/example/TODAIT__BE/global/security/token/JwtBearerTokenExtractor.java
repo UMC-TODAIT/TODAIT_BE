@@ -1,4 +1,4 @@
-package com.example.TODAIT__BE.global.security;
+package com.example.TODAIT__BE.global.security.token;
 
 import java.util.Optional;
 
