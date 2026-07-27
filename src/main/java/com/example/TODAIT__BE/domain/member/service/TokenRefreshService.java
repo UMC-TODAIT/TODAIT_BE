@@ -1,14 +1,11 @@
 package com.example.TODAIT__BE.domain.member.service;
 
 import com.example.TODAIT__BE.domain.member.code.AuthErrorCode;
-import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.dto.request.TokenRefreshRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.TokenRefreshResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.RefreshToken;
-import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 import com.example.TODAIT__BE.domain.member.exception.AuthException;
-import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.RefreshTokenRepository;
 import com.example.TODAIT__BE.global.security.JwtTokenProvider;
 import com.example.TODAIT__BE.global.security.RefreshTokenHasher;
@@ -27,6 +24,7 @@ public class TokenRefreshService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final RefreshTokenHasher refreshTokenHasher;
+    private final MemberLoginValidator memberLoginValidator;
 
     @Transactional(readOnly = true)
     public TokenRefreshResponse.AccessToken refresh(
@@ -58,11 +56,7 @@ public class TokenRefreshService {
             );
         }
 
-        if(member.getStatus() != MemberStatus.ACTIVE){
-            throw new MemberException(
-                    MemberErrorCode.INVALID_MEMBER_STATUS
-            );
-        }
+        memberLoginValidator.validateLoginAvailable(member);
 
         String newAccessToken = jwtTokenProvider.createAccessToken(member);
 
