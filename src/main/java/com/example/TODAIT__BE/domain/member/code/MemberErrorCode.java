@@ -55,6 +55,18 @@ public enum MemberErrorCode implements BaseErrorCode {
             HttpStatus.BAD_REQUEST,
             "MEMBER400_3",
             "유효하지 않거나 현재 이용할 수 없는 약관입니다."
+    ),
+
+    EMAIL_VERIFICATION_REQUIRED(
+            HttpStatus.BAD_REQUEST,
+            "MEMBER400_4",
+            "이메일 인증을 완료해야 합니다."
+    ),
+
+    INVALID_EMAIL_OR_PASSWORD(
+            HttpStatus.UNAUTHORIZED,
+            "AUTH401_2",
+            "이메일 또는 비밀번호가 올바르지 않습니다."
     );
 
     private final HttpStatus status;

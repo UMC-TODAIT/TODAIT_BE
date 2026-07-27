@@ -21,7 +21,6 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String BEARER_PREFIX = "Bearer ";
     private static final String ACCESS_TOKEN_TYPE = "ACCESS";
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -56,10 +55,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private String resolveToken(HttpServletRequest request) {
         String authorization = request.getHeader(AUTHORIZATION_HEADER);
-        if (authorization == null || !authorization.startsWith(BEARER_PREFIX)) {
-            return null;
-        }
-        return authorization.substring(BEARER_PREFIX.length());
+        return JwtBearerTokenExtractor.extract(authorization)
+                .orElse(null);
     }
 
     private AuthMember resolveAuthMember(String token) {
