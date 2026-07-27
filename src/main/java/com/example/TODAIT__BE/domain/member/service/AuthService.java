@@ -1,9 +1,11 @@
 package com.example.TODAIT__BE.domain.member.service;
 
+import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.RefreshToken;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
+import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.member.repository.RefreshTokenRepository;
 import com.example.TODAIT__BE.global.security.JwtTokenProvider;
@@ -75,6 +77,24 @@ public class AuthService {
         );
     }
 
+    public OAuthOnboardingTokenClaims validateOAuthOnboardingToken(String onboardingToken) {
+        if (!jwtTokenProvider.validateToken(onboardingToken)
+                || !jwtTokenProvider.isOAuthOnboardingToken(onboardingToken)) {
+            throw new MemberException(MemberErrorCode.INVALID_ONBOARDING_TOKEN);
+        }
 
+        return new OAuthOnboardingTokenClaims(
+                jwtTokenProvider.getOAuthProvider(onboardingToken),
+                jwtTokenProvider.getSubject(onboardingToken),
+                jwtTokenProvider.getEmail(onboardingToken)
+        );
+    }
+
+    public record OAuthOnboardingTokenClaims(
+            OAuthProvider provider,
+            String providerUserId,
+            String email
+    ) {
+    }
 
 }
