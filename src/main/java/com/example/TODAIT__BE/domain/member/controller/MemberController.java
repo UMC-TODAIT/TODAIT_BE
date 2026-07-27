@@ -5,7 +5,7 @@ import com.example.TODAIT__BE.domain.member.controller.docs.MemberControllerDocs
 import com.example.TODAIT__BE.domain.member.dto.response.MemberNicknameResponse;
 import com.example.TODAIT__BE.domain.member.service.MemberService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
-import com.example.TODAIT__BE.global.security.AuthMember;
+import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -2,7 +2,7 @@ package com.example.TODAIT__BE.domain.member.controller.docs;
 
 import com.example.TODAIT__BE.domain.member.dto.response.MemberNicknameResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
-import com.example.TODAIT__BE.global.security.AuthMember;
+import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
