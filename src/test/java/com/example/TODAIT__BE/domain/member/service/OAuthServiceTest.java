@@ -9,7 +9,6 @@ import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberOAuthAccountRepository;
-import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.infra.oauth.GoogleOAuthClient;
 import com.example.TODAIT__BE.infra.oauth.KakaoOAuthClient;
 import com.example.TODAIT__BE.infra.oauth.dto.KakaoUserInfo;
@@ -24,6 +23,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,11 +34,13 @@ class OAuthServiceTest {
     @Mock
     private AuthService authService;
     @Mock
-    private MemberRepository memberRepository;
-    @Mock
     private KakaoOAuthClient kakaoOAuthClient;
     @Mock
     private GoogleOAuthClient googleOAuthClient;
+    @Mock
+    private MemberLoginValidator memberLoginValidator;
+    @Mock
+    private MemberDuplicateValidator memberDuplicateValidator;
 
     private OAuthService oAuthService;
 
@@ -47,9 +49,10 @@ class OAuthServiceTest {
         oAuthService = new OAuthService(
                 memberOAuthAccountRepository,
                 authService,
-                memberRepository,
                 kakaoOAuthClient,
-                googleOAuthClient
+                googleOAuthClient,
+                memberLoginValidator,
+                memberDuplicateValidator
         );
     }
 
@@ -61,7 +64,6 @@ class OAuthServiceTest {
                 OAuthProvider.KAKAO,
                 "provider-user-id"
         )).willReturn(Optional.empty());
-        given(memberRepository.existsByEmail("user@example.com")).willReturn(false);
         given(authService.issueOAuthOnboardingToken(
                 OAuthProvider.KAKAO,
                 "provider-user-id",
@@ -73,7 +75,7 @@ class OAuthServiceTest {
         assertThat(response.loginStatus()).isEqualTo("ONBOARDING_REQUIRED");
         assertThat(response.onboardingToken()).isEqualTo("onboarding-token");
         assertThat(response.email()).isEqualTo("user@example.com");
-        verify(memberRepository).existsByEmail("user@example.com");
+        verify(memberDuplicateValidator).validateEmailAvailable("user@example.com");
     }
 
     @Test
@@ -126,6 +128,9 @@ class OAuthServiceTest {
                 OAuthProvider.KAKAO,
                 "provider-user-id"
         )).willReturn(Optional.of(account));
+        willThrow(new MemberException(MemberErrorCode.INVALID_MEMBER_STATUS))
+                .given(memberLoginValidator)
+                .validateLoginAvailable(member);
 
         assertThatThrownBy(() -> oAuthService.loginWithKakao("kakao-token"))
                 .isInstanceOf(MemberException.class)
@@ -141,7 +146,9 @@ class OAuthServiceTest {
                 OAuthProvider.KAKAO,
                 "provider-user-id"
         )).willReturn(Optional.empty());
-        given(memberRepository.existsByEmail("user@example.com")).willReturn(true);
+        willThrow(new MemberException(MemberErrorCode.ALREADY_REGISTERED_EMAIL))
+                .given(memberDuplicateValidator)
+                .validateEmailAvailable("user@example.com");
 
         assertThatThrownBy(() -> oAuthService.loginWithKakao("kakao-token"))
                 .isInstanceOf(MemberException.class)
