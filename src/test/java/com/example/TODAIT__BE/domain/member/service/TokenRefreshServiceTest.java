@@ -14,6 +14,7 @@ import com.example.TODAIT__BE.global.security.token.JwtTokenProvider;
 import com.example.TODAIT__BE.global.security.token.RefreshTokenHasher;
 import com.example.TODAIT__BE.global.security.token.TokenType;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -93,6 +94,19 @@ class TokenRefreshServiceTest {
                 .isInstanceOf(AuthException.class)
                 .extracting("errorCode")
                 .isEqualTo(AuthErrorCode.EXPIRED_REFRESH_TOKEN);
+    }
+
+    @Test
+    void refreshRejectsMalformedJwtRefreshToken() {
+        TokenRefreshRequest.Refresh request = new TokenRefreshRequest.Refresh("malformed-refresh-token");
+        willThrow(new JwtException("malformed"))
+                .given(jwtTokenProvider)
+                .getTokenType("malformed-refresh-token");
+
+        assertThatThrownBy(() -> tokenRefreshService.refresh(request))
+                .isInstanceOf(AuthException.class)
+                .extracting("errorCode")
+                .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
     }
 
     @Test

@@ -125,6 +125,38 @@ class OnboardingServiceTest {
         verify(memberRegistrationService, never()).saveMember(any());
     }
 
+    @Test
+    void completeRejectsDuplicateOAuthAccount() {
+        OAuthOnboardingRequest.Complete request = onboardingRequest("tester");
+        givenValidOnboardingToken("token");
+        willThrow(new MemberException(MemberErrorCode.ALREADY_REGISTERED_OAUTH_ACCOUNT))
+                .given(memberDuplicateValidator)
+                .validateOAuthAccountAvailable(OAuthProvider.GOOGLE, "provider-user-id");
+
+        assertThatThrownBy(() -> onboardingService.complete("token", request))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(MemberErrorCode.ALREADY_REGISTERED_OAUTH_ACCOUNT);
+
+        verify(memberRegistrationService, never()).saveMember(any());
+    }
+
+    @Test
+    void completeRejectsDuplicateEmail() {
+        OAuthOnboardingRequest.Complete request = onboardingRequest("tester");
+        givenValidOnboardingToken("token");
+        willThrow(new MemberException(MemberErrorCode.ALREADY_REGISTERED_EMAIL))
+                .given(memberDuplicateValidator)
+                .validateEmailAvailable("user@example.com");
+
+        assertThatThrownBy(() -> onboardingService.complete("token", request))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(MemberErrorCode.ALREADY_REGISTERED_EMAIL);
+
+        verify(memberRegistrationService, never()).saveMember(any());
+    }
+
     private void givenValidOnboardingToken(String token) {
         given(authService.validateOAuthOnboardingToken(token))
                 .willReturn(new AuthService.OAuthOnboardingTokenClaims(

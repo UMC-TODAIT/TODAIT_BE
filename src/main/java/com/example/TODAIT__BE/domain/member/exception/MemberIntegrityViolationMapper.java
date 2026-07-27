@@ -13,13 +13,15 @@ public class MemberIntegrityViolationMapper {
     ) {
         if (hasConstraint(exception, "uk_member_email")) {
             return new MemberException(
-                    MemberErrorCode.ALREADY_REGISTERED_EMAIL
+                    MemberErrorCode.ALREADY_REGISTERED_EMAIL,
+                    exception
             );
         }
 
         if (hasConstraint(exception, "uk_member_nickname")) {
             return new MemberException(
-                    MemberErrorCode.ALREADY_REGISTERED_NICKNAME
+                    MemberErrorCode.ALREADY_REGISTERED_NICKNAME,
+                    exception
             );
         }
 
@@ -31,7 +33,8 @@ public class MemberIntegrityViolationMapper {
     ) {
         if (hasConstraint(exception, "uk_member_oauth_provider_user")) {
             return new MemberException(
-                    MemberErrorCode.ALREADY_REGISTERED_OAUTH_ACCOUNT
+                    MemberErrorCode.ALREADY_REGISTERED_OAUTH_ACCOUNT,
+                    exception
             );
         }
 
