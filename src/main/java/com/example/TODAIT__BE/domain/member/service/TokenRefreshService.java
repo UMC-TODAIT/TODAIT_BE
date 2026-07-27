@@ -9,6 +9,7 @@ import com.example.TODAIT__BE.domain.member.exception.AuthException;
 import com.example.TODAIT__BE.domain.member.repository.RefreshTokenRepository;
 import com.example.TODAIT__BE.global.security.token.JwtTokenProvider;
 import com.example.TODAIT__BE.global.security.token.RefreshTokenHasher;
+import com.example.TODAIT__BE.global.security.token.TokenType;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 
@@ -68,8 +69,7 @@ public class TokenRefreshService {
 
     private Long validateAndExtractMemberId(String token){
         try{
-            if(!"REFRESH".equals(jwtTokenProvider.getTokenType(token)
-            )){
+            if (TokenType.REFRESH != jwtTokenProvider.getTokenType(token)) {
                 throw new AuthException(
                         AuthErrorCode.INVALID_REFRESH_TOKEN
                 );

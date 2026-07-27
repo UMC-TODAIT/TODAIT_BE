@@ -41,7 +41,7 @@ public class JwtTokenProvider {
 
     public String createAccessToken(Member member) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("tokenType","ACCESS");
+        claims.put("tokenType", TokenType.ACCESS.name());
         claims.put("role",member.getRole().name());
 
         return createToken(
@@ -53,7 +53,7 @@ public class JwtTokenProvider {
 
     public String createRefreshToken(Member member) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("tokenType","REFRESH");
+        claims.put("tokenType", TokenType.REFRESH.name());
 
         return createToken(
                 String.valueOf(member.getId()),
@@ -68,7 +68,7 @@ public class JwtTokenProvider {
             String email
     ) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("tokenType","OAUTH_ONBOARDING");
+        claims.put("tokenType", TokenType.OAUTH_ONBOARDING.name());
         claims.put("provider", provider.name());
         claims.put("email", email);
 
@@ -126,8 +126,9 @@ public class JwtTokenProvider {
         return parseClaims(token).getSubject();
     }
 
-    public String getTokenType(String token){
-        return parseClaims(token).get("tokenType",String.class);
+    public TokenType getTokenType(String token){
+        String tokenType = parseClaims(token).get("tokenType", String.class);
+        return TokenType.fromClaim(tokenType);
     }
 
     public Long getMemberId(String token) {
@@ -148,7 +149,7 @@ public class JwtTokenProvider {
     }
 
     public boolean isOAuthOnboardingToken(String token){
-        return "OAUTH_ONBOARDING".equals(getTokenType(token));
+        return TokenType.OAUTH_ONBOARDING == getTokenType(token);
     }
 
     private SecretKey getSigningKey() {

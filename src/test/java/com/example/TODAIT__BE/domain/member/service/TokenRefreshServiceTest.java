@@ -12,6 +12,7 @@ import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.RefreshTokenRepository;
 import com.example.TODAIT__BE.global.security.token.JwtTokenProvider;
 import com.example.TODAIT__BE.global.security.token.RefreshTokenHasher;
+import com.example.TODAIT__BE.global.security.token.TokenType;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -73,7 +74,7 @@ class TokenRefreshServiceTest {
     @Test
     void refreshRejectsNonRefreshTokenType() {
         TokenRefreshRequest.Refresh request = new TokenRefreshRequest.Refresh("access-token");
-        given(jwtTokenProvider.getTokenType("access-token")).willReturn("ACCESS");
+        given(jwtTokenProvider.getTokenType("access-token")).willReturn(TokenType.ACCESS);
 
         assertThatThrownBy(() -> tokenRefreshService.refresh(request))
                 .isInstanceOf(AuthException.class)
@@ -182,7 +183,7 @@ class TokenRefreshServiceTest {
     }
 
     private void givenValidRefreshJwt(String token, Long memberId) {
-        given(jwtTokenProvider.getTokenType(token)).willReturn("REFRESH");
+        given(jwtTokenProvider.getTokenType(token)).willReturn(TokenType.REFRESH);
         given(jwtTokenProvider.getMemberId(token)).willReturn(memberId);
     }
 
