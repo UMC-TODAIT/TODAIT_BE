@@ -1,5 +1,6 @@
 package com.example.TODAIT__BE.domain.member.dto.request;
 
+import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -21,6 +22,10 @@ public class OAuthOnboardingRequest {
 
             @NotEmpty
             List<@Valid TermAgreementRequest> termAgreements
-    ){}
+    ){
+        public Complete {
+            nickname = MemberInputPolicy.normalizeNickname(nickname);
+        }
+    }
 
 }

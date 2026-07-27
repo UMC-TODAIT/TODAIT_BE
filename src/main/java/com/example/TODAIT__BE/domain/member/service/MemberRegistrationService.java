@@ -1,10 +1,13 @@
 package com.example.TODAIT__BE.domain.member.service;
 
 import com.example.TODAIT__BE.domain.member.entity.Member;
+import com.example.TODAIT__BE.domain.member.entity.MemberOAuthAccount;
 import com.example.TODAIT__BE.domain.member.entity.MemberTermAgreement;
 import com.example.TODAIT__BE.domain.member.entity.Term;
+import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
 import com.example.TODAIT__BE.domain.member.exception.MemberIntegrityViolationMapper;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
+import com.example.TODAIT__BE.domain.member.repository.MemberOAuthAccountRepository;
 import com.example.TODAIT__BE.domain.member.repository.MemberTermAgreementRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -18,6 +21,7 @@ import java.util.List;
 public class MemberRegistrationService {
 
     private final MemberRepository memberRepository;
+    private final MemberOAuthAccountRepository memberOAuthAccountRepository;
     private final MemberTermAgreementRepository memberTermAgreementRepository;
     private final MemberIntegrityViolationMapper integrityViolationMapper;
 
@@ -47,5 +51,27 @@ public class MemberRegistrationService {
                         .toList();
 
         memberTermAgreementRepository.saveAll(agreements);
+    }
+
+    public MemberOAuthAccount saveOAuthAccount(
+            Member member,
+            OAuthProvider provider,
+            String providerUserId,
+            String providerEmail,
+            LocalDateTime linkedAt
+    ) {
+        try {
+            return memberOAuthAccountRepository.saveAndFlush(
+                    MemberOAuthAccount.builder()
+                            .member(member)
+                            .provider(provider)
+                            .providerUserId(providerUserId)
+                            .providerEmail(providerEmail)
+                            .linkedAt(linkedAt)
+                            .build()
+            );
+        } catch (DataIntegrityViolationException exception) {
+            throw integrityViolationMapper.mapOAuthAccountSaveException(exception);
+        }
     }
 }

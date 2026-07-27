@@ -1,4 +1,4 @@
-package com.example.TODAIT__BE.global.security;
+package com.example.TODAIT__BE.global.security.principal;
 
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 

@@ -1,4 +1,4 @@
-package com.example.TODAIT__BE.global.security;
+package com.example.TODAIT__BE.global.security.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

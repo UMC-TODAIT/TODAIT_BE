@@ -1,8 +1,12 @@
-package com.example.TODAIT__BE.global.security;
+package com.example.TODAIT__BE.global.security.filter;
 
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.apiPayload.code.GeneralErrorCode;
+import com.example.TODAIT__BE.global.security.principal.AuthMember;
+import com.example.TODAIT__BE.global.security.token.JwtBearerTokenExtractor;
+import com.example.TODAIT__BE.global.security.token.JwtTokenProvider;
+import com.example.TODAIT__BE.global.security.token.TokenType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,8 +25,6 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String ACCESS_TOKEN_TYPE = "ACCESS";
-
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
 
@@ -35,7 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = resolveToken(request);
 
         if (token != null && jwtTokenProvider.validateToken(token)
-                && ACCESS_TOKEN_TYPE.equals(jwtTokenProvider.getTokenType(token))) {
+                && TokenType.ACCESS == jwtTokenProvider.getTokenType(token)) {
             AuthMember authMember = resolveAuthMember(token);
             if (authMember == null) {
                 writeUnauthorizedResponse(response);

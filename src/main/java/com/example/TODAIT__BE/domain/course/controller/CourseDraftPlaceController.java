@@ -5,7 +5,7 @@ import com.example.TODAIT__BE.domain.course.dto.request.PlaceOrderUpdateRequest;
 import com.example.TODAIT__BE.domain.course.dto.response.PlaceOrderUpdateResponse;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftPlaceService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
-import com.example.TODAIT__BE.global.security.AuthMember;
+import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

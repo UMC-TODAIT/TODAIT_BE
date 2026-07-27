@@ -5,7 +5,7 @@ import com.example.TODAIT__BE.domain.course.controller.docs.CourseDraftControlle
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftCreateResponse;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
-import com.example.TODAIT__BE.global.security.AuthMember;
+import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

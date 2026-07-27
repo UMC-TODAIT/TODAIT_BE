@@ -4,7 +4,6 @@ import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.dto.request.SignRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
-import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +17,7 @@ public class EmailLoginService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
+    private final MemberLoginValidator memberLoginValidator;
 
     @Transactional
     public AuthTokenResponse.Token login(
@@ -30,7 +30,7 @@ public class EmailLoginService {
                 member.getPasswordHash()
         );
 
-        validateLoginAvailable(member);
+        memberLoginValidator.validateLoginAvailable(member);
 
         return authService.issueTokens(member);
     }
@@ -49,12 +49,4 @@ public class EmailLoginService {
         }
     }
 
-    private void validateLoginAvailable(
-            Member member
-    ){
-        if(member.getStatus() != MemberStatus.ACTIVE){
-            throw new MemberException(MemberErrorCode.INVALID_MEMBER_STATUS);
-        }
-
-    }
 }
