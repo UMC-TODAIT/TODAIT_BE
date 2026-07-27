@@ -8,7 +8,6 @@ import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.Term;
 import com.example.TODAIT__BE.domain.member.enums.TermType;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
-import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.infra.redis.EmailVerificationRedisRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,14 +25,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class SignupServiceTest {
 
-    @Mock
-    private MemberRepository memberRepository;
     @Mock
     private EmailVerificationRedisRepository emailVerificationRedisRepository;
     @Mock
@@ -44,18 +42,20 @@ class SignupServiceTest {
     private TermAgreementValidator termAgreementValidator;
     @Mock
     private MemberRegistrationService memberRegistrationService;
+    @Mock
+    private MemberDuplicateValidator memberDuplicateValidator;
 
     private SignupService signupService;
 
     @BeforeEach
     void setUp() {
         signupService = new SignupService(
-                memberRepository,
                 emailVerificationRedisRepository,
                 passwordEncoder,
                 authService,
                 termAgreementValidator,
-                memberRegistrationService
+                memberRegistrationService,
+                memberDuplicateValidator
         );
     }
 
@@ -72,8 +72,6 @@ class SignupServiceTest {
         AuthTokenResponse.Token token = new AuthTokenResponse.Token("access", "refresh");
 
         given(emailVerificationRedisRepository.isVerified("tester@example.com")).willReturn(true);
-        given(memberRepository.existsByEmail("tester@example.com")).willReturn(false);
-        given(memberRepository.existsByNickname("tester")).willReturn(false);
         given(termAgreementValidator.validateAndGetAgreedTerms(request.termAgreements()))
                 .willReturn(agreedTerms);
         given(passwordEncoder.encode("password!1")).willReturn("encoded-password");
@@ -113,7 +111,7 @@ class SignupServiceTest {
     void signupRejectsDuplicateEmail() {
         SignRequest.SignUp request = signupRequest("test@example.com", "tester");
         given(emailVerificationRedisRepository.isVerified("test@example.com")).willReturn(true);
-        given(memberRepository.existsByEmail("test@example.com")).willReturn(true);
+        givenDuplicateEmail("test@example.com");
 
         assertThatThrownBy(() -> signupService.signup(request))
                 .isInstanceOf(MemberException.class)
@@ -127,8 +125,7 @@ class SignupServiceTest {
     void signupRejectsDuplicateNickname() {
         SignRequest.SignUp request = signupRequest("test@example.com", "tester");
         given(emailVerificationRedisRepository.isVerified("test@example.com")).willReturn(true);
-        given(memberRepository.existsByEmail("test@example.com")).willReturn(false);
-        given(memberRepository.existsByNickname("tester")).willReturn(true);
+        givenDuplicateNickname("tester");
 
         assertThatThrownBy(() -> signupService.signup(request))
                 .isInstanceOf(MemberException.class)
@@ -145,6 +142,18 @@ class SignupServiceTest {
                 "password!1",
                 List.of(new TermAgreementRequest(TermType.SERVICE, true))
         );
+    }
+
+    private void givenDuplicateEmail(String email) {
+        willThrow(new MemberException(MemberErrorCode.ALREADY_REGISTERED_EMAIL))
+                .given(memberDuplicateValidator)
+                .validateEmailAvailable(email);
+    }
+
+    private void givenDuplicateNickname(String nickname) {
+        willThrow(new MemberException(MemberErrorCode.ALREADY_REGISTERED_NICKNAME))
+                .given(memberDuplicateValidator)
+                .validateNicknameAvailable(nickname);
     }
 
     private Term term(TermType termType) {
