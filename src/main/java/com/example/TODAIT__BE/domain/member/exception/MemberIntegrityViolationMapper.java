@@ -26,6 +26,18 @@ public class MemberIntegrityViolationMapper {
         return exception;
     }
 
+    public RuntimeException mapOAuthAccountSaveException(
+            DataIntegrityViolationException exception
+    ) {
+        if (hasConstraint(exception, "uk_member_oauth_provider_user")) {
+            return new MemberException(
+                    MemberErrorCode.ALREADY_REGISTERED_OAUTH_ACCOUNT
+            );
+        }
+
+        return exception;
+    }
+
     public boolean hasConstraint(
             DataIntegrityViolationException exception,
             String expectedConstraint

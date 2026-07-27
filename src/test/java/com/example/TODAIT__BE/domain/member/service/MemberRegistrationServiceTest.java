@@ -2,11 +2,14 @@ package com.example.TODAIT__BE.domain.member.service;
 
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.entity.Member;
+import com.example.TODAIT__BE.domain.member.entity.MemberOAuthAccount;
 import com.example.TODAIT__BE.domain.member.entity.MemberTermAgreement;
 import com.example.TODAIT__BE.domain.member.entity.Term;
+import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
 import com.example.TODAIT__BE.domain.member.enums.TermType;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.exception.MemberIntegrityViolationMapper;
+import com.example.TODAIT__BE.domain.member.repository.MemberOAuthAccountRepository;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.member.repository.MemberTermAgreementRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +35,8 @@ class MemberRegistrationServiceTest {
     @Mock
     private MemberRepository memberRepository;
     @Mock
+    private MemberOAuthAccountRepository memberOAuthAccountRepository;
+    @Mock
     private MemberTermAgreementRepository memberTermAgreementRepository;
     @Mock
     private MemberIntegrityViolationMapper integrityViolationMapper;
@@ -42,6 +47,7 @@ class MemberRegistrationServiceTest {
     void setUp() {
         memberRegistrationService = new MemberRegistrationService(
                 memberRepository,
+                memberOAuthAccountRepository,
                 memberTermAgreementRepository,
                 integrityViolationMapper
         );
@@ -101,6 +107,47 @@ class MemberRegistrationServiceTest {
                 })
                 .extracting(MemberTermAgreement::getTerm)
                 .containsExactly(serviceTerm, privacyTerm);
+    }
+
+    @Test
+    void saveOAuthAccountBuildsAndFlushesAccount() {
+        Member member = Member.builder().id(1L).nickname("tester").build();
+        LocalDateTime linkedAt = LocalDateTime.of(2026, 7, 26, 3, 10);
+        given(memberOAuthAccountRepository.saveAndFlush(any(MemberOAuthAccount.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        MemberOAuthAccount savedAccount = memberRegistrationService.saveOAuthAccount(
+                member,
+                OAuthProvider.GOOGLE,
+                "provider-user-id",
+                "user@example.com",
+                linkedAt
+        );
+
+        assertThat(savedAccount.getMember()).isEqualTo(member);
+        assertThat(savedAccount.getProvider()).isEqualTo(OAuthProvider.GOOGLE);
+        assertThat(savedAccount.getProviderUserId()).isEqualTo("provider-user-id");
+        assertThat(savedAccount.getProviderEmail()).isEqualTo("user@example.com");
+        assertThat(savedAccount.getLinkedAt()).isEqualTo(linkedAt);
+    }
+
+    @Test
+    void saveOAuthAccountMapsDataIntegrityViolation() {
+        Member member = Member.builder().id(1L).nickname("tester").build();
+        DataIntegrityViolationException exception = new DataIntegrityViolationException("duplicate");
+        MemberException mappedException =
+                new MemberException(MemberErrorCode.ALREADY_REGISTERED_OAUTH_ACCOUNT);
+
+        given(memberOAuthAccountRepository.saveAndFlush(any(MemberOAuthAccount.class))).willThrow(exception);
+        given(integrityViolationMapper.mapOAuthAccountSaveException(exception)).willReturn(mappedException);
+
+        assertThatThrownBy(() -> memberRegistrationService.saveOAuthAccount(
+                member,
+                OAuthProvider.GOOGLE,
+                "provider-user-id",
+                "user@example.com",
+                LocalDateTime.now()
+        )).isSameAs(mappedException);
     }
 
     private Term term(TermType termType) {
