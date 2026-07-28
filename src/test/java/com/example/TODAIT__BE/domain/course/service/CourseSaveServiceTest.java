@@ -422,7 +422,6 @@ class CourseSaveServiceTest {
         assertThat(savedCourse.getMember()).isEqualTo(owner);
         assertThat(savedCourse.getBasePlace()).isEqualTo(basePlace);
         assertThat(savedCourse.getArea()).isEqualTo(area);
-        assertThat(savedCourse.getPlaceCount()).isEqualTo(2);
 
         verify(courseMoodTagRepository, times(2)).save(any(CourseMoodTag.class));
         verify(courseFoodCategoryRepository).save(any(CourseFoodCategory.class));

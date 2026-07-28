@@ -26,12 +26,10 @@ public interface CoursePlaceRepository extends JpaRepository<CoursePlace, Long> 
             join fetch cp.course c
             join fetch cp.place p
             where c.id in :courseIds
-              and cp.placeRole = :placeRole
             order by c.id asc, cp.visitOrder asc
             """)
-    List<CoursePlace> findAllWithCourseAndPlaceByCourseIdsAndPlaceRole(
-            @Param("courseIds") List<Long> courseIds,
-            @Param("placeRole") PlaceRole placeRole
+    List<CoursePlace> findAllWithCourseAndPlaceByCourseIds(
+            @Param("courseIds") List<Long> courseIds
     );
 
     @EntityGraph(attributePaths = "place")

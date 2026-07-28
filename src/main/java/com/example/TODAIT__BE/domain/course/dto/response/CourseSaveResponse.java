@@ -23,7 +23,7 @@ public record CourseSaveResponse(
                 course.getId(),
                 course.getTitle(),
                 course.getMemo(),
-                course.getPlaceCount(),
+                places.size(),
                 moodTags,
                 foodCategories,
                 places

@@ -63,10 +63,7 @@ class SavedCourseServiceTest {
         verify(courseMoodTagRepository, never())
                 .findAllWithCourseAndMoodTagByCourseIds(any());
         verify(coursePlaceRepository, never())
-                .findAllWithCourseAndPlaceByCourseIdsAndPlaceRole(
-                        any(),
-                        any()
-                );
+                .findAllWithCourseAndPlaceByCourseIds(any());
     }
 
     @Test
@@ -75,21 +72,18 @@ class SavedCourseServiceTest {
                 1L,
                 "최근 코스",
                 "감성 카페",
-                5,
                 3
         );
         Course sharedCourse = course(
                 2L,
                 "최근이자 인기 코스",
                 "전시",
-                4,
                 10
         );
         Course popularOnly = course(
                 3L,
                 "인기 코스",
                 "공방",
-                2,
                 15
         );
 
@@ -104,19 +98,22 @@ class SavedCourseServiceTest {
                 courseMoodTag(popularOnly, 30L, "ACTIVE", "활발한")
         );
         List<CoursePlace> coursePlaces = List.of(
+                coursePlace(recentOnly, 100L, "기준 장소", 1, PlaceRole.BASE),
                 coursePlace(recentOnly, 101L, "장소 1", 2),
                 coursePlace(recentOnly, 102L, "장소 2", 3),
                 coursePlace(recentOnly, 103L, "장소 3", 4),
+                countOnlyCoursePlace(recentOnly, 5, PlaceRole.SELECTED),
+                coursePlace(sharedCourse, 200L, "공유 기준 장소", 1, PlaceRole.BASE),
                 coursePlace(sharedCourse, 201L, "공유 장소", 2),
+                coursePlace(popularOnly, 300L, "인기 기준 장소", 1, PlaceRole.BASE),
                 coursePlace(popularOnly, 301L, "인기 장소", 2)
         );
 
         given(courseMoodTagRepository.findAllWithCourseAndMoodTagByCourseIds(
                 List.of(1L, 2L, 3L)
         )).willReturn(courseMoodTags);
-        given(coursePlaceRepository.findAllWithCourseAndPlaceByCourseIdsAndPlaceRole(
-                List.of(1L, 2L, 3L),
-                PlaceRole.SELECTED
+        given(coursePlaceRepository.findAllWithCourseAndPlaceByCourseIds(
+                List.of(1L, 2L, 3L)
         )).willReturn(coursePlaces);
 
         SavedCourseOverviewResponse response =
@@ -133,6 +130,11 @@ class SavedCourseServiceTest {
         assertThat(response.popularCourses().get(1).representativePlaceCategory().name())
                 .isEqualTo("공방");
         assertThat(response.recentCourses().get(0).previewPlaces()).hasSize(3);
+        assertThat(response.recentCourses().get(0).previewPlaces())
+                .extracting("placeId")
+                .containsExactly(101L, 102L, 103L);
+        assertThat(response.recentCourses().get(0).placeCount())
+                .isEqualTo(5);
         assertThat(response.recentCourses().get(0).remainingPlaceCount())
                 .isEqualTo(2);
         assertThat(response.recentCourses().get(0).representativeMoodTag().code())
@@ -148,7 +150,6 @@ class SavedCourseServiceTest {
             Long id,
             String title,
             String subCategory,
-            Integer placeCount,
             Integer viewCount
     ) {
         Place basePlace = mock(Place.class);
@@ -165,7 +166,6 @@ class SavedCourseServiceTest {
                 0
         ));
         given(course.getBasePlace()).willReturn(basePlace);
-        given(course.getPlaceCount()).willReturn(placeCount);
         given(course.getViewCount()).willReturn(viewCount);
         return course;
     }
@@ -193,15 +193,47 @@ class SavedCourseServiceTest {
             String placeName,
             Integer visitOrder
     ) {
+        return coursePlace(
+                course,
+                placeId,
+                placeName,
+                visitOrder,
+                PlaceRole.SELECTED
+        );
+    }
+
+    private CoursePlace coursePlace(
+            Course course,
+            Long placeId,
+            String placeName,
+            Integer visitOrder,
+            PlaceRole placeRole
+    ) {
         Place place = mock(Place.class);
-        given(place.getId()).willReturn(placeId);
+        if (placeRole == PlaceRole.SELECTED) {
+            given(place.getId()).willReturn(placeId);
+        }
 
         return CoursePlace.builder()
                 .course(course)
                 .place(place)
                 .visitOrder(visitOrder)
-                .placeRole(PlaceRole.SELECTED)
+                .placeRole(placeRole)
                 .placeNameSnapshot(placeName)
+                .build();
+    }
+
+    private CoursePlace countOnlyCoursePlace(
+            Course course,
+            Integer visitOrder,
+            PlaceRole placeRole
+    ) {
+        return CoursePlace.builder()
+                .course(course)
+                .place(mock(Place.class))
+                .visitOrder(visitOrder)
+                .placeRole(placeRole)
+                .placeNameSnapshot("count only")
                 .build();
     }
 }

@@ -59,7 +59,6 @@ class RecommendedCourseServiceTest {
         Course course = mock(Course.class);
         given(course.getId()).willReturn(100L);
         given(course.getTitle()).willReturn("연남 데이트 코스");
-        given(course.getPlaceCount()).willReturn(2);
         given(courseRepository.findActiveRecommendedCourseById(
                 100L,
                 CourseVisibility.RECOMMENDED,

@@ -151,9 +151,8 @@ public class SavedCourseService {
 
         List<CoursePlace> coursePlaces =
                 coursePlaceRepository
-                        .findAllWithCourseAndPlaceByCourseIdsAndPlaceRole(
-                                courseIds,
-                                PlaceRole.SELECTED
+                        .findAllWithCourseAndPlaceByCourseIds(
+                                courseIds
                         );
 
         for (CoursePlace coursePlace : coursePlaces) {
@@ -181,13 +180,15 @@ public class SavedCourseService {
 
         List<SavedCoursePreviewPlaceResponse> previewPlaces =
                 coursePlaces.stream()
+                        .filter(coursePlace ->
+                                coursePlace.getPlaceRole()
+                                        == PlaceRole.SELECTED
+                        )
                         .limit(PREVIEW_PLACE_LIMIT)
                         .map(this::toPreviewPlaceResponse)
                         .toList();
 
-        int placeCount = course.getPlaceCount() != null
-                ? course.getPlaceCount()
-                : 0;
+        int placeCount = coursePlaces.size();
 
         int remainingPlaceCount = Math.max(
                 placeCount - previewPlaces.size(),

@@ -61,9 +61,6 @@ public class Course extends BaseEntity {
     @Column(name = "source_type", nullable = false)
     private CourseSourceType sourceType;
 
-    @Column(name = "place_count", nullable = false)
-    private Integer placeCount;
-
     @Builder.Default
     @Column(name = "view_count", nullable = false)
     private Integer viewCount = 0;
