@@ -170,16 +170,14 @@ public class RecommendedCourseService {
         }
 
         return placeImageRepository
-                .findAllByPlaceIdInAndIsPrimaryTrueOrderByPlaceIdAscDisplayOrderAsc(
+                .findAllByPlace_IdInAndIsPrimaryTrueOrderByPlace_IdAscDisplayOrderAsc(
                         placeIds
                 )
                 .stream()
                 .collect(Collectors.toMap(
-                        placeImage ->
-                                placeImage.getPlace().getId(),
+                        placeImage -> placeImage.getPlace().getId(),
                         PlaceImage::getImageUrl,
-                        (firstImageUrl, ignoredImageUrl) ->
-                                firstImageUrl
+                        (firstImageUrl, ignoredImageUrl) -> firstImageUrl
                 ));
     }
 
