@@ -84,6 +84,7 @@ class RecommendedCourseServiceTest {
                 .place(basePlace)
                 .visitOrder(1)
                 .placeRole(PlaceRole.BASE)
+                .isRepresentative(true)
                 .placeNameSnapshot("스냅샷 기준 장소")
                 .addressSnapshot("서울 마포구 기준로 1")
                 .latitudeSnapshot(37.1)
@@ -99,8 +100,6 @@ class RecommendedCourseServiceTest {
                 .latitudeSnapshot(37.2)
                 .longitudeSnapshot(126.2)
                 .build();
-        given(coursePlaceRepository.findFirstByCourseIdAndIsRepresentativeTrue(100L))
-                .willReturn(Optional.of(baseCoursePlace));
         given(coursePlaceRepository.findAllByCourseIdOrderByVisitOrderAsc(100L))
                 .willReturn(List.of(baseCoursePlace, selectedCoursePlace));
         PlaceImageRepository.PrimaryImageUrlView selectedPrimaryImage =

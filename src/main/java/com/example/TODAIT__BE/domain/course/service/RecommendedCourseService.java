@@ -62,12 +62,12 @@ public class RecommendedCourseService {
         RepresentativeMoodTagResponse representativeMoodTag =
                 getRepresentativeMoodTag(courseId);
 
-        RepresentativeSubCategoryResponse representativePlaceCategory =
-                getRepresentativeSubCategory(courseId);
-
         List<CoursePlace> coursePlaces =
                 coursePlaceRepository
                         .findAllByCourseIdOrderByVisitOrderAsc(courseId);
+
+        RepresentativeSubCategoryResponse representativePlaceCategory =
+                getRepresentativeSubCategory(coursePlaces);
 
         Map<Long, String> primaryImageUrlByPlaceId =
                 getPrimaryImageUrlByPlaceId(coursePlaces);
@@ -113,10 +113,13 @@ public class RecommendedCourseService {
     }
 
     private RepresentativeSubCategoryResponse getRepresentativeSubCategory(
-            Long courseId
+            List<CoursePlace> coursePlaces
     ) {
-        return coursePlaceRepository
-                .findFirstByCourseIdAndIsRepresentativeTrue(courseId)
+        return coursePlaces.stream()
+                .filter(coursePlace ->
+                        Boolean.TRUE.equals(coursePlace.getIsRepresentative())
+                )
+                .findFirst()
                 .map(CoursePlace::getPlace)
                 .map(Place::getSubCategory)
                 .filter(this::hasText)
