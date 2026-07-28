@@ -9,6 +9,7 @@ import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
 import com.example.TODAIT__BE.domain.course.entity.CoursePlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
+import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
@@ -17,19 +18,14 @@ import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.entity.PlaceImage;
 import com.example.TODAIT__BE.domain.place.repository.PlaceImageRepository;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
-import com.example.TODAIT__BE.global.apiPayload.exception.ProjectException;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RecommendedCourseService {
-
-    private static final Set<String> SUPPORTED_AREA_CODES =
-            Set.of("HONGDAE", "YEONNAM", "SEONGSU");
 
     private final CourseRepository courseRepository;
     private final CoursePlaceRepository coursePlaceRepository;
@@ -59,12 +55,12 @@ public class RecommendedCourseService {
                         CourseSourceType.SERVICE_CREATED
                 )
                 .orElseThrow(() ->
-                        new ProjectException(
+                        new CourseException(
                                 CourseErrorCode.RECOMMENDED_COURSE_NOT_FOUND
                         )
                 );
 
-        validateSupportedArea(course);
+        validateActiveArea(course);
 
         RepresentativeMoodTagResponse representativeMoodTag =
                 getRepresentativeMoodTag(courseId);
@@ -99,18 +95,15 @@ public class RecommendedCourseService {
         );
     }
 
-    private void validateSupportedArea(Course course) {
+    private void validateActiveArea(Course course) {
         boolean isSupportedArea =
                 course.getArea() != null
                         && Boolean.TRUE.equals(
                         course.getArea().getIsActive()
-                )
-                        && SUPPORTED_AREA_CODES.contains(
-                        course.getArea().getCode()
                 );
 
         if (!isSupportedArea) {
-            throw new ProjectException(
+            throw new CourseException(
                     CourseErrorCode.RECOMMENDED_COURSE_NOT_FOUND
             );
         }
