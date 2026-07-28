@@ -56,14 +56,14 @@ public class SavedCourseService {
 
         List<Course> recentCourses =
                 courseRepository
-                        .findAllByMemberIdAndDeletedAtIsNullOrderByCreatedAtDescIdDesc(
+                        .findRecentSavedCourses(
                                 memberId,
                                 limitTwo
                         );
 
         List<Course> popularCourses =
                 courseRepository
-                        .findAllByMemberIdAndDeletedAtIsNullOrderByViewCountDescUpdatedAtDescIdDesc(
+                        .findPopularSavedCourses(
                                 memberId,
                                 limitTwo
                         );
@@ -134,7 +134,7 @@ public class SavedCourseService {
 
         List<CourseMoodTag> courseMoodTags =
                 courseMoodTagRepository
-                        .findAllByCourseIdInOrderByCourseIdAscIdAsc(
+                        .findAllWithCourseAndMoodTagByCourseIds(
                                 courseIds
                         );
 
@@ -164,7 +164,7 @@ public class SavedCourseService {
 
         List<CourseFoodCategory> courseFoodCategories =
                 courseFoodCategoryRepository
-                        .findAllByCourseIdInOrderByCourseIdAscIdAsc(
+                        .findAllWithCourseAndFoodCategoryByCourseIds(
                                 courseIds
                         );
 
@@ -193,7 +193,7 @@ public class SavedCourseService {
 
         List<CoursePlace> coursePlaces =
                 coursePlaceRepository
-                        .findAllByCourseIdInAndPlaceRoleOrderByCourseIdAscVisitOrderAsc(
+                        .findAllWithCourseAndPlaceByCourseIdsAndPlaceRole(
                                 courseIds,
                                 PlaceRole.SELECTED
                         );

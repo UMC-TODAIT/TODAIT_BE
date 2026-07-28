@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface CoursePlaceRepository extends JpaRepository<CoursePlace, Long> {
 
@@ -18,9 +20,18 @@ public interface CoursePlaceRepository extends JpaRepository<CoursePlace, Long> 
             Long courseId
     );
 
-    List<CoursePlace> findAllByCourseIdInAndPlaceRoleOrderByCourseIdAscVisitOrderAsc(
-            List<Long> courseIds,
-            PlaceRole placeRole
+    @Query("""
+            select cp
+            from CoursePlace cp
+            join fetch cp.course c
+            join fetch cp.place p
+            where c.id in :courseIds
+              and cp.placeRole = :placeRole
+            order by c.id asc, cp.visitOrder asc
+            """)
+    List<CoursePlace> findAllWithCourseAndPlaceByCourseIdsAndPlaceRole(
+            @Param("courseIds") List<Long> courseIds,
+            @Param("placeRole") PlaceRole placeRole
     );
 
     @EntityGraph(attributePaths = "place")

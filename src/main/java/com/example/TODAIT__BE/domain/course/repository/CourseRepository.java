@@ -27,13 +27,29 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             @Param("sourceType") CourseSourceType sourceType
     );
 
-    List<Course> findAllByMemberIdAndDeletedAtIsNullOrderByCreatedAtDescIdDesc(
-            Long memberId,
+    @Query("""
+            select c
+            from Course c
+            join fetch c.basePlace
+            where c.member.id = :memberId
+              and c.deletedAt is null
+            order by c.createdAt desc, c.id desc
+            """)
+    List<Course> findRecentSavedCourses(
+            @Param("memberId") Long memberId,
             Pageable pageable
     );
 
-    List<Course> findAllByMemberIdAndDeletedAtIsNullOrderByViewCountDescUpdatedAtDescIdDesc(
-            Long memberId,
+    @Query("""
+            select c
+            from Course c
+            join fetch c.basePlace
+            where c.member.id = :memberId
+              and c.deletedAt is null
+            order by c.viewCount desc, c.updatedAt desc, c.id desc
+            """)
+    List<Course> findPopularSavedCourses(
+            @Param("memberId") Long memberId,
             Pageable pageable
     );
 }
