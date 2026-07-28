@@ -35,16 +35,16 @@ public class LogoutService {
                 .findByTokenHash(tokenHash)
                 .orElseThrow(() -> new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
+        if (!storedToken.getMember().getId().equals(memberId)) {
+            throw new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
         if (storedToken.isRevoked()) {
             throw new AuthException(AuthErrorCode.REVOKED_REFRESH_TOKEN);
         }
 
         if (!storedToken.getExpiresAt().isAfter(LocalDateTime.now())) {
             throw new AuthException(AuthErrorCode.EXPIRED_REFRESH_TOKEN);
-        }
-
-        if (!storedToken.getMember().getId().equals(memberId)) {
-            throw new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN);
         }
 
         storedToken.revoke();
