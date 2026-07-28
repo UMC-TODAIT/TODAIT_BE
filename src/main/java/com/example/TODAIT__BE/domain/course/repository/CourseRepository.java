@@ -10,6 +10,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
 
+    long countByMemberId(Long memberId);
+
     @Query("""
             select c
             from Course c

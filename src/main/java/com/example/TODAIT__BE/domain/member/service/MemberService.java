@@ -1,7 +1,8 @@
 package com.example.TODAIT__BE.domain.member.service;
 
+import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
-import com.example.TODAIT__BE.domain.member.dto.response.MemberNicknameResponse;
+import com.example.TODAIT__BE.domain.member.dto.response.MemberMeResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
@@ -16,8 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final CourseRepository courseRepository;
 
-    public MemberNicknameResponse getMyNickname(Long memberId) {
+    public MemberMeResponse getMyInfo(Long memberId) {
         Member member = memberRepository
                 .findById(memberId)
                 .orElseThrow(() ->
@@ -26,7 +28,15 @@ public class MemberService {
 
         validateActiveMember(member);
 
-        return new MemberNicknameResponse(member.getNickname());
+        long savedCourseCount = courseRepository.countByMemberId(memberId);
+
+        return new MemberMeResponse(
+                member.getId(),
+                member.getEmail(),
+                member.getNickname(),
+                member.getProfileImageUrl(),
+                savedCourseCount
+        );
     }
 
     private void validateActiveMember(Member member) {

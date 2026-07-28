@@ -28,10 +28,10 @@ public enum MemberSuccessCode implements BaseSuccessCode {
             "로그인이 완료되었습니다."
     ),
 
-    NICKNAME_RETRIEVED(
+    MY_INFO_RETRIEVED(
             HttpStatus.OK,
-        "MEMBER200_3",
-                "회원 닉네임 조회 성공"
+            "MEMBER200_3",
+            "회원 정보 조회 성공"
     );
 
     private final HttpStatus status;

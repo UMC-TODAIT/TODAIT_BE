@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.member.controller.docs;
 
-import com.example.TODAIT__BE.domain.member.dto.response.MemberNicknameResponse;
+import com.example.TODAIT__BE.domain.member.dto.response.MemberMeResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,10 +14,10 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 public interface MemberControllerDocs {
 
     @Operation(
-            summary = "첫 메인화면 닉네임 조회",
-            description = "현재 로그인한 사용자의 닉네임을 조회합니다."
+            summary = "내 회원 정보 조회",
+            description = "현재 로그인한 사용자의 기본 정보와 마이페이지 요약 정보를 조회합니다."
     )
-    ApiResponse<MemberNicknameResponse> getMyNickname(
+    ApiResponse<MemberMeResponse> getMyInfo(
             @AuthenticationPrincipal AuthMember authMember
     );
 }

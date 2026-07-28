@@ -2,7 +2,7 @@ package com.example.TODAIT__BE.domain.member.controller;
 
 import com.example.TODAIT__BE.domain.member.code.MemberSuccessCode;
 import com.example.TODAIT__BE.domain.member.controller.docs.MemberControllerDocs;
-import com.example.TODAIT__BE.domain.member.dto.response.MemberNicknameResponse;
+import com.example.TODAIT__BE.domain.member.dto.response.MemberMeResponse;
 import com.example.TODAIT__BE.domain.member.service.MemberService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
@@ -20,13 +20,13 @@ public class MemberController implements MemberControllerDocs {
     private final MemberService memberService;
 
     @Override
-    @GetMapping("/me/nickname")
-    public ApiResponse<MemberNicknameResponse> getMyNickname(
+    @GetMapping("/me")
+    public ApiResponse<MemberMeResponse> getMyInfo(
             @AuthenticationPrincipal AuthMember authMember
     ) {
         return ApiResponse.onSuccess(
-                MemberSuccessCode.NICKNAME_RETRIEVED,
-                memberService.getMyNickname(authMember.memberId())
+                MemberSuccessCode.MY_INFO_RETRIEVED,
+                memberService.getMyInfo(authMember.memberId())
         );
     }
 }
