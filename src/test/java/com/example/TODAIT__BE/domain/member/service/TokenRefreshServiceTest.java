@@ -20,6 +20,9 @@ import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static com.example.TODAIT__BE.domain.member.service.MemberServiceTestFixtures.activeMember;
+import static com.example.TODAIT__BE.domain.member.service.MemberServiceTestFixtures.member;
+import static com.example.TODAIT__BE.domain.member.service.MemberServiceTestFixtures.refreshToken;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
@@ -77,11 +80,7 @@ class TokenRefreshServiceTest {
     @Test
     void refreshRejectsInactiveMember() {
         TokenRefreshRequest.Refresh request = new TokenRefreshRequest.Refresh("refresh-token");
-        Member blockedMember = Member.builder()
-                .id(1L)
-                .nickname("blocked")
-                .status(MemberStatus.BLOCKED)
-                .build();
+        Member blockedMember = member(1L, "blocked", MemberStatus.BLOCKED);
         RefreshToken storedToken = refreshToken(blockedMember, "refresh-token-hash", LocalDateTime.now().plusHours(1));
 
         given(refreshTokenValidator.validateAndGetStoredToken(request.refreshToken()))
@@ -94,25 +93,5 @@ class TokenRefreshServiceTest {
                 .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(MemberErrorCode.INVALID_MEMBER_STATUS);
-    }
-
-    private Member activeMember(Long id) {
-        return Member.builder()
-                .id(id)
-                .nickname("member-" + id)
-                .status(MemberStatus.ACTIVE)
-                .build();
-    }
-
-    private RefreshToken refreshToken(
-            Member member,
-            String tokenHash,
-            LocalDateTime expiresAt
-    ) {
-        return RefreshToken.builder()
-                .member(member)
-                .tokenHash(tokenHash)
-                .expiresAt(expiresAt)
-                .build();
     }
 }

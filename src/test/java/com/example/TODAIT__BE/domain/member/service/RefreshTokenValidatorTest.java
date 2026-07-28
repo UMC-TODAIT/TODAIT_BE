@@ -1,9 +1,7 @@
 package com.example.TODAIT__BE.domain.member.service;
 
 import com.example.TODAIT__BE.domain.member.code.AuthErrorCode;
-import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.RefreshToken;
-import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 import com.example.TODAIT__BE.domain.member.exception.AuthException;
 import com.example.TODAIT__BE.domain.member.repository.RefreshTokenRepository;
 import com.example.TODAIT__BE.global.security.token.JwtTokenProvider;
@@ -22,6 +20,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static com.example.TODAIT__BE.domain.member.service.MemberServiceTestFixtures.activeMember;
+import static com.example.TODAIT__BE.domain.member.service.MemberServiceTestFixtures.refreshToken;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 
@@ -156,25 +156,5 @@ class RefreshTokenValidatorTest {
     private void givenValidRefreshJwt(String token, Long memberId) {
         given(jwtTokenProvider.getTokenType(token)).willReturn(TokenType.REFRESH);
         given(jwtTokenProvider.getMemberId(token)).willReturn(memberId);
-    }
-
-    private Member activeMember(Long id) {
-        return Member.builder()
-                .id(id)
-                .nickname("member-" + id)
-                .status(MemberStatus.ACTIVE)
-                .build();
-    }
-
-    private RefreshToken refreshToken(
-            Member member,
-            String tokenHash,
-            LocalDateTime expiresAt
-    ) {
-        return RefreshToken.builder()
-                .member(member)
-                .tokenHash(tokenHash)
-                .expiresAt(expiresAt)
-                .build();
     }
 }
