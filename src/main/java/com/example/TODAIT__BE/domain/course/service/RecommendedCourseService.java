@@ -15,7 +15,6 @@ import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
 import com.example.TODAIT__BE.domain.place.entity.Place;
-import com.example.TODAIT__BE.domain.place.entity.PlaceImage;
 import com.example.TODAIT__BE.domain.place.repository.PlaceImageRepository;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import java.util.List;
@@ -49,7 +48,7 @@ public class RecommendedCourseService {
             Long courseId
     ) {
         Course course = courseRepository
-                .findByIdAndVisibilityAndSourceType(
+                .findActiveRecommendedCourseById(
                         courseId,
                         CourseVisibility.RECOMMENDED,
                         CourseSourceType.SERVICE_CREATED
@@ -59,8 +58,6 @@ public class RecommendedCourseService {
                                 CourseErrorCode.RECOMMENDED_COURSE_NOT_FOUND
                         )
                 );
-
-        validateActiveArea(course);
 
         RepresentativeMoodTagResponse representativeMoodTag =
                 getRepresentativeMoodTag(courseId);
@@ -93,20 +90,6 @@ public class RecommendedCourseService {
                 course.getPlaceCount(),
                 places
         );
-    }
-
-    private void validateActiveArea(Course course) {
-        boolean isSupportedArea =
-                course.getArea() != null
-                        && Boolean.TRUE.equals(
-                        course.getArea().getIsActive()
-                );
-
-        if (!isSupportedArea) {
-            throw new CourseException(
-                    CourseErrorCode.RECOMMENDED_COURSE_NOT_FOUND
-            );
-        }
     }
 
     private RepresentativeMoodTagResponse getRepresentativeMoodTag(
@@ -159,13 +142,11 @@ public class RecommendedCourseService {
         }
 
         return placeImageRepository
-                .findAllByPlace_IdInAndIsPrimaryTrueOrderByPlace_IdAscDisplayOrderAsc(
-                        placeIds
-                )
+                .findPrimaryImageUrlsByPlaceIds(placeIds)
                 .stream()
                 .collect(Collectors.toMap(
-                        placeImage -> placeImage.getPlace().getId(),
-                        PlaceImage::getImageUrl,
+                        PlaceImageRepository.PrimaryImageUrlView::getPlaceId,
+                        PlaceImageRepository.PrimaryImageUrlView::getImageUrl,
                         (firstImageUrl, ignoredImageUrl) -> firstImageUrl
                 ));
     }
