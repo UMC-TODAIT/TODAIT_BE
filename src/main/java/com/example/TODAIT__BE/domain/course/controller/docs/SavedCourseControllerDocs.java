@@ -12,7 +12,7 @@ public interface SavedCourseControllerDocs {
 
     @Operation(
             summary = "저장 코스 목록 조회",
-            description = "로그인한 사용자의 최근 저장 코스와 많이 이용한 코스를 조회합니다."
+            description = "로그인한 사용자의 최근 저장 코스와 조회수 기준 인기 코스를 조회합니다."
     )
     ResponseEntity<ApiResponse<SavedCourseOverviewResponse>>
     getSavedCourseOverview(AuthMember authMember);
