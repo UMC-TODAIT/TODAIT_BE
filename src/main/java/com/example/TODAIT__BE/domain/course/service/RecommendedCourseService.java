@@ -9,28 +9,22 @@ import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
 import com.example.TODAIT__BE.domain.course.entity.CoursePlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
-import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
+import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
 import com.example.TODAIT__BE.domain.place.entity.Place;
-import com.example.TODAIT__BE.domain.place.entity.PlaceImage;
 import com.example.TODAIT__BE.domain.place.repository.PlaceImageRepository;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
-import com.example.TODAIT__BE.global.apiPayload.exception.ProjectException;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RecommendedCourseService {
-
-    private static final Set<String> SUPPORTED_AREA_CODES =
-            Set.of("HONGDAE", "YEONNAM", "SEONGSU");
 
     private final CourseRepository courseRepository;
     private final CoursePlaceRepository coursePlaceRepository;
@@ -54,31 +48,26 @@ public class RecommendedCourseService {
             Long courseId
     ) {
         Course course = courseRepository
-                .findByIdAndVisibilityAndSourceType(
+                .findActiveRecommendedCourseById(
                         courseId,
                         CourseVisibility.RECOMMENDED,
                         CourseSourceType.SERVICE_CREATED
                 )
                 .orElseThrow(() ->
-                        new ProjectException(
+                        new CourseException(
                                 CourseErrorCode.RECOMMENDED_COURSE_NOT_FOUND
                         )
                 );
 
-        validateSupportedArea(course);
-
         RepresentativeMoodTagResponse representativeMoodTag =
                 getRepresentativeMoodTag(courseId);
 
-        RepresentativeSubCategoryResponse representativeSubCategory =
-                getRepresentativeSubCategory(courseId);
-
         List<CoursePlace> coursePlaces =
                 coursePlaceRepository
-                        .findAllByCourseIdAndPlaceRoleOrderByVisitOrderAsc(
-                                courseId,
-                                PlaceRole.SELECTED
-                        );
+                        .findAllByCourseIdOrderByVisitOrderAsc(courseId);
+
+        RepresentativeSubCategoryResponse representativePlaceCategory =
+                getRepresentativeSubCategory(coursePlaces);
 
         Map<Long, String> primaryImageUrlByPlaceId =
                 getPrimaryImageUrlByPlaceId(coursePlaces);
@@ -97,27 +86,10 @@ public class RecommendedCourseService {
                 course.getId(),
                 course.getTitle(),
                 representativeMoodTag,
-                representativeSubCategory,
+                representativePlaceCategory,
                 course.getPlaceCount(),
                 places
         );
-    }
-
-    private void validateSupportedArea(Course course) {
-        boolean isSupportedArea =
-                course.getArea() != null
-                        && Boolean.TRUE.equals(
-                        course.getArea().getIsActive()
-                )
-                        && SUPPORTED_AREA_CODES.contains(
-                        course.getArea().getCode()
-                );
-
-        if (!isSupportedArea) {
-            throw new ProjectException(
-                    CourseErrorCode.RECOMMENDED_COURSE_NOT_FOUND
-            );
-        }
     }
 
     private RepresentativeMoodTagResponse getRepresentativeMoodTag(
@@ -141,10 +113,13 @@ public class RecommendedCourseService {
     }
 
     private RepresentativeSubCategoryResponse getRepresentativeSubCategory(
-            Long courseId
+            List<CoursePlace> coursePlaces
     ) {
-        return coursePlaceRepository
-                .findFirstByCourseIdAndIsRepresentativeTrue(courseId)
+        return coursePlaces.stream()
+                .filter(coursePlace ->
+                        Boolean.TRUE.equals(coursePlace.getIsRepresentative())
+                )
+                .findFirst()
                 .map(CoursePlace::getPlace)
                 .map(Place::getSubCategory)
                 .filter(this::hasText)
@@ -170,13 +145,11 @@ public class RecommendedCourseService {
         }
 
         return placeImageRepository
-                .findAllByPlace_IdInAndIsPrimaryTrueOrderByPlace_IdAscDisplayOrderAsc(
-                        placeIds
-                )
+                .findPrimaryImageUrlsByPlaceIds(placeIds)
                 .stream()
                 .collect(Collectors.toMap(
-                        placeImage -> placeImage.getPlace().getId(),
-                        PlaceImage::getImageUrl,
+                        PlaceImageRepository.PrimaryImageUrlView::getPlaceId,
+                        PlaceImageRepository.PrimaryImageUrlView::getImageUrl,
                         (firstImageUrl, ignoredImageUrl) -> firstImageUrl
                 ));
     }

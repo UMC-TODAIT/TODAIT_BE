@@ -3,17 +3,28 @@ package com.example.TODAIT__BE.domain.course.repository;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
 
-    Optional<Course> findByIdAndVisibilityAndSourceType(
-            Long id,
-            CourseVisibility visibility,
-            CourseSourceType sourceType
+    @Query("""
+            select c
+            from Course c
+            join c.area a
+            where c.id = :id
+              and c.visibility = :visibility
+              and c.sourceType = :sourceType
+              and a.isActive = true
+            """)
+    Optional<Course> findActiveRecommendedCourseById(
+            @Param("id") Long id,
+            @Param("visibility") CourseVisibility visibility,
+            @Param("sourceType") CourseSourceType sourceType
     );
 
     List<Course> findAllByMemberIdAndDeletedAtIsNullOrderByCreatedAtDescIdDesc(

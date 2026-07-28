@@ -1,10 +1,13 @@
 package com.example.TODAIT__BE.domain.member.controller;
 
+import com.example.TODAIT__BE.domain.member.code.AuthSuccessCode;
 import com.example.TODAIT__BE.domain.member.code.MemberSuccessCode;
 import com.example.TODAIT__BE.domain.member.controller.docs.AuthControllerDocs;
+import com.example.TODAIT__BE.domain.member.dto.request.LogoutRequest;
 import com.example.TODAIT__BE.domain.member.dto.request.SignRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
 import com.example.TODAIT__BE.domain.member.service.EmailLoginService;
+import com.example.TODAIT__BE.domain.member.service.LogoutService;
 import com.example.TODAIT__BE.domain.member.service.SignupService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import jakarta.validation.Valid;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController implements AuthControllerDocs {
     private final SignupService signupService;
     private final EmailLoginService emailLoginService;
+    private final LogoutService logoutService;
 
     @PostMapping("/api/auth/signup")
     @Override
@@ -48,5 +52,17 @@ public class AuthController implements AuthControllerDocs {
                         response
                 )
         );
+    }
+
+    @PostMapping("/api/auth/logout")
+    @Override
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @Valid @RequestBody LogoutRequest.Logout request
+    ) {
+        logoutService.logout(request);
+
+        return ResponseEntity
+                .status(AuthSuccessCode.LOGOUT_COMPLETED.getStatus())
+                .body(ApiResponse.onSuccess(AuthSuccessCode.LOGOUT_COMPLETED, null));
     }
 }

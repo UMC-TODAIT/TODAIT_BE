@@ -6,7 +6,7 @@ public record RecommendedCourseDetailResponse(
         Long courseId,
         String title,
         RepresentativeMoodTagResponse representativeMoodTag,
-        RepresentativeSubCategoryResponse representativeSubCategory,
+        RepresentativeSubCategoryResponse representativePlaceCategory,
         Integer placeCount,
         List<RecommendedCoursePlaceResponse> places
 ) {

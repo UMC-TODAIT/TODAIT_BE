@@ -1,5 +1,6 @@
 package com.example.TODAIT__BE.domain.member.controller.docs;
 
+import com.example.TODAIT__BE.domain.member.dto.request.LogoutRequest;
 import com.example.TODAIT__BE.domain.member.dto.request.SignRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
@@ -33,5 +34,16 @@ public interface AuthControllerDocs {
     )
     ResponseEntity<ApiResponse<AuthTokenResponse.Token>> login(
             SignRequest.Login request
+    );
+
+    @Operation(
+            summary = "로그아웃",
+            description = """
+                    Refresh Token을 폐기하여 로그아웃합니다.
+                    폐기된 Refresh Token은 Access Token 재발급에 사용할 수 없습니다.
+                    """
+    )
+    ResponseEntity<ApiResponse<Void>> logout(
+            LogoutRequest.Logout request
     );
 }

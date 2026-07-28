@@ -9,12 +9,7 @@ import com.example.TODAIT__BE.domain.member.entity.RefreshToken;
 import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 import com.example.TODAIT__BE.domain.member.exception.AuthException;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
-import com.example.TODAIT__BE.domain.member.repository.RefreshTokenRepository;
 import com.example.TODAIT__BE.global.security.token.JwtTokenProvider;
-import com.example.TODAIT__BE.global.security.token.RefreshTokenHasher;
-import com.example.TODAIT__BE.global.security.token.TokenType;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,10 +17,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static com.example.TODAIT__BE.domain.member.service.MemberServiceTestFixtures.activeMember;
+import static com.example.TODAIT__BE.domain.member.service.MemberServiceTestFixtures.member;
+import static com.example.TODAIT__BE.domain.member.service.MemberServiceTestFixtures.refreshToken;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verify;
@@ -36,9 +33,7 @@ class TokenRefreshServiceTest {
     @Mock
     private JwtTokenProvider jwtTokenProvider;
     @Mock
-    private RefreshTokenRepository refreshTokenRepository;
-    @Mock
-    private RefreshTokenHasher refreshTokenHasher;
+    private RefreshTokenValidator refreshTokenValidator;
     @Mock
     private MemberLoginValidator memberLoginValidator;
 
@@ -48,8 +43,7 @@ class TokenRefreshServiceTest {
     void setUp() {
         tokenRefreshService = new TokenRefreshService(
                 jwtTokenProvider,
-                refreshTokenRepository,
-                refreshTokenHasher,
+                refreshTokenValidator,
                 memberLoginValidator
         );
     }
@@ -60,10 +54,8 @@ class TokenRefreshServiceTest {
         Member member = activeMember(1L);
         RefreshToken storedToken = refreshToken(member, "refresh-token-hash", LocalDateTime.now().plusHours(1));
 
-        givenValidRefreshJwt("refresh-token", 1L);
-        given(refreshTokenHasher.hash("refresh-token")).willReturn("refresh-token-hash");
-        given(refreshTokenRepository.findByTokenHash("refresh-token-hash"))
-                .willReturn(Optional.of(storedToken));
+        given(refreshTokenValidator.validateAndGetStoredToken(request.refreshToken()))
+                .willReturn(storedToken);
         given(jwtTokenProvider.createAccessToken(member)).willReturn("new-access-token");
 
         TokenRefreshResponse.AccessToken response = tokenRefreshService.refresh(request);
@@ -73,90 +65,11 @@ class TokenRefreshServiceTest {
     }
 
     @Test
-    void refreshRejectsNonRefreshTokenType() {
-        TokenRefreshRequest.Refresh request = new TokenRefreshRequest.Refresh("access-token");
-        given(jwtTokenProvider.getTokenType("access-token")).willReturn(TokenType.ACCESS);
+    void refreshPropagatesRefreshTokenValidationFailure() {
+        TokenRefreshRequest.Refresh request = new TokenRefreshRequest.Refresh("invalid-refresh-token");
 
-        assertThatThrownBy(() -> tokenRefreshService.refresh(request))
-                .isInstanceOf(AuthException.class)
-                .extracting("errorCode")
-                .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
-    }
-
-    @Test
-    void refreshRejectsExpiredJwtRefreshToken() {
-        TokenRefreshRequest.Refresh request = new TokenRefreshRequest.Refresh("expired-refresh-token");
-        willThrow(new ExpiredJwtException(null, null, "expired"))
-                .given(jwtTokenProvider)
-                .getTokenType("expired-refresh-token");
-
-        assertThatThrownBy(() -> tokenRefreshService.refresh(request))
-                .isInstanceOf(AuthException.class)
-                .extracting("errorCode")
-                .isEqualTo(AuthErrorCode.EXPIRED_REFRESH_TOKEN);
-    }
-
-    @Test
-    void refreshRejectsMalformedJwtRefreshToken() {
-        TokenRefreshRequest.Refresh request = new TokenRefreshRequest.Refresh("malformed-refresh-token");
-        willThrow(new JwtException("malformed"))
-                .given(jwtTokenProvider)
-                .getTokenType("malformed-refresh-token");
-
-        assertThatThrownBy(() -> tokenRefreshService.refresh(request))
-                .isInstanceOf(AuthException.class)
-                .extracting("errorCode")
-                .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
-    }
-
-    @Test
-    void refreshRejectsUnknownStoredToken() {
-        TokenRefreshRequest.Refresh request = new TokenRefreshRequest.Refresh("refresh-token");
-
-        givenValidRefreshJwt("refresh-token", 1L);
-        given(refreshTokenHasher.hash("refresh-token")).willReturn("refresh-token-hash");
-        given(refreshTokenRepository.findByTokenHash("refresh-token-hash"))
-                .willReturn(Optional.empty());
-
-        assertThatThrownBy(() -> tokenRefreshService.refresh(request))
-                .isInstanceOf(AuthException.class)
-                .extracting("errorCode")
-                .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
-    }
-
-    @Test
-    void refreshRejectsRevokedStoredToken() {
-        TokenRefreshRequest.Refresh request = new TokenRefreshRequest.Refresh("refresh-token");
-        RefreshToken storedToken = refreshToken(activeMember(1L), "refresh-token-hash", LocalDateTime.now().plusHours(1));
-        storedToken.revoke();
-
-        givenStoredRefreshToken(request.refreshToken(), 1L, storedToken);
-
-        assertThatThrownBy(() -> tokenRefreshService.refresh(request))
-                .isInstanceOf(AuthException.class)
-                .extracting("errorCode")
-                .isEqualTo(AuthErrorCode.REVOKED_REFRESH_TOKEN);
-    }
-
-    @Test
-    void refreshRejectsExpiredStoredToken() {
-        TokenRefreshRequest.Refresh request = new TokenRefreshRequest.Refresh("refresh-token");
-        RefreshToken storedToken = refreshToken(activeMember(1L), "refresh-token-hash", LocalDateTime.now().minusSeconds(1));
-
-        givenStoredRefreshToken(request.refreshToken(), 1L, storedToken);
-
-        assertThatThrownBy(() -> tokenRefreshService.refresh(request))
-                .isInstanceOf(AuthException.class)
-                .extracting("errorCode")
-                .isEqualTo(AuthErrorCode.EXPIRED_REFRESH_TOKEN);
-    }
-
-    @Test
-    void refreshRejectsTokenWhoseSubjectDiffersFromStoredMember() {
-        TokenRefreshRequest.Refresh request = new TokenRefreshRequest.Refresh("refresh-token");
-        RefreshToken storedToken = refreshToken(activeMember(2L), "refresh-token-hash", LocalDateTime.now().plusHours(1));
-
-        givenStoredRefreshToken(request.refreshToken(), 1L, storedToken);
+        given(refreshTokenValidator.validateAndGetStoredToken(request.refreshToken()))
+                .willThrow(new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
         assertThatThrownBy(() -> tokenRefreshService.refresh(request))
                 .isInstanceOf(AuthException.class)
@@ -167,14 +80,11 @@ class TokenRefreshServiceTest {
     @Test
     void refreshRejectsInactiveMember() {
         TokenRefreshRequest.Refresh request = new TokenRefreshRequest.Refresh("refresh-token");
-        Member blockedMember = Member.builder()
-                .id(1L)
-                .nickname("blocked")
-                .status(MemberStatus.BLOCKED)
-                .build();
+        Member blockedMember = member(1L, "blocked", MemberStatus.BLOCKED);
         RefreshToken storedToken = refreshToken(blockedMember, "refresh-token-hash", LocalDateTime.now().plusHours(1));
 
-        givenStoredRefreshToken(request.refreshToken(), 1L, storedToken);
+        given(refreshTokenValidator.validateAndGetStoredToken(request.refreshToken()))
+                .willReturn(storedToken);
         willThrow(new MemberException(MemberErrorCode.INVALID_MEMBER_STATUS))
                 .given(memberLoginValidator)
                 .validateLoginAvailable(blockedMember);
@@ -183,41 +93,5 @@ class TokenRefreshServiceTest {
                 .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(MemberErrorCode.INVALID_MEMBER_STATUS);
-    }
-
-    private void givenStoredRefreshToken(
-            String token,
-            Long memberId,
-            RefreshToken storedToken
-    ) {
-        givenValidRefreshJwt(token, memberId);
-        given(refreshTokenHasher.hash(token)).willReturn("refresh-token-hash");
-        given(refreshTokenRepository.findByTokenHash("refresh-token-hash"))
-                .willReturn(Optional.of(storedToken));
-    }
-
-    private void givenValidRefreshJwt(String token, Long memberId) {
-        given(jwtTokenProvider.getTokenType(token)).willReturn(TokenType.REFRESH);
-        given(jwtTokenProvider.getMemberId(token)).willReturn(memberId);
-    }
-
-    private Member activeMember(Long id) {
-        return Member.builder()
-                .id(id)
-                .nickname("member-" + id)
-                .status(MemberStatus.ACTIVE)
-                .build();
-    }
-
-    private RefreshToken refreshToken(
-            Member member,
-            String tokenHash,
-            LocalDateTime expiresAt
-    ) {
-        return RefreshToken.builder()
-                .member(member)
-                .tokenHash(tokenHash)
-                .expiresAt(expiresAt)
-                .build();
     }
 }
