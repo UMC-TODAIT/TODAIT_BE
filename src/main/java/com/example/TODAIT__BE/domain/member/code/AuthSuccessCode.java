@@ -12,6 +12,12 @@ public enum AuthSuccessCode implements BaseSuccessCode {
             HttpStatus.OK,
             "AUTH200_2",
             "Access Token이 재발급되었습니다."
+    ),
+
+    LOGOUT_COMPLETED(
+            HttpStatus.OK,
+            "AUTH200_3",
+            "로그아웃되었습니다."
     );
 
     private final HttpStatus status;
