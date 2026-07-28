@@ -1,21 +1,18 @@
 package com.example.TODAIT__BE.domain.course.service;
 
-import com.example.TODAIT__BE.domain.course.dto.response.RepresentativeFoodCategoryResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.RepresentativeMoodTagResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.RepresentativeSubCategoryResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseCardResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseOverviewResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.SavedCoursePreviewPlaceResponse;
 import com.example.TODAIT__BE.domain.course.entity.Course;
-import com.example.TODAIT__BE.domain.course.entity.CourseFoodCategory;
 import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
 import com.example.TODAIT__BE.domain.course.entity.CoursePlace;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
-import com.example.TODAIT__BE.domain.course.repository.CourseFoodCategoryRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
 import com.example.TODAIT__BE.domain.place.entity.Place;
-import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -35,18 +32,15 @@ public class SavedCourseService {
 
     private final CourseRepository courseRepository;
     private final CourseMoodTagRepository courseMoodTagRepository;
-    private final CourseFoodCategoryRepository courseFoodCategoryRepository;
     private final CoursePlaceRepository coursePlaceRepository;
 
     public SavedCourseService(
             CourseRepository courseRepository,
             CourseMoodTagRepository courseMoodTagRepository,
-            CourseFoodCategoryRepository courseFoodCategoryRepository,
             CoursePlaceRepository coursePlaceRepository
     ) {
         this.courseRepository = courseRepository;
         this.courseMoodTagRepository = courseMoodTagRepository;
-        this.courseFoodCategoryRepository = courseFoodCategoryRepository;
         this.coursePlaceRepository = coursePlaceRepository;
     }
 
@@ -90,9 +84,6 @@ public class SavedCourseService {
         Map<Long, RepresentativeMoodTagResponse> moodTagByCourseId =
                 getMoodTagByCourseId(courseIds);
 
-        Map<Long, RepresentativeFoodCategoryResponse> foodCategoryByCourseId =
-                getFoodCategoryByCourseId(courseIds);
-
         Map<Long, List<CoursePlace>> coursePlacesByCourseId =
                 getCoursePlacesByCourseId(courseIds);
 
@@ -102,7 +93,6 @@ public class SavedCourseService {
                                 toCardResponse(
                                         course,
                                         moodTagByCourseId,
-                                        foodCategoryByCourseId,
                                         coursePlacesByCourseId
                                 )
                         )
@@ -114,7 +104,6 @@ public class SavedCourseService {
                                 toCardResponse(
                                         course,
                                         moodTagByCourseId,
-                                        foodCategoryByCourseId,
                                         coursePlacesByCourseId
                                 )
                         )
@@ -155,37 +144,6 @@ public class SavedCourseService {
         return result;
     }
 
-    private Map<Long, RepresentativeFoodCategoryResponse>
-    getFoodCategoryByCourseId(
-            List<Long> courseIds
-    ) {
-        Map<Long, RepresentativeFoodCategoryResponse> result =
-                new LinkedHashMap<>();
-
-        List<CourseFoodCategory> courseFoodCategories =
-                courseFoodCategoryRepository
-                        .findAllWithCourseAndFoodCategoryByCourseIds(
-                                courseIds
-                        );
-
-        for (CourseFoodCategory courseFoodCategory : courseFoodCategories) {
-            Long courseId = courseFoodCategory.getCourse().getId();
-            FoodCategory foodCategory =
-                    courseFoodCategory.getFoodCategory();
-
-            result.putIfAbsent(
-                    courseId,
-                    new RepresentativeFoodCategoryResponse(
-                            foodCategory.getId(),
-                            foodCategory.getCode(),
-                            foodCategory.getName()
-                    )
-            );
-        }
-
-        return result;
-    }
-
     private Map<Long, List<CoursePlace>> getCoursePlacesByCourseId(
             List<Long> courseIds
     ) {
@@ -213,7 +171,6 @@ public class SavedCourseService {
     private SavedCourseCardResponse toCardResponse(
             Course course,
             Map<Long, RepresentativeMoodTagResponse> moodTagByCourseId,
-            Map<Long, RepresentativeFoodCategoryResponse> foodCategoryByCourseId,
             Map<Long, List<CoursePlace>> coursePlacesByCourseId
     ) {
         List<CoursePlace> coursePlaces =
@@ -246,11 +203,25 @@ public class SavedCourseService {
                 course.getTitle(),
                 course.getCreatedAt().toLocalDate(),
                 moodTagByCourseId.get(course.getId()),
-                foodCategoryByCourseId.get(course.getId()),
+                toRepresentativePlaceCategory(course.getBasePlace()),
                 previewPlaces,
                 remainingPlaceCount,
                 placeCount,
                 viewCount
+        );
+    }
+
+    private RepresentativeSubCategoryResponse toRepresentativePlaceCategory(
+            Place basePlace
+    ) {
+        if (basePlace == null || !hasText(basePlace.getSubCategory())) {
+            return null;
+        }
+
+        String subCategory = basePlace.getSubCategory();
+        return new RepresentativeSubCategoryResponse(
+                subCategory,
+                subCategory
         );
     }
 

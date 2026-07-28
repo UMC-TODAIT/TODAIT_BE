@@ -8,7 +8,7 @@ public record SavedCourseCardResponse(
         String title,
         LocalDate savedDate,
         RepresentativeMoodTagResponse representativeMoodTag,
-        RepresentativeFoodCategoryResponse representativeFoodCategory,
+        RepresentativeSubCategoryResponse representativePlaceCategory,
         List<SavedCoursePreviewPlaceResponse> previewPlaces,
         Integer remainingPlaceCount,
         Integer placeCount,
