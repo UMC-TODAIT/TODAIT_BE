@@ -3,6 +3,8 @@ package com.example.TODAIT__BE.domain.course.service;
 import com.example.TODAIT__BE.domain.course.dto.response.RepresentativeMoodTagResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.RepresentativeSubCategoryResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseCardResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseDetailPlaceResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseDetailResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseOverviewResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.SavedCoursePreviewPlaceResponse;
 import com.example.TODAIT__BE.domain.course.entity.Course;
@@ -23,6 +25,8 @@ import java.util.Set;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.TODAIT__BE.domain.course.exception.CourseException;
+import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
 
 @Service
 public class SavedCourseService {
@@ -112,6 +116,54 @@ public class SavedCourseService {
         return new SavedCourseOverviewResponse(
                 recentCourseResponses,
                 popularCourseResponses
+        );
+    }
+
+    @Transactional
+    public SavedCourseDetailResponse getSavedCourseDetail(
+            Long memberId,
+            Long courseId
+    ) {
+        Course course = courseRepository
+                .findSavedCourseDetailById(courseId)
+                .orElseThrow(() ->
+                        new CourseException(
+                                CourseErrorCode.SAVED_COURSE_NOT_FOUND
+                        )
+                );
+
+        if (!course.getMember().getId().equals(memberId)) {
+            throw new CourseException(
+                    CourseErrorCode.SAVED_COURSE_ACCESS_DENIED
+            );
+        }
+
+        RepresentativeMoodTagResponse representativeMoodTag =
+                getMoodTagByCourseId(List.of(courseId))
+                        .get(courseId);
+
+        List<SavedCourseDetailPlaceResponse> places =
+                coursePlaceRepository
+                        .findAllByCourseIdOrderByVisitOrderAsc(courseId)
+                        .stream()
+                        .map(this::toDetailPlaceResponse)
+                        .toList();
+
+        courseRepository.increaseViewCount(courseId);
+        Integer viewCount = courseRepository.findViewCountById(courseId);
+
+        return new SavedCourseDetailResponse(
+                course.getId(),
+                course.getTitle(),
+                course.getCreatedAt().toLocalDate(),
+                representativeMoodTag,
+                toRepresentativePlaceCategory(course.getBasePlace()),
+                course.getMemo(),
+                places.size(),
+                viewCount != null
+                        ? viewCount
+                        : 0,
+                places
         );
     }
 
@@ -209,6 +261,29 @@ public class SavedCourseService {
                 remainingPlaceCount,
                 placeCount,
                 viewCount
+        );
+    }
+
+    private SavedCourseDetailPlaceResponse toDetailPlaceResponse(
+            CoursePlace coursePlace
+    ) {
+        Place place = coursePlace.getPlace();
+
+        String name = hasText(coursePlace.getPlaceNameSnapshot())
+                ? coursePlace.getPlaceNameSnapshot()
+                : place.getName();
+
+        String address = hasText(coursePlace.getAddressSnapshot())
+                ? coursePlace.getAddressSnapshot()
+                : place.getAddress();
+
+        return new SavedCourseDetailPlaceResponse(
+                coursePlace.getId(),
+                place.getId(),
+                coursePlace.getVisitOrder(),
+                name,
+                address,
+                coursePlace.getMemo()
         );
     }
 

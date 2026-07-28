@@ -67,4 +67,5 @@ public class Course extends BaseEntity {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
 }
