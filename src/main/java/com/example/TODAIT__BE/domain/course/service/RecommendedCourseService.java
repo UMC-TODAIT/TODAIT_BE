@@ -9,7 +9,6 @@ import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
 import com.example.TODAIT__BE.domain.course.entity.CoursePlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
-import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
@@ -70,15 +69,12 @@ public class RecommendedCourseService {
         RepresentativeMoodTagResponse representativeMoodTag =
                 getRepresentativeMoodTag(courseId);
 
-        RepresentativeSubCategoryResponse representativeSubCategory =
+        RepresentativeSubCategoryResponse representativePlaceCategory =
                 getRepresentativeSubCategory(courseId);
 
         List<CoursePlace> coursePlaces =
                 coursePlaceRepository
-                        .findAllByCourseIdAndPlaceRoleOrderByVisitOrderAsc(
-                                courseId,
-                                PlaceRole.SELECTED
-                        );
+                        .findAllByCourseIdOrderByVisitOrderAsc(courseId);
 
         Map<Long, String> primaryImageUrlByPlaceId =
                 getPrimaryImageUrlByPlaceId(coursePlaces);
@@ -97,7 +93,7 @@ public class RecommendedCourseService {
                 course.getId(),
                 course.getTitle(),
                 representativeMoodTag,
-                representativeSubCategory,
+                representativePlaceCategory,
                 course.getPlaceCount(),
                 places
         );
