@@ -52,6 +52,10 @@ public class CoursePlace {
     @Column(name = "place_role", nullable = false)
     private PlaceRole placeRole;
 
+    @Builder.Default
+    @Column(name = "is_representative", nullable = false)
+    private Boolean isRepresentative = false;
+
     @Column(name = "place_name_snapshot", nullable = false)
     private String placeNameSnapshot;
 
