@@ -21,6 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "course")
@@ -62,4 +63,11 @@ public class Course extends BaseEntity {
 
     @Column(name = "place_count", nullable = false)
     private Integer placeCount;
+
+    @Builder.Default
+    @Column(name = "view_count", nullable = false)
+    private Integer viewCount = 0;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 }

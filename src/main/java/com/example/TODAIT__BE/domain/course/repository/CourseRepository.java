@@ -5,6 +5,8 @@ import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
 
@@ -12,5 +14,15 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
             Long id,
             CourseVisibility visibility,
             CourseSourceType sourceType
+    );
+
+    List<Course> findAllByMemberIdAndDeletedAtIsNullOrderByCreatedAtDescIdDesc(
+            Long memberId,
+            Pageable pageable
+    );
+
+    List<Course> findAllByMemberIdAndDeletedAtIsNullOrderByViewCountDescUpdatedAtDescIdDesc(
+            Long memberId,
+            Pageable pageable
     );
 }

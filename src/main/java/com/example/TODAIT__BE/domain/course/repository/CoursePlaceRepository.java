@@ -16,4 +16,9 @@ public interface CoursePlaceRepository extends JpaRepository<CoursePlace, Long> 
     Optional<CoursePlace> findFirstByCourseIdAndIsRepresentativeTrue(
             Long courseId
     );
+
+    List<CoursePlace> findAllByCourseIdInAndPlaceRoleOrderByCourseIdAscVisitOrderAsc(
+            List<Long> courseIds,
+            PlaceRole placeRole
+    );
 }
