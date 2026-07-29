@@ -4,11 +4,14 @@ import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.apiPayload.code.BaseErrorCode;
 import com.example.TODAIT__BE.global.apiPayload.code.GeneralErrorCode;
 import com.example.TODAIT__BE.global.apiPayload.exception.ProjectException;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 @RestControllerAdvice
 public class GeneralExceptionAdvice {
@@ -25,7 +28,10 @@ public class GeneralExceptionAdvice {
 
     @ExceptionHandler({
             MethodArgumentNotValidException.class,
-            HttpMessageNotReadableException.class
+            HttpMessageNotReadableException.class,
+            MissingServletRequestParameterException.class,
+            ConstraintViolationException.class,
+            HandlerMethodValidationException.class
     })
     public ResponseEntity<ApiResponse<Void>> handleBadRequestException() {
         BaseErrorCode code = GeneralErrorCode.BAD_REQUEST;
