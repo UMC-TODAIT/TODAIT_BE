@@ -3,10 +3,12 @@ package com.example.TODAIT__BE.domain.member.service;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.dto.response.MemberMeResponse;
+import com.example.TODAIT__BE.domain.member.dto.response.NicknameAvailabilityResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
+import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,13 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final CourseRepository courseRepository;
+
+    public NicknameAvailabilityResponse checkNicknameAvailability(String nickname) {
+        String normalizedNickname = MemberInputPolicy.normalizeNickname(nickname);
+        boolean available = !memberRepository.existsByNickname(normalizedNickname);
+
+        return new NicknameAvailabilityResponse(normalizedNickname, available);
+    }
 
     public MemberMeResponse getMyInfo(Long memberId) {
         Member member = memberRepository
