@@ -9,7 +9,10 @@ import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
-public class OAuthRequest {
+public final class OAuthRequest {
+
+    private OAuthRequest() {
+    }
 
     public record KakaoAccessToken(
             @NotBlank

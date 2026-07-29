@@ -2,7 +2,10 @@ package com.example.TODAIT__BE.domain.member.dto.response;
 
 import lombok.Builder;
 
-public class AuthResponse {
+public final class AuthResponse {
+
+    private AuthResponse() {
+    }
 
     @Builder
     public record Token(

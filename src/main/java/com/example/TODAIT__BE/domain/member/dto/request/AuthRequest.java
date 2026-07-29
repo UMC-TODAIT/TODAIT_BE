@@ -10,7 +10,10 @@ import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
-public class AuthRequest {
+public final class AuthRequest {
+
+    private AuthRequest() {
+    }
 
     public record SignUp(
             @NotBlank

@@ -1,6 +1,9 @@
 package com.example.TODAIT__BE.domain.member.dto.response;
 
-public class EmailVerificationResponse {
+public final class EmailVerificationResponse {
+
+    private EmailVerificationResponse() {
+    }
 
     public record Send(
             String email,

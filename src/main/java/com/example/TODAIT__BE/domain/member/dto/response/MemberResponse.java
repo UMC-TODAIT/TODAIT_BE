@@ -1,6 +1,9 @@
 package com.example.TODAIT__BE.domain.member.dto.response;
 
-public class MemberResponse {
+public final class MemberResponse {
+
+    private MemberResponse() {
+    }
 
     public record Me(
             Long memberId,
