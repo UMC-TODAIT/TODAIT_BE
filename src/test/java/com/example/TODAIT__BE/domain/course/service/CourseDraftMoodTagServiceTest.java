@@ -84,13 +84,13 @@ class CourseDraftMoodTagServiceTest {
         ArgumentCaptor<CourseDraftMoodTag> saveCaptor = ArgumentCaptor.forClass(CourseDraftMoodTag.class);
         verify(courseDraftMoodTagRepository).save(saveCaptor.capture());
         assertThat(saveCaptor.getValue().getMoodTag()).isEqualTo(addedMoodTag);
-        assertThat(response.status()).isEqualTo(CourseDraftStatus.FOOD_SELECTING);
+        assertThat(response.draftStatus()).isEqualTo(CourseDraftStatus.FOOD_SELECTING);
         assertThat(response.moodTags()).extracting("moodTagId").containsExactly(2L, 3L);
     }
 
     @Test
-    void keepsOrderingStatusWhenMoodTagsAreUpdatedFromSaveScreen() {
-        CourseDraft draft = draft(CourseDraftStatus.ORDERING);
+    void keepsFoodSelectingStatusWhenMoodTagsAreUpdatedFromFoodScreen() {
+        CourseDraft draft = draft(CourseDraftStatus.FOOD_SELECTING);
         MoodTag moodTag = moodTag(1L, "CALM", "차분한");
         MoodTag secondMoodTag = moodTag(2L, "HIP", "힙한");
         CourseDraftMoodTag existingMoodTag = CourseDraftMoodTag.builder()
@@ -115,7 +115,7 @@ class CourseDraftMoodTagServiceTest {
 
         verify(courseDraftMoodTagRepository).deleteAll(List.of());
         verify(courseDraftMoodTagRepository, never()).save(any());
-        assertThat(response.status()).isEqualTo(CourseDraftStatus.ORDERING);
+        assertThat(response.draftStatus()).isEqualTo(CourseDraftStatus.FOOD_SELECTING);
     }
 
     @Test
@@ -130,7 +130,7 @@ class CourseDraftMoodTagServiceTest {
         ))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
+                .isEqualTo(CourseErrorCode.MOOD_TAG_MIN_COUNT_NOT_MET);
 
         verify(moodTagRepository, never()).findAllById(any());
         verify(courseDraftMoodTagRepository, never()).findByCourseDraft(any());
@@ -138,17 +138,17 @@ class CourseDraftMoodTagServiceTest {
 
     @Test
     void throwsWhenMoodTagsAreUpdatedInUnsupportedStatus() {
-        CourseDraft draft = draft(CourseDraftStatus.FOOD_SELECTING);
+        CourseDraft draft = draft(CourseDraftStatus.ORDERING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         assertThatThrownBy(() -> courseDraftMoodTagService.saveMoodTags(
                 10L,
                 1L,
-                new CourseDraftMoodTagSaveRequest(List.of(1L))
+                new CourseDraftMoodTagSaveRequest(List.of(1L, 2L))
         ))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
+                .isEqualTo(CourseErrorCode.MOOD_TAG_DRAFT_STATUS_CONFLICT);
 
         verify(courseDraftMoodTagRepository, never()).findByCourseDraft(any());
     }

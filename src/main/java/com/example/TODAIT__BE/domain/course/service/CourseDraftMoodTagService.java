@@ -28,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class CourseDraftMoodTagService {
 
     private static final int MIN_MOOD_TAG_COUNT = 2;
-    private static final int MAX_MOOD_TAG_COUNT = 6;
 
     private final CourseDraftRepository courseDraftRepository;
     private final CourseDraftMoodTagRepository courseDraftMoodTagRepository;
@@ -51,10 +50,8 @@ public class CourseDraftMoodTagService {
 
         List<Long> moodTagIds = request.moodTagIds();
 
-        if (moodTagIds == null
-                || moodTagIds.size() < MIN_MOOD_TAG_COUNT
-                || moodTagIds.size() > MAX_MOOD_TAG_COUNT) {
-            throw new CourseException(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
+        if (moodTagIds == null || moodTagIds.size() < MIN_MOOD_TAG_COUNT) {
+            throw new CourseException(CourseErrorCode.MOOD_TAG_MIN_COUNT_NOT_MET);
         }
 
         if (new HashSet<>(moodTagIds).size() != moodTagIds.size()) {
@@ -78,8 +75,8 @@ public class CourseDraftMoodTagService {
 
     private void validateUpdatableStatus(CourseDraft courseDraft) {
         if (courseDraft.getStatus() != CourseDraftStatus.MOOD_SELECTING
-                && courseDraft.getStatus() != CourseDraftStatus.ORDERING) {
-            throw new CourseException(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
+                && courseDraft.getStatus() != CourseDraftStatus.FOOD_SELECTING) {
+            throw new CourseException(CourseErrorCode.MOOD_TAG_DRAFT_STATUS_CONFLICT);
         }
     }
 
