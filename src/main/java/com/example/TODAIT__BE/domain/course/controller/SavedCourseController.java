@@ -12,6 +12,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseDetailResponse;
+import org.springframework.web.bind.annotation.PathVariable;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -44,5 +47,26 @@ public class SavedCourseController implements SavedCourseControllerDocs {
                                 result
                         )
                 );
+    }
+
+    @Override
+    @GetMapping("/{courseId}")
+    public ResponseEntity<ApiResponse<SavedCourseDetailResponse>>
+    getSavedCourseDetail(
+            @AuthenticationPrincipal AuthMember authMember,
+            @PathVariable Long courseId
+    ) {
+        SavedCourseDetailResponse result =
+                savedCourseService.getSavedCourseDetail(
+                        authMember.memberId(),
+                        courseId
+                );
+
+        return ResponseEntity.ok(
+                ApiResponse.onSuccess(
+                        CourseSuccessCode.SAVED_COURSE_DETAIL_OK,
+                        result
+                )
+        );
     }
 }
