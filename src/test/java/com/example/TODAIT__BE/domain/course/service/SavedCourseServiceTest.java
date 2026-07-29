@@ -24,6 +24,7 @@ import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -69,8 +70,22 @@ class SavedCourseServiceTest {
                 courseMoodTag(course, 10L, "ROMANTIC", "로맨틱")
         );
         List<CoursePlace> coursePlaces = List.of(
-                detailCoursePlace(course, 1000L, 2, "스냅샷 장소 A", "스냅샷 주소 A"),
-                detailCoursePlace(course, 1001L, 3, "스냅샷 장소 B", "스냅샷 주소 B")
+                detailCoursePlace(
+                        course,
+                        1000L,
+                        2,
+                        "스냅샷 장소 A",
+                        "스냅샷 주소 A",
+                        "장소 메모 A"
+                ),
+                detailCoursePlace(
+                        course,
+                        1001L,
+                        3,
+                        "스냅샷 장소 B",
+                        "스냅샷 주소 B",
+                        "장소 메모 B"
+                )
         );
 
         given(courseRepository.findSavedCourseDetailById(100L))
@@ -90,6 +105,7 @@ class SavedCourseServiceTest {
 
         assertThat(response.courseId()).isEqualTo(100L);
         assertThat(response.title()).isEqualTo("성수 데이트");
+        assertThat(response.savedDate()).isEqualTo(LocalDate.of(2026, 7, 29));
         assertThat(response.memo()).isEqualTo("전체 메모");
         assertThat(response.representativeMoodTag().code())
                 .isEqualTo("ROMANTIC");
@@ -106,6 +122,9 @@ class SavedCourseServiceTest {
         assertThat(response.places())
                 .extracting("address")
                 .containsExactly("스냅샷 주소 A", "스냅샷 주소 B");
+        assertThat(response.places())
+                .extracting("memo")
+                .containsExactly("장소 메모 A", "장소 메모 B");
 
         InOrder inOrder = inOrder(courseRepository);
         inOrder.verify(courseRepository).increaseViewCount(100L);
@@ -388,7 +407,8 @@ class SavedCourseServiceTest {
             Long placeId,
             Integer visitOrder,
             String placeNameSnapshot,
-            String addressSnapshot
+            String addressSnapshot,
+            String memo
     ) {
         Place place = mock(Place.class);
         given(place.getId()).willReturn(placeId);
@@ -400,6 +420,7 @@ class SavedCourseServiceTest {
                 .placeRole(PlaceRole.SELECTED)
                 .placeNameSnapshot(placeNameSnapshot)
                 .addressSnapshot(addressSnapshot)
+                .memo(memo)
                 .build();
     }
 }
