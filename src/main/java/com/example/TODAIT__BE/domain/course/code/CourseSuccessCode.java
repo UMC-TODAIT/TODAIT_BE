@@ -31,7 +31,12 @@ public enum CourseSuccessCode implements BaseSuccessCode {
     RECOMMENDED_COURSE_DETAIL_OK(HttpStatus.OK,
             "COURSE200_3",
             "추천 코스 상세 조회 성공"),
-    ;
+
+    SAVED_COURSE_OVERVIEW_OK(
+            HttpStatus.OK,
+            "COURSE200_4",
+            "저장 코스 목록 조회 성공"
+    );
 
     private final HttpStatus status;
     private final String code;

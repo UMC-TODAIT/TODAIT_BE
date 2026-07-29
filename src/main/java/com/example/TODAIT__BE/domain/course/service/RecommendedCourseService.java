@@ -87,7 +87,7 @@ public class RecommendedCourseService {
                 course.getTitle(),
                 representativeMoodTag,
                 representativePlaceCategory,
-                course.getPlaceCount(),
+                coursePlaces.size(),
                 places
         );
     }
