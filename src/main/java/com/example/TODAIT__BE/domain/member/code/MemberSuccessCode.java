@@ -28,6 +28,12 @@ public enum MemberSuccessCode implements BaseSuccessCode {
             "로그인이 완료되었습니다."
     ),
 
+    NICKNAME_AVAILABILITY_CHECKED(
+            HttpStatus.OK,
+            "MEMBER200_4",
+            "Nickname availability checked."
+    ),
+
     MY_INFO_RETRIEVED(
             HttpStatus.OK,
             "MEMBER200_3",
