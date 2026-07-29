@@ -3,6 +3,7 @@ package com.example.TODAIT__BE.domain.member.service;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.dto.response.MemberMeResponse;
+import com.example.TODAIT__BE.domain.member.dto.response.NicknameAvailabilityResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
@@ -19,6 +20,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class MemberServiceTest {
@@ -34,6 +36,40 @@ class MemberServiceTest {
     @BeforeEach
     void setUp() {
         memberService = new MemberService(memberRepository, courseRepository);
+    }
+
+    @Test
+    void checkNicknameAvailabilityReturnsAvailableWhenNicknameDoesNotExist() {
+        given(memberRepository.existsByNickname("tester")).willReturn(false);
+
+        NicknameAvailabilityResponse response =
+                memberService.checkNicknameAvailability("tester");
+
+        assertThat(response.nickname()).isEqualTo("tester");
+        assertThat(response.available()).isTrue();
+    }
+
+    @Test
+    void checkNicknameAvailabilityReturnsUnavailableWhenNicknameExists() {
+        given(memberRepository.existsByNickname("tester")).willReturn(true);
+
+        NicknameAvailabilityResponse response =
+                memberService.checkNicknameAvailability("tester");
+
+        assertThat(response.nickname()).isEqualTo("tester");
+        assertThat(response.available()).isFalse();
+    }
+
+    @Test
+    void checkNicknameAvailabilityNormalizesNicknameBeforeChecking() {
+        given(memberRepository.existsByNickname("tester")).willReturn(false);
+
+        NicknameAvailabilityResponse response =
+                memberService.checkNicknameAvailability("  tester  ");
+
+        assertThat(response.nickname()).isEqualTo("tester");
+        assertThat(response.available()).isTrue();
+        verify(memberRepository).existsByNickname("tester");
     }
 
     @Test
