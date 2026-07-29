@@ -1,7 +1,8 @@
 package com.example.TODAIT__BE.domain.member.service;
 
+import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
-import com.example.TODAIT__BE.domain.member.dto.response.MemberNicknameResponse;
+import com.example.TODAIT__BE.domain.member.dto.response.MemberMeResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
@@ -25,40 +26,50 @@ class MemberServiceTest {
     @Mock
     private MemberRepository memberRepository;
 
+    @Mock
+    private CourseRepository courseRepository;
+
     private MemberService memberService;
 
     @BeforeEach
     void setUp() {
-        memberService = new MemberService(memberRepository);
+        memberService = new MemberService(memberRepository, courseRepository);
     }
 
     @Test
-    void getMyNicknameReturnsNicknameForActiveMember() {
+    void getMyInfoReturnsMemberInfoForActiveMember() {
         Member member = Member.builder()
                 .id(1L)
+                .email("tester@example.com")
                 .nickname("tester")
+                .profileImageUrl("https://example.com/profile.png")
                 .status(MemberStatus.ACTIVE)
                 .build();
 
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(courseRepository.countByMemberId(1L)).willReturn(3L);
 
-        MemberNicknameResponse response = memberService.getMyNickname(1L);
+        MemberMeResponse response = memberService.getMyInfo(1L);
 
+        assertThat(response.memberId()).isEqualTo(1L);
+        assertThat(response.email()).isEqualTo("tester@example.com");
         assertThat(response.nickname()).isEqualTo("tester");
+        assertThat(response.profileImageUrl()).isEqualTo("https://example.com/profile.png");
+        assertThat(response.savedCourseCount()).isEqualTo(3L);
     }
 
     @Test
-    void getMyNicknameThrowsNotFoundWhenMemberDoesNotExist() {
+    void getMyInfoThrowsNotFoundWhenMemberDoesNotExist() {
         given(memberRepository.findById(1L)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> memberService.getMyNickname(1L))
+        assertThatThrownBy(() -> memberService.getMyInfo(1L))
                 .isInstanceOfSatisfying(MemberException.class, exception ->
                         assertThat(exception.getErrorCode()).isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND)
                 );
     }
 
     @Test
-    void getMyNicknameThrowsNotFoundWhenMemberIsDeleted() {
+    void getMyInfoThrowsNotFoundWhenMemberIsDeleted() {
         Member member = Member.builder()
                 .id(1L)
                 .nickname("tester")
@@ -68,14 +79,14 @@ class MemberServiceTest {
 
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
 
-        assertThatThrownBy(() -> memberService.getMyNickname(1L))
+        assertThatThrownBy(() -> memberService.getMyInfo(1L))
                 .isInstanceOfSatisfying(MemberException.class, exception ->
                         assertThat(exception.getErrorCode()).isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND)
                 );
     }
 
     @Test
-    void getMyNicknameThrowsInvalidStatusWhenMemberIsNotActive() {
+    void getMyInfoThrowsInvalidStatusWhenMemberIsNotActive() {
         Member member = Member.builder()
                 .id(1L)
                 .nickname("tester")
@@ -84,7 +95,7 @@ class MemberServiceTest {
 
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
 
-        assertThatThrownBy(() -> memberService.getMyNickname(1L))
+        assertThatThrownBy(() -> memberService.getMyInfo(1L))
                 .isInstanceOfSatisfying(MemberException.class, exception ->
                         assertThat(exception.getErrorCode()).isEqualTo(MemberErrorCode.INVALID_MEMBER_STATUS)
                 );
