@@ -46,8 +46,15 @@ public class CourseDraft extends BaseEntity {
     @Column(name = "user_longitude")
     private Double userLongitude;
 
-    @Column(name = "expires_at", nullable = false)
+    @Column(name = "expires_at")
     private LocalDateTime expiresAt;
+
+    public static CourseDraft create(Member member) {
+        return CourseDraft.builder()
+                .member(member)
+                .status(CourseDraftStatus.MOOD_SELECTING)
+                .build();
+    }
 
     public void changeStatus(CourseDraftStatus status) {
         this.status = status;

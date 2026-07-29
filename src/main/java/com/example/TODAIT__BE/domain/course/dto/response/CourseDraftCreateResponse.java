@@ -6,8 +6,7 @@ import java.time.LocalDateTime;
 
 public record CourseDraftCreateResponse(
         Long courseDraftId,
-        CourseDraftStatus status,
-        LocalDateTime expiresAt,
+        CourseDraftStatus draftStatus,
         LocalDateTime createdAt
 ) {
 
@@ -15,7 +14,6 @@ public record CourseDraftCreateResponse(
         return new CourseDraftCreateResponse(
                 courseDraft.getId(),
                 courseDraft.getStatus(),
-                courseDraft.getExpiresAt(),
                 courseDraft.getCreatedAt()
         );
     }
