@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface MemberControllerDocs {
 
     @Operation(
-            summary = "Nickname availability check",
-            description = "Checks whether the requested nickname is available."
+            summary = "닉네임 중복 확인",
+            description = "입력한 닉네임의 사용 가능 여부를 확인합니다. 이미 사용 중인 닉네임이어도 오류가 아닌 정상 응답으로 available=false를 반환합니다."
     )
     ApiResponse<NicknameAvailabilityResponse> checkNicknameAvailability(
             @RequestParam
