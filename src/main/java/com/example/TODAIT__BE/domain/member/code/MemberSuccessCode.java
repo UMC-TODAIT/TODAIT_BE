@@ -31,7 +31,7 @@ public enum MemberSuccessCode implements BaseSuccessCode {
     NICKNAME_AVAILABILITY_CHECKED(
             HttpStatus.OK,
             "MEMBER200_4",
-            "Nickname availability checked."
+            "닉네임 중복 확인에 성공했습니다."
     ),
 
     MY_INFO_RETRIEVED(
