@@ -1,7 +1,7 @@
 package com.example.TODAIT__BE.domain.member.controller.docs;
 
-import com.example.TODAIT__BE.domain.member.dto.request.OAuthOnboardingRequest;
-import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
+import com.example.TODAIT__BE.domain.member.dto.request.OAuthRequest;
+import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,8 +24,8 @@ public interface OnboardingControllerDocs {
                 """
     )
     @SecurityRequirement(name = "JWT TOKEN")
-    ResponseEntity<ApiResponse<AuthTokenResponse.Token>> completeOnboarding(
+    ResponseEntity<ApiResponse<AuthResponse.Token>> completeOnboarding(
             @Parameter(hidden = true) String authorization,
-            OAuthOnboardingRequest.Complete request
+            OAuthRequest.Onboarding request
     );
 }

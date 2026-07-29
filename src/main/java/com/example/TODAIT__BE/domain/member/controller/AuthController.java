@@ -3,9 +3,8 @@ package com.example.TODAIT__BE.domain.member.controller;
 import com.example.TODAIT__BE.domain.member.code.AuthSuccessCode;
 import com.example.TODAIT__BE.domain.member.code.MemberSuccessCode;
 import com.example.TODAIT__BE.domain.member.controller.docs.AuthControllerDocs;
-import com.example.TODAIT__BE.domain.member.dto.request.LogoutRequest;
-import com.example.TODAIT__BE.domain.member.dto.request.SignRequest;
-import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
+import com.example.TODAIT__BE.domain.member.dto.request.AuthRequest;
+import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.domain.member.service.EmailLoginService;
 import com.example.TODAIT__BE.domain.member.service.LogoutService;
 import com.example.TODAIT__BE.domain.member.service.SignupService;
@@ -27,10 +26,10 @@ public class AuthController implements AuthControllerDocs {
 
     @PostMapping("/api/auth/signup")
     @Override
-    public ResponseEntity<ApiResponse<AuthTokenResponse.Token>> signup(
-            @Valid @RequestBody SignRequest.SignUp request
+    public ResponseEntity<ApiResponse<AuthResponse.Token>> signup(
+            @Valid @RequestBody AuthRequest.SignUp request
             ){
-                AuthTokenResponse.Token response = signupService.signup(request);
+                AuthResponse.Token response = signupService.signup(request);
 
                 return ResponseEntity
                         .status(HttpStatus.CREATED)
@@ -41,10 +40,10 @@ public class AuthController implements AuthControllerDocs {
 
     @PostMapping("/api/auth/login")
     @Override
-    public ResponseEntity<ApiResponse<AuthTokenResponse.Token>> login(
-            @Valid @RequestBody SignRequest.Login request
+    public ResponseEntity<ApiResponse<AuthResponse.Token>> login(
+            @Valid @RequestBody AuthRequest.Login request
     ){
-        AuthTokenResponse.Token response = emailLoginService.login(request);
+        AuthResponse.Token response = emailLoginService.login(request);
 
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(
@@ -57,7 +56,7 @@ public class AuthController implements AuthControllerDocs {
     @PostMapping("/api/auth/logout")
     @Override
     public ResponseEntity<ApiResponse<Void>> logout(
-            @Valid @RequestBody LogoutRequest.Logout request
+            @Valid @RequestBody AuthRequest.Logout request
     ) {
         logoutService.logout(request);
 

@@ -1,7 +1,7 @@
 package com.example.TODAIT__BE.domain.member.service;
 
 import com.example.TODAIT__BE.domain.member.code.AuthErrorCode;
-import com.example.TODAIT__BE.domain.member.dto.request.LogoutRequest;
+import com.example.TODAIT__BE.domain.member.dto.request.AuthRequest;
 import com.example.TODAIT__BE.domain.member.entity.RefreshToken;
 import com.example.TODAIT__BE.domain.member.exception.AuthException;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +33,7 @@ class LogoutServiceTest {
 
     @Test
     void logoutRevokesValidRefreshToken() {
-        LogoutRequest.Logout request = new LogoutRequest.Logout("refresh-token");
+        AuthRequest.Logout request = new AuthRequest.Logout("refresh-token");
         RefreshToken storedToken = refreshToken(activeMember(1L), "refresh-token-hash", LocalDateTime.now().plusHours(1));
 
         given(refreshTokenValidator.validateAndGetStoredToken(request.refreshToken()))
@@ -46,7 +46,7 @@ class LogoutServiceTest {
 
     @Test
     void logoutPropagatesRefreshTokenValidationFailure() {
-        LogoutRequest.Logout request = new LogoutRequest.Logout("invalid-refresh-token");
+        AuthRequest.Logout request = new AuthRequest.Logout("invalid-refresh-token");
 
         given(refreshTokenValidator.validateAndGetStoredToken(request.refreshToken()))
                 .willThrow(new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN));

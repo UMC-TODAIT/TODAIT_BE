@@ -1,9 +1,9 @@
 package com.example.TODAIT__BE.domain.member.service;
 
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
-import com.example.TODAIT__BE.domain.member.dto.request.OAuthOnboardingRequest;
+import com.example.TODAIT__BE.domain.member.dto.request.OAuthRequest;
 import com.example.TODAIT__BE.domain.member.dto.request.TermAgreementRequest;
-import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
+import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.Term;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
@@ -54,7 +54,7 @@ class OnboardingServiceTest {
 
     @Test
     void completeRejectsInvalidOnboardingToken() {
-        OAuthOnboardingRequest.Complete request = onboardingRequest("tester");
+        OAuthRequest.Onboarding request = onboardingRequest("tester");
         willThrow(new MemberException(MemberErrorCode.INVALID_ONBOARDING_TOKEN))
                 .given(authService)
                 .validateOAuthOnboardingToken("token");
@@ -69,7 +69,7 @@ class OnboardingServiceTest {
 
     @Test
     void completeCreatesMemberOauthAccountTermAgreementsAndTokens() {
-        OAuthOnboardingRequest.Complete request = onboardingRequest(" tester ");
+        OAuthRequest.Onboarding request = onboardingRequest(" tester ");
         Term serviceTerm = term(TermType.SERVICE);
         List<Term> agreedTerms = List.of(serviceTerm);
         Member savedMember = Member.builder()
@@ -77,7 +77,7 @@ class OnboardingServiceTest {
                 .email("user@example.com")
                 .nickname("tester")
                 .build();
-        AuthTokenResponse.Token token = new AuthTokenResponse.Token("access", "refresh");
+        AuthResponse.Token token = new AuthResponse.Token("access", "refresh");
 
         givenValidOnboardingToken("token");
         given(termAgreementValidator.validateAndGetAgreedTerms(request.termAgreements()))
@@ -85,7 +85,7 @@ class OnboardingServiceTest {
         given(memberRegistrationService.saveMember(any(Member.class))).willReturn(savedMember);
         given(authService.issueTokens(savedMember)).willReturn(token);
 
-        AuthTokenResponse.Token response = onboardingService.complete("token", request);
+        AuthResponse.Token response = onboardingService.complete("token", request);
 
         assertThat(response).isEqualTo(token);
 
@@ -111,7 +111,7 @@ class OnboardingServiceTest {
 
     @Test
     void completeRejectsDuplicateNickname() {
-        OAuthOnboardingRequest.Complete request = onboardingRequest("tester");
+        OAuthRequest.Onboarding request = onboardingRequest("tester");
         givenValidOnboardingToken("token");
         willThrow(new MemberException(MemberErrorCode.ALREADY_REGISTERED_NICKNAME))
                 .given(memberDuplicateValidator)
@@ -127,7 +127,7 @@ class OnboardingServiceTest {
 
     @Test
     void completeRejectsDuplicateOAuthAccount() {
-        OAuthOnboardingRequest.Complete request = onboardingRequest("tester");
+        OAuthRequest.Onboarding request = onboardingRequest("tester");
         givenValidOnboardingToken("token");
         willThrow(new MemberException(MemberErrorCode.ALREADY_REGISTERED_OAUTH_ACCOUNT))
                 .given(memberDuplicateValidator)
@@ -143,7 +143,7 @@ class OnboardingServiceTest {
 
     @Test
     void completeRejectsDuplicateEmail() {
-        OAuthOnboardingRequest.Complete request = onboardingRequest("tester");
+        OAuthRequest.Onboarding request = onboardingRequest("tester");
         givenValidOnboardingToken("token");
         willThrow(new MemberException(MemberErrorCode.ALREADY_REGISTERED_EMAIL))
                 .given(memberDuplicateValidator)
@@ -166,8 +166,8 @@ class OnboardingServiceTest {
                 ));
     }
 
-    private OAuthOnboardingRequest.Complete onboardingRequest(String nickname) {
-        return new OAuthOnboardingRequest.Complete(
+    private OAuthRequest.Onboarding onboardingRequest(String nickname) {
+        return new OAuthRequest.Onboarding(
                 nickname,
                 List.of(new TermAgreementRequest(TermType.SERVICE, true))
         );

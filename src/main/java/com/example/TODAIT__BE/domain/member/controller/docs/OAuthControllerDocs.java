@@ -1,7 +1,7 @@
 package com.example.TODAIT__BE.domain.member.controller.docs;
 
-import com.example.TODAIT__BE.domain.member.dto.request.OAuthLoginRequest;
-import com.example.TODAIT__BE.domain.member.dto.response.OAuthLoginResponse;
+import com.example.TODAIT__BE.domain.member.dto.request.OAuthRequest;
+import com.example.TODAIT__BE.domain.member.dto.response.OAuthResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
@@ -23,8 +23,8 @@ public interface OAuthControllerDocs {
                     신규 회원이면 소셜 회원가입 완료에 사용할 온보딩 토큰을 발급합니다.
                     """
     )
-    ResponseEntity<ApiResponse<OAuthLoginResponse.OAuthLogin>> kakaoLogin(
-            OAuthLoginRequest.KakaoAccessToken request
+    ResponseEntity<ApiResponse<OAuthResponse.Login>> kakaoLogin(
+            OAuthRequest.KakaoAccessToken request
     );
 
     @Operation(
@@ -35,7 +35,7 @@ public interface OAuthControllerDocs {
                     신규 회원이면 소셜 회원가입 완료에 사용할 온보딩 토큰을 발급합니다.
                     """
     )
-    ResponseEntity<ApiResponse<OAuthLoginResponse.OAuthLogin>> googleLogin(
-            OAuthLoginRequest.GoogleIdToken request
+    ResponseEntity<ApiResponse<OAuthResponse.Login>> googleLogin(
+            OAuthRequest.GoogleIdToken request
     );
 }

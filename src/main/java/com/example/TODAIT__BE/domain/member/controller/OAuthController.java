@@ -2,8 +2,8 @@ package com.example.TODAIT__BE.domain.member.controller;
 
 import com.example.TODAIT__BE.domain.member.code.OAuthSuccessCode;
 import com.example.TODAIT__BE.domain.member.controller.docs.OAuthControllerDocs;
-import com.example.TODAIT__BE.domain.member.dto.request.OAuthLoginRequest;
-import com.example.TODAIT__BE.domain.member.dto.response.OAuthLoginResponse;
+import com.example.TODAIT__BE.domain.member.dto.request.OAuthRequest;
+import com.example.TODAIT__BE.domain.member.dto.response.OAuthResponse;
 import com.example.TODAIT__BE.domain.member.service.OAuthService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import jakarta.validation.Valid;
@@ -22,10 +22,10 @@ public class OAuthController implements OAuthControllerDocs {
 
     @PostMapping("/api/auth/kakao/login")
     @Override
-    public ResponseEntity<ApiResponse<OAuthLoginResponse.OAuthLogin>> kakaoLogin(
-            @Valid @RequestBody OAuthLoginRequest.KakaoAccessToken request
+    public ResponseEntity<ApiResponse<OAuthResponse.Login>> kakaoLogin(
+            @Valid @RequestBody OAuthRequest.KakaoAccessToken request
     ) {
-        OAuthLoginResponse.OAuthLogin response = oAuthService.loginWithKakao(request.accessToken());
+        OAuthResponse.Login response = oAuthService.loginWithKakao(request.accessToken());
 
         return ResponseEntity
                 .status(OAuthSuccessCode.OAUTH_LOGIN_OK.getStatus())
@@ -35,10 +35,10 @@ public class OAuthController implements OAuthControllerDocs {
 
     @PostMapping("/api/auth/google/login")
     @Override
-    public ResponseEntity<ApiResponse<OAuthLoginResponse.OAuthLogin>> googleLogin(
-            @Valid @RequestBody OAuthLoginRequest.GoogleIdToken request
+    public ResponseEntity<ApiResponse<OAuthResponse.Login>> googleLogin(
+            @Valid @RequestBody OAuthRequest.GoogleIdToken request
     ){
-        OAuthLoginResponse.OAuthLogin response = oAuthService.loginWithGoogle(request.idToken());
+        OAuthResponse.Login response = oAuthService.loginWithGoogle(request.idToken());
 
         return ResponseEntity
                 .status(OAuthSuccessCode.OAUTH_LOGIN_OK.getStatus())

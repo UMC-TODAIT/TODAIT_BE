@@ -1,8 +1,8 @@
 package com.example.TODAIT__BE.domain.member.controller;
 
 import com.example.TODAIT__BE.domain.member.controller.docs.OnboardingControllerDocs;
-import com.example.TODAIT__BE.domain.member.dto.request.OAuthOnboardingRequest;
-import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
+import com.example.TODAIT__BE.domain.member.dto.request.OAuthRequest;
+import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.code.MemberSuccessCode;
@@ -27,7 +27,7 @@ public class OnboardingController implements OnboardingControllerDocs {
 
     @PatchMapping("/api/members/me/onboarding")
     @Override
-    public ResponseEntity<ApiResponse<AuthTokenResponse.Token>>
+    public ResponseEntity<ApiResponse<AuthResponse.Token>>
     completeOnboarding(
             @RequestHeader(
                     value = HttpHeaders.AUTHORIZATION,
@@ -37,14 +37,14 @@ public class OnboardingController implements OnboardingControllerDocs {
 
             @Valid
             @RequestBody
-            OAuthOnboardingRequest.Complete request
+            OAuthRequest.Onboarding request
     ){
       String onboardingToken = JwtBearerTokenExtractor.extract(authorization)
               .orElseThrow(() -> new MemberException(
                       MemberErrorCode.INVALID_ONBOARDING_TOKEN
               ));
 
-      AuthTokenResponse.Token response = onboardingService.complete(onboardingToken,request);
+      AuthResponse.Token response = onboardingService.complete(onboardingToken,request);
 
       return ResponseEntity
               .status(MemberSuccessCode.ONBOARDING_COMPLETED.getStatus())
