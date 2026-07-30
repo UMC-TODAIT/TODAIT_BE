@@ -2,8 +2,8 @@ package com.example.TODAIT__BE.domain.member.service;
 
 import com.example.TODAIT__BE.domain.member.code.AuthErrorCode;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
-import com.example.TODAIT__BE.domain.member.dto.request.TokenRefreshRequest;
-import com.example.TODAIT__BE.domain.member.dto.response.TokenRefreshResponse;
+import com.example.TODAIT__BE.domain.member.dto.request.AuthRequest;
+import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.RefreshToken;
 import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
@@ -50,7 +50,7 @@ class TokenRefreshServiceTest {
 
     @Test
     void refreshIssuesNewAccessTokenForValidRefreshToken() {
-        TokenRefreshRequest.Refresh request = new TokenRefreshRequest.Refresh("refresh-token");
+        AuthRequest.TokenRefresh request = new AuthRequest.TokenRefresh("refresh-token");
         Member member = activeMember(1L);
         RefreshToken storedToken = refreshToken(member, "refresh-token-hash", LocalDateTime.now().plusHours(1));
 
@@ -58,7 +58,7 @@ class TokenRefreshServiceTest {
                 .willReturn(storedToken);
         given(jwtTokenProvider.createAccessToken(member)).willReturn("new-access-token");
 
-        TokenRefreshResponse.AccessToken response = tokenRefreshService.refresh(request);
+        AuthResponse.AccessToken response = tokenRefreshService.refresh(request);
 
         assertThat(response.accessToken()).isEqualTo("new-access-token");
         verify(memberLoginValidator).validateLoginAvailable(member);
@@ -66,7 +66,7 @@ class TokenRefreshServiceTest {
 
     @Test
     void refreshPropagatesRefreshTokenValidationFailure() {
-        TokenRefreshRequest.Refresh request = new TokenRefreshRequest.Refresh("invalid-refresh-token");
+        AuthRequest.TokenRefresh request = new AuthRequest.TokenRefresh("invalid-refresh-token");
 
         given(refreshTokenValidator.validateAndGetStoredToken(request.refreshToken()))
                 .willThrow(new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN));
@@ -79,7 +79,7 @@ class TokenRefreshServiceTest {
 
     @Test
     void refreshRejectsInactiveMember() {
-        TokenRefreshRequest.Refresh request = new TokenRefreshRequest.Refresh("refresh-token");
+        AuthRequest.TokenRefresh request = new AuthRequest.TokenRefresh("refresh-token");
         Member blockedMember = member(1L, "blocked", MemberStatus.BLOCKED);
         RefreshToken storedToken = refreshToken(blockedMember, "refresh-token-hash", LocalDateTime.now().plusHours(1));
 

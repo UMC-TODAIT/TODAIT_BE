@@ -72,8 +72,9 @@ public class CourseDraftFoodCategoryService {
     }
 
     private void validateUpdatableStatus(CourseDraft courseDraft) {
-        if (courseDraft.getStatus() != CourseDraftStatus.FOOD_SELECTING) {
-            throw new CourseException(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
+        if (courseDraft.getStatus() != CourseDraftStatus.FOOD_SELECTING
+                && courseDraft.getStatus() != CourseDraftStatus.BASE_PLACE_SELECTING) {
+            throw new CourseException(CourseErrorCode.FOOD_CATEGORY_DRAFT_STATUS_CONFLICT);
         }
     }
 

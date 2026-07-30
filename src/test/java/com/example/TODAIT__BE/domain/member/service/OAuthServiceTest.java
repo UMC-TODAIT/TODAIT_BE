@@ -1,8 +1,8 @@
 package com.example.TODAIT__BE.domain.member.service;
 
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
-import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
-import com.example.TODAIT__BE.domain.member.dto.response.OAuthLoginResponse;
+import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
+import com.example.TODAIT__BE.domain.member.dto.response.OAuthResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.MemberOAuthAccount;
 import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
@@ -70,7 +70,7 @@ class OAuthServiceTest {
                 "user@example.com"
         )).willReturn("onboarding-token");
 
-        OAuthLoginResponse.OAuthLogin response = oAuthService.loginWithKakao("kakao-token");
+        OAuthResponse.Login response = oAuthService.loginWithKakao("kakao-token");
 
         assertThat(response.loginStatus()).isEqualTo("ONBOARDING_REQUIRED");
         assertThat(response.onboardingToken()).isEqualTo("onboarding-token");
@@ -91,7 +91,7 @@ class OAuthServiceTest {
                 .provider(OAuthProvider.KAKAO)
                 .providerUserId("provider-user-id")
                 .build();
-        AuthTokenResponse.Token token = new AuthTokenResponse.Token("access", "refresh");
+        AuthResponse.Token token = new AuthResponse.Token("access", "refresh");
 
         given(kakaoOAuthClient.getUserInfo("kakao-token"))
                 .willReturn(new KakaoUserInfo("provider-user-id", "member@example.com"));
@@ -101,7 +101,7 @@ class OAuthServiceTest {
         )).willReturn(Optional.of(account));
         given(authService.issueTokens(member)).willReturn(token);
 
-        OAuthLoginResponse.OAuthLogin response = oAuthService.loginWithKakao("kakao-token");
+        OAuthResponse.Login response = oAuthService.loginWithKakao("kakao-token");
 
         assertThat(response.loginStatus()).isEqualTo("LOGIN_COMPLETED");
         assertThat(response.accessToken()).isEqualTo("access");

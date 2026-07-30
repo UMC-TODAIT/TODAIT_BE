@@ -2,10 +2,8 @@ package com.example.TODAIT__BE.domain.member.controller;
 
 import com.example.TODAIT__BE.domain.member.code.EmailVerificationSuccessCode;
 import com.example.TODAIT__BE.domain.member.controller.docs.EmailVerificationControllerDocs;
-import com.example.TODAIT__BE.domain.member.dto.request.EmailVerificationSendRequest;
-import com.example.TODAIT__BE.domain.member.dto.request.EmailVerificationVerifyRequest;
-import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationSendResponse;
-import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationVerifyResponse;
+import com.example.TODAIT__BE.domain.member.dto.request.EmailVerificationRequest;
+import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationResponse;
 import com.example.TODAIT__BE.domain.member.service.EmailVerificationService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import jakarta.validation.Valid;
@@ -27,10 +25,10 @@ public class EmailVerificationController implements EmailVerificationControllerD
 
     @PostMapping("/send-code")
     @Override
-    public ResponseEntity<ApiResponse<EmailVerificationSendResponse>> sendVerificationCode(
-            @Valid @RequestBody EmailVerificationSendRequest request
+    public ResponseEntity<ApiResponse<EmailVerificationResponse.Send>> sendVerificationCode(
+            @Valid @RequestBody EmailVerificationRequest.Send request
     ) {
-        EmailVerificationSendResponse response = emailVerificationService.sendVerificationCode(request);
+        EmailVerificationResponse.Send response = emailVerificationService.sendVerificationCode(request);
         return ResponseEntity
                 .status(EmailVerificationSuccessCode.CODE_SENT.getStatus())
                 .body(ApiResponse.onSuccess(EmailVerificationSuccessCode.CODE_SENT, response));
@@ -38,10 +36,10 @@ public class EmailVerificationController implements EmailVerificationControllerD
 
     @PostMapping("/verify-code")
     @Override
-    public ResponseEntity<ApiResponse<EmailVerificationVerifyResponse>> verifyCode(
-            @Valid @RequestBody EmailVerificationVerifyRequest request
+    public ResponseEntity<ApiResponse<EmailVerificationResponse.Verify>> verifyCode(
+            @Valid @RequestBody EmailVerificationRequest.Verify request
     ) {
-        EmailVerificationVerifyResponse response = emailVerificationService.verifyCode(request);
+        EmailVerificationResponse.Verify response = emailVerificationService.verifyCode(request);
         return ResponseEntity
                 .status(EmailVerificationSuccessCode.COMPLETED.getStatus())
                 .body(ApiResponse.onSuccess(EmailVerificationSuccessCode.COMPLETED, response));

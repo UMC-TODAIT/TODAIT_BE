@@ -1,10 +1,8 @@
 package com.example.TODAIT__BE.domain.member.service;
 
 import com.example.TODAIT__BE.domain.member.code.EmailVerificationErrorCode;
-import com.example.TODAIT__BE.domain.member.dto.request.EmailVerificationSendRequest;
-import com.example.TODAIT__BE.domain.member.dto.request.EmailVerificationVerifyRequest;
-import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationSendResponse;
-import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationVerifyResponse;
+import com.example.TODAIT__BE.domain.member.dto.request.EmailVerificationRequest;
+import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationResponse;
 import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
 import com.example.TODAIT__BE.global.apiPayload.exception.ProjectException;
 import com.example.TODAIT__BE.global.util.RandomCodeGenerator;
@@ -34,8 +32,8 @@ public class EmailVerificationService {
         this.codeTtlMinutes = codeTtlMinutes;
     }
 
-    public EmailVerificationSendResponse sendVerificationCode(
-            EmailVerificationSendRequest request
+    public EmailVerificationResponse.Send sendVerificationCode(
+            EmailVerificationRequest.Send request
     ) {
         String email = normalizeAndValidateEmail(request.email());
         if (emailVerificationRedisRepository.isVerified(email)) {
@@ -46,11 +44,11 @@ public class EmailVerificationService {
         saveCode(email, code);
         emailVerificationAsyncService.sendVerificationCodeAsync(email, code);
 
-        return new EmailVerificationSendResponse(email, codeTtlMinutes);
+        return new EmailVerificationResponse.Send(email, codeTtlMinutes);
     }
 
-    public EmailVerificationVerifyResponse verifyCode(
-            EmailVerificationVerifyRequest request
+    public EmailVerificationResponse.Verify verifyCode(
+            EmailVerificationRequest.Verify request
     ) {
         String email = normalizeAndValidateEmail(request.email());
         if (emailVerificationRedisRepository.isVerified(email)) {
@@ -71,7 +69,7 @@ public class EmailVerificationService {
             throw new ProjectException(EmailVerificationErrorCode.VERIFY_ATTEMPT_EXCEEDED);
         }
 
-        return new EmailVerificationVerifyResponse(email, true);
+        return new EmailVerificationResponse.Verify(email, true);
     }
 
     private void saveCode(String email, String code) {

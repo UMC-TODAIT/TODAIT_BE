@@ -85,8 +85,39 @@ class CourseDraftFoodCategoryServiceTest {
         ArgumentCaptor<CourseDraftFoodCategory> saveCaptor = ArgumentCaptor.forClass(CourseDraftFoodCategory.class);
         verify(courseDraftFoodCategoryRepository).save(saveCaptor.capture());
         assertThat(saveCaptor.getValue().getFoodCategory()).isEqualTo(addedFoodCategory);
-        assertThat(response.status()).isEqualTo(CourseDraftStatus.BASE_PLACE_SELECTING);
+        assertThat(response.draftStatus()).isEqualTo(CourseDraftStatus.BASE_PLACE_SELECTING);
         assertThat(response.foodCategories()).extracting("foodCategoryId").containsExactly(2L, 3L);
+    }
+
+    @Test
+    void keepsBasePlaceSelectingStatusWhenFoodCategoriesAreUpdatedFromBasePlaceScreen() {
+        CourseDraft draft = draft(CourseDraftStatus.BASE_PLACE_SELECTING);
+        FoodCategory foodCategory = foodCategory(1L, "KOREAN", "한식");
+        FoodCategory secondFoodCategory = foodCategory(2L, "JAPANESE", "일식");
+        CourseDraftFoodCategory existingFoodCategory = CourseDraftFoodCategory.builder()
+                .courseDraft(draft)
+                .foodCategory(foodCategory)
+                .build();
+        CourseDraftFoodCategory secondExistingFoodCategory = CourseDraftFoodCategory.builder()
+                .courseDraft(draft)
+                .foodCategory(secondFoodCategory)
+                .build();
+
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+        given(foodCategoryRepository.findAllById(List.of(1L, 2L)))
+                .willReturn(List.of(foodCategory, secondFoodCategory));
+        given(courseDraftFoodCategoryRepository.findByCourseDraft(draft))
+                .willReturn(List.of(existingFoodCategory, secondExistingFoodCategory));
+
+        CourseDraftFoodCategorySaveResponse response = courseDraftFoodCategoryService.saveFoodCategories(
+                10L,
+                1L,
+                new CourseDraftFoodCategorySaveRequest(List.of(1L, 2L))
+        );
+
+        verify(courseDraftFoodCategoryRepository).deleteAll(List.of());
+        verify(courseDraftFoodCategoryRepository, never()).save(any());
+        assertThat(response.draftStatus()).isEqualTo(CourseDraftStatus.BASE_PLACE_SELECTING);
     }
 
     @Test
@@ -101,7 +132,7 @@ class CourseDraftFoodCategoryServiceTest {
         ))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
+                .isEqualTo(CourseErrorCode.FOOD_CATEGORY_DRAFT_STATUS_CONFLICT);
 
         verify(courseDraftFoodCategoryRepository, never()).findByCourseDraft(any());
     }

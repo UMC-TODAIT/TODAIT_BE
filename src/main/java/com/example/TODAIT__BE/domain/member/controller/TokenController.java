@@ -2,8 +2,8 @@ package com.example.TODAIT__BE.domain.member.controller;
 
 import com.example.TODAIT__BE.domain.member.code.AuthSuccessCode;
 import com.example.TODAIT__BE.domain.member.controller.docs.TokenControllerDocs;
-import com.example.TODAIT__BE.domain.member.dto.request.TokenRefreshRequest;
-import com.example.TODAIT__BE.domain.member.dto.response.TokenRefreshResponse;
+import com.example.TODAIT__BE.domain.member.dto.request.AuthRequest;
+import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.domain.member.service.TokenRefreshService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import jakarta.validation.Valid;
@@ -23,10 +23,10 @@ public class TokenController implements TokenControllerDocs {
 
     @Override
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<TokenRefreshResponse.AccessToken>> refresh(
-            @Valid @RequestBody TokenRefreshRequest.Refresh request
+    public ResponseEntity<ApiResponse<AuthResponse.AccessToken>> refresh(
+            @Valid @RequestBody AuthRequest.TokenRefresh request
             ){
-        TokenRefreshResponse.AccessToken response = tokenRefreshService.refresh(request);
+        AuthResponse.AccessToken response = tokenRefreshService.refresh(request);
 
         return ResponseEntity
                 .status(AuthSuccessCode.TOKEN_REFRESHED.getStatus())

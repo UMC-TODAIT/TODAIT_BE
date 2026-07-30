@@ -1,10 +1,8 @@
 package com.example.TODAIT__BE.domain.member.service;
 
 import com.example.TODAIT__BE.domain.member.code.EmailVerificationErrorCode;
-import com.example.TODAIT__BE.domain.member.dto.request.EmailVerificationSendRequest;
-import com.example.TODAIT__BE.domain.member.dto.request.EmailVerificationVerifyRequest;
-import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationSendResponse;
-import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationVerifyResponse;
+import com.example.TODAIT__BE.domain.member.dto.request.EmailVerificationRequest;
+import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationResponse;
 import com.example.TODAIT__BE.global.apiPayload.exception.ProjectException;
 import com.example.TODAIT__BE.global.util.RandomCodeGenerator;
 import com.example.TODAIT__BE.infra.mail.EmailVerificationAsyncService;
@@ -58,8 +56,8 @@ class EmailVerificationServiceTest {
         given(emailVerificationRedisRepository.saveCodeIfNotCoolingDown("test@example.com", "123456"))
                 .willReturn(true);
 
-        EmailVerificationSendResponse response = emailVerificationService.sendVerificationCode(
-                new EmailVerificationSendRequest(" Test@Example.com ")
+        EmailVerificationResponse.Send response = emailVerificationService.sendVerificationCode(
+                new EmailVerificationRequest.Send(" Test@Example.com ")
         );
 
         assertThat(response.email()).isEqualTo("test@example.com");
@@ -71,7 +69,7 @@ class EmailVerificationServiceTest {
     @Test
     void sendVerificationCodeRejectsInvalidEmail() {
         assertThatThrownBy(() -> emailVerificationService.sendVerificationCode(
-                new EmailVerificationSendRequest("invalid-email")
+                new EmailVerificationRequest.Send("invalid-email")
         ))
                 .isInstanceOf(ProjectException.class)
                 .extracting("errorCode")
@@ -91,7 +89,7 @@ class EmailVerificationServiceTest {
                 .willReturn(false);
 
         assertThatThrownBy(() -> emailVerificationService.sendVerificationCode(
-                new EmailVerificationSendRequest("test@example.com")
+                new EmailVerificationRequest.Send("test@example.com")
         ))
                 .isInstanceOf(ProjectException.class)
                 .extracting("errorCode")
@@ -107,8 +105,8 @@ class EmailVerificationServiceTest {
         given(emailVerificationRedisRepository.verifyCodeAndMarkVerified("test@example.com", "123456"))
                 .willReturn(VerifyCodeResult.VERIFIED);
 
-        EmailVerificationVerifyResponse response = emailVerificationService.verifyCode(
-                new EmailVerificationVerifyRequest(" Test@Example.com ", " 123456 ")
+        EmailVerificationResponse.Verify response = emailVerificationService.verifyCode(
+                new EmailVerificationRequest.Verify(" Test@Example.com ", " 123456 ")
         );
 
         assertThat(response.email()).isEqualTo("test@example.com");
@@ -124,7 +122,7 @@ class EmailVerificationServiceTest {
                 .willReturn(VerifyCodeResult.CODE_MISMATCH);
 
         assertThatThrownBy(() -> emailVerificationService.verifyCode(
-                new EmailVerificationVerifyRequest("test@example.com", "000000")
+                new EmailVerificationRequest.Verify("test@example.com", "000000")
         ))
                 .isInstanceOf(ProjectException.class)
                 .extracting("errorCode")
@@ -141,7 +139,7 @@ class EmailVerificationServiceTest {
                 .willReturn(VerifyCodeResult.CODE_NOT_FOUND);
 
         assertThatThrownBy(() -> emailVerificationService.verifyCode(
-                new EmailVerificationVerifyRequest("test@example.com", "123456")
+                new EmailVerificationRequest.Verify("test@example.com", "123456")
         ))
                 .isInstanceOf(ProjectException.class)
                 .extracting("errorCode")
@@ -156,7 +154,7 @@ class EmailVerificationServiceTest {
                 .willReturn(VerifyCodeResult.VERIFY_ATTEMPT_EXCEEDED);
 
         assertThatThrownBy(() -> emailVerificationService.verifyCode(
-                new EmailVerificationVerifyRequest("test@example.com", "123456")
+                new EmailVerificationRequest.Verify("test@example.com", "123456")
         ))
                 .isInstanceOf(ProjectException.class)
                 .extracting("errorCode")
@@ -169,7 +167,7 @@ class EmailVerificationServiceTest {
                 .willReturn(true);
 
         assertThatThrownBy(() -> emailVerificationService.sendVerificationCode(
-                new EmailVerificationSendRequest("test@example.com")
+                new EmailVerificationRequest.Send("test@example.com")
         ))
                 .isInstanceOf(ProjectException.class)
                 .extracting("errorCode")
@@ -185,7 +183,7 @@ class EmailVerificationServiceTest {
                 .willReturn(true);
 
         assertThatThrownBy(() -> emailVerificationService.verifyCode(
-                new EmailVerificationVerifyRequest("test@example.com", "123456")
+                new EmailVerificationRequest.Verify("test@example.com", "123456")
         ))
                 .isInstanceOf(ProjectException.class)
                 .extracting("errorCode")

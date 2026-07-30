@@ -1,8 +1,8 @@
 package com.example.TODAIT__BE.domain.member.service;
 
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
-import com.example.TODAIT__BE.domain.member.dto.request.SignRequest;
-import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
+import com.example.TODAIT__BE.domain.member.dto.request.AuthRequest;
+import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
@@ -46,7 +46,7 @@ class EmailLoginServiceTest {
 
     @Test
     void loginNormalizesEmailAndIssuesTokens() {
-        SignRequest.Login request = new SignRequest.Login(" User@Example.com ", "password!1");
+        AuthRequest.Login request = new AuthRequest.Login(" User@Example.com ", "password!1");
         Member member = Member.builder()
                 .id(1L)
                 .email("user@example.com")
@@ -54,13 +54,13 @@ class EmailLoginServiceTest {
                 .passwordHash("encoded-password")
                 .status(MemberStatus.ACTIVE)
                 .build();
-        AuthTokenResponse.Token token = new AuthTokenResponse.Token("access", "refresh");
+        AuthResponse.Token token = new AuthResponse.Token("access", "refresh");
 
         given(memberRepository.findByEmail("user@example.com")).willReturn(Optional.of(member));
         given(passwordEncoder.matches("password!1", "encoded-password")).willReturn(true);
         given(authService.issueTokens(member)).willReturn(token);
 
-        AuthTokenResponse.Token response = emailLoginService.login(request);
+        AuthResponse.Token response = emailLoginService.login(request);
 
         assertThat(response).isEqualTo(token);
         verify(memberLoginValidator).validateLoginAvailable(member);
@@ -68,7 +68,7 @@ class EmailLoginServiceTest {
 
     @Test
     void loginRejectsUnknownEmail() {
-        SignRequest.Login request = new SignRequest.Login("unknown@example.com", "password!1");
+        AuthRequest.Login request = new AuthRequest.Login("unknown@example.com", "password!1");
         given(memberRepository.findByEmail("unknown@example.com")).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> emailLoginService.login(request))
@@ -79,7 +79,7 @@ class EmailLoginServiceTest {
 
     @Test
     void loginRejectsWrongPassword() {
-        SignRequest.Login request = new SignRequest.Login("user@example.com", "wrong-password");
+        AuthRequest.Login request = new AuthRequest.Login("user@example.com", "wrong-password");
         Member member = Member.builder()
                 .email("user@example.com")
                 .nickname("user")
@@ -97,7 +97,7 @@ class EmailLoginServiceTest {
 
     @Test
     void loginRejectsSocialOnlyMember() {
-        SignRequest.Login request = new SignRequest.Login("social@example.com", "password!1");
+        AuthRequest.Login request = new AuthRequest.Login("social@example.com", "password!1");
         Member member = Member.builder()
                 .email("social@example.com")
                 .nickname("social")

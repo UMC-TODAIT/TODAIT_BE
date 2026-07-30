@@ -1,7 +1,7 @@
 package com.example.TODAIT__BE.domain.member.service;
 
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
-import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
+import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.RefreshToken;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
@@ -29,7 +29,7 @@ public class AuthService {
     private final RefreshTokenHasher refreshTokenHasher;
 
     @Transactional
-    public AuthTokenResponse.Token issueTokens(Member member){
+    public AuthResponse.Token issueTokens(Member member){
 
         Member managedMember = memberRepository.findByIdForUpdate(member.getId())
                 .orElseThrow(() -> new IllegalStateException("토큰 발급 대상 회원을 찾을 수 없습니다."));
@@ -59,7 +59,7 @@ public class AuthService {
 
         refreshTokenRepository.save(newRefreshToken);
 
-        return AuthTokenResponse.Token.builder()
+        return AuthResponse.Token.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();

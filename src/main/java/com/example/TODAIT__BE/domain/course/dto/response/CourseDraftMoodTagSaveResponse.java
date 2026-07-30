@@ -6,18 +6,18 @@ import java.util.List;
 
 public record CourseDraftMoodTagSaveResponse(
         Long courseDraftId,
-        CourseDraftStatus status,
+        CourseDraftStatus draftStatus,
         List<MoodTagItem> moodTags
 ) {
 
     public static CourseDraftMoodTagSaveResponse of(
             Long courseDraftId,
-            CourseDraftStatus status,
+            CourseDraftStatus draftStatus,
             List<MoodTag> moodTags
     ) {
         return new CourseDraftMoodTagSaveResponse(
                 courseDraftId,
-                status,
+                draftStatus,
                 moodTags.stream().map(MoodTagItem::from).toList()
         );
     }

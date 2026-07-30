@@ -1,7 +1,7 @@
 package com.example.TODAIT__BE.domain.member.service;
 
-import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
-import com.example.TODAIT__BE.domain.member.dto.response.OAuthLoginResponse;
+import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
+import com.example.TODAIT__BE.domain.member.dto.response.OAuthResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.MemberOAuthAccount;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
@@ -27,7 +27,7 @@ public class OAuthService {
     private final MemberLoginValidator memberLoginValidator;
     private final MemberDuplicateValidator memberDuplicateValidator;
 
-    public OAuthLoginResponse.OAuthLogin loginWithKakao(
+    public OAuthResponse.Login loginWithKakao(
             String accessToken
     ) {
         KakaoUserInfo userInfo = kakaoOAuthClient.getUserInfo(accessToken);
@@ -38,7 +38,7 @@ public class OAuthService {
         );
     }
 
-    public OAuthLoginResponse.OAuthLogin loginWithGoogle(
+    public OAuthResponse.Login loginWithGoogle(
             String idToken
     ){
         GoogleUserInfo userInfo = googleOAuthClient.verifyIdToken(idToken);
@@ -49,7 +49,7 @@ public class OAuthService {
         );
     }
 
-    private OAuthLoginResponse.OAuthLogin loginWithOAuth(
+    private OAuthResponse.Login loginWithOAuth(
             OAuthProvider provider,
             String providerUserId,
             String email
@@ -75,12 +75,12 @@ public class OAuthService {
     }
 
     //기존 회원 처리
-    private OAuthLoginResponse.OAuthLogin loginExistingMember(Member member, OAuthProvider provider) {
+    private OAuthResponse.Login loginExistingMember(Member member, OAuthProvider provider) {
         memberLoginValidator.validateLoginAvailable(member);
 
-        AuthTokenResponse.Token tokenResponse = authService.issueTokens(member);
+        AuthResponse.Token tokenResponse = authService.issueTokens(member);
 
-        return OAuthLoginResponse.OAuthLogin.builder()
+        return OAuthResponse.Login.builder()
                 .loginStatus("LOGIN_COMPLETED")
                 .accessToken(tokenResponse.accessToken())
                 .refreshToken(tokenResponse.refreshToken())
@@ -91,7 +91,7 @@ public class OAuthService {
     }
 
     //신규 회원 처리
-    private OAuthLoginResponse.OAuthLogin requireOnboarding(
+    private OAuthResponse.Login requireOnboarding(
             OAuthProvider provider,
             String providerUserId,
             String email
@@ -102,7 +102,7 @@ public class OAuthService {
                 email
         );
 
-        return OAuthLoginResponse.OAuthLogin.builder()
+        return OAuthResponse.Login.builder()
                 .loginStatus("ONBOARDING_REQUIRED")
                 .accessToken(null)
                 .refreshToken(null)
