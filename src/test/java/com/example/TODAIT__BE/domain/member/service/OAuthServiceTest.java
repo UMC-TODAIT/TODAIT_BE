@@ -11,6 +11,8 @@ import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberOAuthAccountRepository;
 import com.example.TODAIT__BE.domain.member.service.port.OAuthUserClient;
 import com.example.TODAIT__BE.domain.member.service.port.OAuthUserInfo;
+import com.example.TODAIT__BE.domain.member.service.validator.MemberDuplicateValidator;
+import com.example.TODAIT__BE.domain.member.service.validator.MemberLoginValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

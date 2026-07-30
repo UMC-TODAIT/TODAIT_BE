@@ -6,6 +6,9 @@ import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.Term;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
+import com.example.TODAIT__BE.domain.member.service.support.MemberRegistrationService;
+import com.example.TODAIT__BE.domain.member.service.validator.MemberDuplicateValidator;
+import com.example.TODAIT__BE.domain.member.service.validator.TermAgreementValidator;
 import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
 
 import lombok.RequiredArgsConstructor;

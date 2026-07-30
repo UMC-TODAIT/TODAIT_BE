@@ -6,16 +6,16 @@ import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 
 import java.time.LocalDateTime;
 
-final class MemberServiceTestFixtures {
+public final class MemberServiceTestFixtures {
 
     private MemberServiceTestFixtures() {
     }
 
-    static Member activeMember(Long id) {
+    public static Member activeMember(Long id) {
         return member(id, "member-" + id, MemberStatus.ACTIVE);
     }
 
-    static Member member(Long id, String nickname, MemberStatus status) {
+    public static Member member(Long id, String nickname, MemberStatus status) {
         return Member.builder()
                 .id(id)
                 .nickname(nickname)
@@ -23,7 +23,7 @@ final class MemberServiceTestFixtures {
                 .build();
     }
 
-    static RefreshToken refreshToken(
+    public static RefreshToken refreshToken(
             Member member,
             String tokenHash,
             LocalDateTime expiresAt

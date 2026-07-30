@@ -9,6 +9,8 @@ import com.example.TODAIT__BE.domain.member.entity.RefreshToken;
 import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 import com.example.TODAIT__BE.domain.member.exception.AuthException;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
+import com.example.TODAIT__BE.domain.member.service.validator.MemberLoginValidator;
+import com.example.TODAIT__BE.domain.member.service.validator.RefreshTokenValidator;
 import com.example.TODAIT__BE.global.security.token.JwtTokenProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
