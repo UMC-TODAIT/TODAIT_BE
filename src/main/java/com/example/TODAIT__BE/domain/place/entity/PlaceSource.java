@@ -11,9 +11,8 @@ import lombok.NoArgsConstructor;
 @Table(
         name = "place_source",
         uniqueConstraints = @UniqueConstraint(
-                name = "uk_place_source_place_data_source_external",
+                name = "uk_place_source_data_source_external",
                 columnNames = {
-                        "place_id",
                         "data_source_id",
                         "source_place_id"
                 }

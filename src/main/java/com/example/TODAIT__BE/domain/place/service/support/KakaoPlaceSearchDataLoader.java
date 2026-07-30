@@ -60,8 +60,7 @@ public class KakaoPlaceSearchDataLoader {
                 .collect(
                         Collectors.toMap(
                                 PlaceSource::getSourcePlaceId,
-                                PlaceSource::getPlace,
-                                (first, duplicate) -> first
+                                PlaceSource::getPlace
                         )
                 );
     }
