@@ -1,7 +1,7 @@
 package com.example.TODAIT__BE.domain.member.controller.docs;
 
-import com.example.TODAIT__BE.domain.member.dto.request.TokenRefreshRequest;
-import com.example.TODAIT__BE.domain.member.dto.response.TokenRefreshResponse;
+import com.example.TODAIT__BE.domain.member.dto.request.AuthRequest;
+import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
@@ -23,7 +23,7 @@ public interface TokenControllerDocs {
                     이 경우 사용자는 다시 로그인해야 합니다.
                     """
     )
-    ResponseEntity<ApiResponse<TokenRefreshResponse.AccessToken>> refresh(
-            TokenRefreshRequest.Refresh request
+    ResponseEntity<ApiResponse<AuthResponse.AccessToken>> refresh(
+            AuthRequest.TokenRefresh request
     );
 }

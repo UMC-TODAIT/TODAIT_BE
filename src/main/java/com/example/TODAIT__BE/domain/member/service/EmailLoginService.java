@@ -1,8 +1,8 @@
 package com.example.TODAIT__BE.domain.member.service;
 
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
-import com.example.TODAIT__BE.domain.member.dto.request.SignRequest;
-import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
+import com.example.TODAIT__BE.domain.member.dto.request.AuthRequest;
+import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
@@ -20,8 +20,8 @@ public class EmailLoginService {
     private final MemberLoginValidator memberLoginValidator;
 
     @Transactional
-    public AuthTokenResponse.Token login(
-            SignRequest.Login request
+    public AuthResponse.Token login(
+            AuthRequest.Login request
     ){
         Member member = findMember(request.email());
 

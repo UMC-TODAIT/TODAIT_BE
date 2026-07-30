@@ -2,8 +2,7 @@ package com.example.TODAIT__BE.domain.member.controller;
 
 import com.example.TODAIT__BE.domain.member.code.MemberSuccessCode;
 import com.example.TODAIT__BE.domain.member.controller.docs.MemberControllerDocs;
-import com.example.TODAIT__BE.domain.member.dto.response.MemberMeResponse;
-import com.example.TODAIT__BE.domain.member.dto.response.NicknameAvailabilityResponse;
+import com.example.TODAIT__BE.domain.member.dto.response.MemberResponse;
 import com.example.TODAIT__BE.domain.member.service.MemberService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
@@ -28,7 +27,7 @@ public class MemberController implements MemberControllerDocs {
 
     @Override
     @GetMapping("/nickname-availability")
-    public ApiResponse<NicknameAvailabilityResponse> checkNicknameAvailability(
+    public ApiResponse<MemberResponse.NicknameAvailability> checkNicknameAvailability(
             @RequestParam
             @NotBlank
             @Size(min = 2, max = 12)
@@ -43,7 +42,7 @@ public class MemberController implements MemberControllerDocs {
 
     @Override
     @GetMapping("/me")
-    public ApiResponse<MemberMeResponse> getMyInfo(
+    public ApiResponse<MemberResponse.Me> getMyInfo(
             @AuthenticationPrincipal AuthMember authMember
     ) {
         return ApiResponse.onSuccess(

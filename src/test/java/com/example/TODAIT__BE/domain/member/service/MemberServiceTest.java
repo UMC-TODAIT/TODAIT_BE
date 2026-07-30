@@ -2,8 +2,7 @@ package com.example.TODAIT__BE.domain.member.service;
 
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
-import com.example.TODAIT__BE.domain.member.dto.response.MemberMeResponse;
-import com.example.TODAIT__BE.domain.member.dto.response.NicknameAvailabilityResponse;
+import com.example.TODAIT__BE.domain.member.dto.response.MemberResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
@@ -42,7 +41,7 @@ class MemberServiceTest {
     void checkNicknameAvailabilityReturnsAvailableWhenNicknameDoesNotExist() {
         given(memberRepository.existsByNickname("tester")).willReturn(false);
 
-        NicknameAvailabilityResponse response =
+        MemberResponse.NicknameAvailability response =
                 memberService.checkNicknameAvailability("tester");
 
         assertThat(response.nickname()).isEqualTo("tester");
@@ -53,7 +52,7 @@ class MemberServiceTest {
     void checkNicknameAvailabilityReturnsUnavailableWhenNicknameExists() {
         given(memberRepository.existsByNickname("tester")).willReturn(true);
 
-        NicknameAvailabilityResponse response =
+        MemberResponse.NicknameAvailability response =
                 memberService.checkNicknameAvailability("tester");
 
         assertThat(response.nickname()).isEqualTo("tester");
@@ -64,7 +63,7 @@ class MemberServiceTest {
     void checkNicknameAvailabilityNormalizesNicknameBeforeChecking() {
         given(memberRepository.existsByNickname("tester")).willReturn(false);
 
-        NicknameAvailabilityResponse response =
+        MemberResponse.NicknameAvailability response =
                 memberService.checkNicknameAvailability("  tester  ");
 
         assertThat(response.nickname()).isEqualTo("tester");
@@ -85,7 +84,7 @@ class MemberServiceTest {
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
         given(courseRepository.countByMemberId(1L)).willReturn(3L);
 
-        MemberMeResponse response = memberService.getMyInfo(1L);
+        MemberResponse.Me response = memberService.getMyInfo(1L);
 
         assertThat(response.memberId()).isEqualTo(1L);
         assertThat(response.email()).isEqualTo("tester@example.com");

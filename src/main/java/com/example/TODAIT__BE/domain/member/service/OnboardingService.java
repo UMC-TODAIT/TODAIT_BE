@@ -1,8 +1,8 @@
 package com.example.TODAIT__BE.domain.member.service;
 
 
-import com.example.TODAIT__BE.domain.member.dto.request.OAuthOnboardingRequest;
-import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
+import com.example.TODAIT__BE.domain.member.dto.request.OAuthRequest;
+import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.Term;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
@@ -25,9 +25,9 @@ public class OnboardingService {
     private final MemberDuplicateValidator memberDuplicateValidator;
 
     @Transactional
-    public AuthTokenResponse.Token complete(
+    public AuthResponse.Token complete(
         String onboardingToken,
-        OAuthOnboardingRequest.Complete request
+        OAuthRequest.Onboarding request
     ){
         AuthService.OAuthOnboardingTokenClaims claims =
                 authService.validateOAuthOnboardingToken(onboardingToken);

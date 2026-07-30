@@ -1,8 +1,8 @@
 package com.example.TODAIT__BE.domain.member.service;
 
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
-import com.example.TODAIT__BE.domain.member.dto.request.SignRequest;
-import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
+import com.example.TODAIT__BE.domain.member.dto.request.AuthRequest;
+import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.Term;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
@@ -27,8 +27,8 @@ public class SignupService {
     private final MemberDuplicateValidator memberDuplicateValidator;
 
     @Transactional
-    public AuthTokenResponse.Token signup(
-            SignRequest.SignUp request
+    public AuthResponse.Token signup(
+            AuthRequest.SignUp request
     ){
         validateEmailVerification(request.email());
         memberDuplicateValidator.validateEmailAvailable(request.email());

@@ -1,8 +1,7 @@
 package com.example.TODAIT__BE.domain.member.controller.docs;
 
-import com.example.TODAIT__BE.domain.member.dto.request.LogoutRequest;
-import com.example.TODAIT__BE.domain.member.dto.request.SignRequest;
-import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
+import com.example.TODAIT__BE.domain.member.dto.request.AuthRequest;
+import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
@@ -21,8 +20,8 @@ public interface AuthControllerDocs {
                     서비스 Access Token과 Refresh Token을 발급합니다.
                     """
     )
-    ResponseEntity<ApiResponse<AuthTokenResponse.Token>> signup(
-            SignRequest.SignUp request
+    ResponseEntity<ApiResponse<AuthResponse.Token>> signup(
+            AuthRequest.SignUp request
     );
 
     @Operation(
@@ -32,8 +31,8 @@ public interface AuthControllerDocs {
                 로그인에 성공하면 서비스 Access Token과 Refresh Token을 발급합니다.
                 """
     )
-    ResponseEntity<ApiResponse<AuthTokenResponse.Token>> login(
-            SignRequest.Login request
+    ResponseEntity<ApiResponse<AuthResponse.Token>> login(
+            AuthRequest.Login request
     );
 
     @Operation(
@@ -44,6 +43,6 @@ public interface AuthControllerDocs {
                     """
     )
     ResponseEntity<ApiResponse<Void>> logout(
-            LogoutRequest.Logout request
+            AuthRequest.Logout request
     );
 }

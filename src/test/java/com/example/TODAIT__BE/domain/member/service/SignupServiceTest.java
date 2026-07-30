@@ -1,9 +1,9 @@
 package com.example.TODAIT__BE.domain.member.service;
 
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
-import com.example.TODAIT__BE.domain.member.dto.request.SignRequest;
+import com.example.TODAIT__BE.domain.member.dto.request.AuthRequest;
 import com.example.TODAIT__BE.domain.member.dto.request.TermAgreementRequest;
-import com.example.TODAIT__BE.domain.member.dto.response.AuthTokenResponse;
+import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.Term;
 import com.example.TODAIT__BE.domain.member.enums.TermType;
@@ -61,7 +61,7 @@ class SignupServiceTest {
 
     @Test
     void signupNormalizesInputAndIssuesTokens() {
-        SignRequest.SignUp request = signupRequest(" Tester@Example.com ", " tester ");
+        AuthRequest.SignUp request = signupRequest(" Tester@Example.com ", " tester ");
         List<Term> agreedTerms = List.of(term(TermType.SERVICE));
         Member savedMember = Member.builder()
                 .id(1L)
@@ -69,7 +69,7 @@ class SignupServiceTest {
                 .nickname("tester")
                 .passwordHash("encoded-password")
                 .build();
-        AuthTokenResponse.Token token = new AuthTokenResponse.Token("access", "refresh");
+        AuthResponse.Token token = new AuthResponse.Token("access", "refresh");
 
         given(emailVerificationRedisRepository.isVerified("tester@example.com")).willReturn(true);
         given(termAgreementValidator.validateAndGetAgreedTerms(request.termAgreements()))
@@ -78,7 +78,7 @@ class SignupServiceTest {
         given(memberRegistrationService.saveMember(any(Member.class))).willReturn(savedMember);
         given(authService.issueTokens(savedMember)).willReturn(token);
 
-        AuthTokenResponse.Token response = signupService.signup(request);
+        AuthResponse.Token response = signupService.signup(request);
 
         assertThat(response).isEqualTo(token);
 
@@ -96,7 +96,7 @@ class SignupServiceTest {
 
     @Test
     void signupRejectsUnverifiedEmail() {
-        SignRequest.SignUp request = signupRequest("test@example.com", "tester");
+        AuthRequest.SignUp request = signupRequest("test@example.com", "tester");
         given(emailVerificationRedisRepository.isVerified("test@example.com")).willReturn(false);
 
         assertThatThrownBy(() -> signupService.signup(request))
@@ -109,7 +109,7 @@ class SignupServiceTest {
 
     @Test
     void signupRejectsDuplicateEmail() {
-        SignRequest.SignUp request = signupRequest("test@example.com", "tester");
+        AuthRequest.SignUp request = signupRequest("test@example.com", "tester");
         given(emailVerificationRedisRepository.isVerified("test@example.com")).willReturn(true);
         givenDuplicateEmail("test@example.com");
 
@@ -123,7 +123,7 @@ class SignupServiceTest {
 
     @Test
     void signupRejectsDuplicateNickname() {
-        SignRequest.SignUp request = signupRequest("test@example.com", "tester");
+        AuthRequest.SignUp request = signupRequest("test@example.com", "tester");
         given(emailVerificationRedisRepository.isVerified("test@example.com")).willReturn(true);
         givenDuplicateNickname("tester");
 
@@ -135,8 +135,8 @@ class SignupServiceTest {
         verify(memberRegistrationService, never()).saveMember(any());
     }
 
-    private SignRequest.SignUp signupRequest(String email, String nickname) {
-        return new SignRequest.SignUp(
+    private AuthRequest.SignUp signupRequest(String email, String nickname) {
+        return new AuthRequest.SignUp(
                 nickname,
                 email,
                 "password!1",

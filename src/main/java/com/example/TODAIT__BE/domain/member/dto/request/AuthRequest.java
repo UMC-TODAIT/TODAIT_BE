@@ -1,6 +1,7 @@
 package com.example.TODAIT__BE.domain.member.dto.request;
 
 import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -10,8 +11,12 @@ import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
-public class SignRequest {
+public final class AuthRequest {
 
+    private AuthRequest() {
+    }
+
+    @Schema(name = "AuthSignUpRequest")
     public record SignUp(
             @NotBlank
             @Size(min = 2, max = 12)
@@ -34,13 +39,14 @@ public class SignRequest {
 
             @NotEmpty
             List<@Valid TermAgreementRequest> termAgreements
-    ){
+    ) {
         public SignUp {
             nickname = MemberInputPolicy.normalizeNickname(nickname);
             email = MemberInputPolicy.normalizeEmail(email);
         }
     }
 
+    @Schema(name = "AuthLoginRequest")
     public record Login(
             @NotBlank
             @Email
@@ -48,10 +54,23 @@ public class SignRequest {
 
             @NotBlank
             String password
-    ){
+    ) {
         public Login {
             email = MemberInputPolicy.normalizeEmail(email);
         }
     }
 
+    @Schema(name = "AuthLogoutRequest")
+    public record Logout(
+            @NotBlank
+            String refreshToken
+    ) {
+    }
+
+    @Schema(name = "AuthTokenRefreshRequest")
+    public record TokenRefresh(
+            @NotBlank
+            String refreshToken
+    ) {
+    }
 }
