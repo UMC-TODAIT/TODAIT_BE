@@ -14,11 +14,11 @@ public enum CourseSuccessCode implements BaseSuccessCode {
 
     MOOD_TAG_SAVE_OK(HttpStatus.OK,
             "COURSE200_1",
-            "임시 코스 분위기 태그 저장 성공"),
+            "임시 코스 분위기 선택 저장 성공"),
 
     FOOD_CATEGORY_SAVE_OK(HttpStatus.OK,
             "COURSE200_2",
-            "임시 코스 음식 카테고리 저장 성공"),
+            "임시 코스 음식 선택 저장 성공"),
 
     COURSE_SAVE_OK(HttpStatus.CREATED,
             "COURSE_SAVE201",
