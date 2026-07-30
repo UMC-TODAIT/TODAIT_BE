@@ -1,10 +1,11 @@
-package com.example.TODAIT__BE.domain.course.entity;
+package com.example.TODAIT__BE.domain.recommendation.entity;
 
-import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
-import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
+import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.place.entity.Place;
+import com.example.TODAIT__BE.domain.recommendation.enums.RecommendationType;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
+import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import com.example.TODAIT__BE.global.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -21,55 +22,49 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "course")
+@Table(name = "recommendation_log")
 @Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Course extends BaseEntity {
+public class RecommendationLog extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
+    @JoinColumn(name = "member_id")
     private Member member;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "recommendation_type", nullable = false)
+    private RecommendationType recommendationType;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "base_place_id", nullable = false)
+    @JoinColumn(name = "course_draft_id")
+    private CourseDraft courseDraft;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "base_place_id")
     private Place basePlace;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "area_id", nullable = false)
+    @JoinColumn(name = "area_id")
     private Area area;
 
-    @Column(nullable = false)
-    private String title;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "place_category_id")
+    private PlaceCategory placeCategory;
 
-    @Column
-    private String memo;
+    @Column(name = "user_latitude")
+    private Double userLatitude;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private CourseVisibility visibility;
+    @Column(name = "user_longitude")
+    private Double userLongitude;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "source_type", nullable = false)
-    private CourseSourceType sourceType;
-
-    @Builder.Default
-    @Column(name = "view_count", nullable = false)
-    private Integer viewCount = 0;
-
-    @Builder.Default
-    @Column(name = "operator_priority", nullable = false)
-    private Integer operatorPriority = 0;
-
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
-
+    @Column(name = "request_context", columnDefinition = "TEXT")
+    private String requestContext;
 }

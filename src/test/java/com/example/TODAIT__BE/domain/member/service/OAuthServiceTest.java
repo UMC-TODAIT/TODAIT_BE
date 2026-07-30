@@ -9,9 +9,8 @@ import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberOAuthAccountRepository;
-import com.example.TODAIT__BE.infra.oauth.GoogleOAuthClient;
-import com.example.TODAIT__BE.infra.oauth.KakaoOAuthClient;
-import com.example.TODAIT__BE.infra.oauth.dto.KakaoUserInfo;
+import com.example.TODAIT__BE.domain.member.service.port.OAuthUserClient;
+import com.example.TODAIT__BE.domain.member.service.port.OAuthUserInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,11 +18,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,9 +35,9 @@ class OAuthServiceTest {
     @Mock
     private AuthService authService;
     @Mock
-    private KakaoOAuthClient kakaoOAuthClient;
+    private OAuthUserClient kakaoOAuthUserClient;
     @Mock
-    private GoogleOAuthClient googleOAuthClient;
+    private OAuthUserClient googleOAuthUserClient;
     @Mock
     private MemberLoginValidator memberLoginValidator;
     @Mock
@@ -46,11 +47,12 @@ class OAuthServiceTest {
 
     @BeforeEach
     void setUp() {
+        given(kakaoOAuthUserClient.supports()).willReturn(OAuthProvider.KAKAO);
+        given(googleOAuthUserClient.supports()).willReturn(OAuthProvider.GOOGLE);
         oAuthService = new OAuthService(
                 memberOAuthAccountRepository,
                 authService,
-                kakaoOAuthClient,
-                googleOAuthClient,
+                List.of(kakaoOAuthUserClient, googleOAuthUserClient),
                 memberLoginValidator,
                 memberDuplicateValidator
         );
@@ -58,8 +60,8 @@ class OAuthServiceTest {
 
     @Test
     void loginWithKakaoRequiresOnboardingWithNormalizedEmail() {
-        given(kakaoOAuthClient.getUserInfo("kakao-token"))
-                .willReturn(new KakaoUserInfo("provider-user-id", " User@Example.com "));
+        given(kakaoOAuthUserClient.getUserInfo("kakao-token"))
+                .willReturn(new OAuthUserInfo("provider-user-id", " User@Example.com "));
         given(memberOAuthAccountRepository.findByProviderAndProviderUserId(
                 OAuthProvider.KAKAO,
                 "provider-user-id"
@@ -93,8 +95,8 @@ class OAuthServiceTest {
                 .build();
         AuthResponse.Token token = new AuthResponse.Token("access", "refresh");
 
-        given(kakaoOAuthClient.getUserInfo("kakao-token"))
-                .willReturn(new KakaoUserInfo("provider-user-id", "member@example.com"));
+        given(kakaoOAuthUserClient.getUserInfo("kakao-token"))
+                .willReturn(new OAuthUserInfo("provider-user-id", "member@example.com"));
         given(memberOAuthAccountRepository.findByProviderAndProviderUserId(
                 OAuthProvider.KAKAO,
                 "provider-user-id"
@@ -122,8 +124,8 @@ class OAuthServiceTest {
                 .providerUserId("provider-user-id")
                 .build();
 
-        given(kakaoOAuthClient.getUserInfo("kakao-token"))
-                .willReturn(new KakaoUserInfo("provider-user-id", "member@example.com"));
+        given(kakaoOAuthUserClient.getUserInfo("kakao-token"))
+                .willReturn(new OAuthUserInfo("provider-user-id", "member@example.com"));
         given(memberOAuthAccountRepository.findByProviderAndProviderUserId(
                 OAuthProvider.KAKAO,
                 "provider-user-id"
@@ -140,8 +142,8 @@ class OAuthServiceTest {
 
     @Test
     void loginWithKakaoRejectsEmailAlreadyRegisteredByEmailSignup() {
-        given(kakaoOAuthClient.getUserInfo("kakao-token"))
-                .willReturn(new KakaoUserInfo("provider-user-id", "User@Example.com"));
+        given(kakaoOAuthUserClient.getUserInfo("kakao-token"))
+                .willReturn(new OAuthUserInfo("provider-user-id", "User@Example.com"));
         given(memberOAuthAccountRepository.findByProviderAndProviderUserId(
                 OAuthProvider.KAKAO,
                 "provider-user-id"
@@ -154,5 +156,34 @@ class OAuthServiceTest {
                 .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(MemberErrorCode.ALREADY_REGISTERED_EMAIL);
+    }
+
+    @Test
+    void constructorRejectsDuplicateOAuthProviderClients() {
+        OAuthUserClient duplicateKakaoOAuthUserClient = mock(OAuthUserClient.class);
+        given(duplicateKakaoOAuthUserClient.supports()).willReturn(OAuthProvider.KAKAO);
+
+        assertThatThrownBy(() -> new OAuthService(
+                memberOAuthAccountRepository,
+                authService,
+                List.of(kakaoOAuthUserClient, duplicateKakaoOAuthUserClient, googleOAuthUserClient),
+                memberLoginValidator,
+                memberDuplicateValidator
+        ))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Duplicate OAuth client configured");
+    }
+
+    @Test
+    void constructorRejectsMissingOAuthProviderClient() {
+        assertThatThrownBy(() -> new OAuthService(
+                memberOAuthAccountRepository,
+                authService,
+                List.of(kakaoOAuthUserClient),
+                memberLoginValidator,
+                memberDuplicateValidator
+        ))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("OAuth client is not configured");
     }
 }

@@ -1,7 +1,6 @@
 package com.example.TODAIT__BE.domain.place.controller.docs;
 
 import com.example.TODAIT__BE.domain.place.dto.response.KakaoPlaceSearchResponse;
-import com.example.TODAIT__BE.domain.place.dto.response.PlaceSearchResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
