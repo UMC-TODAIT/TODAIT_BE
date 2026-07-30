@@ -6,31 +6,43 @@ import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.MemberOAuthAccount;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
 import com.example.TODAIT__BE.domain.member.repository.MemberOAuthAccountRepository;
+import com.example.TODAIT__BE.domain.member.service.port.OAuthUserClient;
+import com.example.TODAIT__BE.domain.member.service.port.OAuthUserInfo;
 import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
-import com.example.TODAIT__BE.infra.oauth.GoogleOAuthClient;
-import com.example.TODAIT__BE.infra.oauth.KakaoOAuthClient;
-import com.example.TODAIT__BE.infra.oauth.dto.GoogleUserInfo;
-import com.example.TODAIT__BE.infra.oauth.dto.KakaoUserInfo;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class OAuthService {
 
     private final MemberOAuthAccountRepository memberOAuthAccountRepository;
     private final AuthService authService;
-    private final KakaoOAuthClient kakaoOAuthClient;
-    private final GoogleOAuthClient googleOAuthClient;
+    private final Map<OAuthProvider, OAuthUserClient> oAuthUserClients;
     private final MemberLoginValidator memberLoginValidator;
     private final MemberDuplicateValidator memberDuplicateValidator;
+
+    public OAuthService(
+            MemberOAuthAccountRepository memberOAuthAccountRepository,
+            AuthService authService,
+            List<OAuthUserClient> oAuthUserClients,
+            MemberLoginValidator memberLoginValidator,
+            MemberDuplicateValidator memberDuplicateValidator
+    ) {
+        this.memberOAuthAccountRepository = memberOAuthAccountRepository;
+        this.authService = authService;
+        this.oAuthUserClients = mapOAuthUserClients(oAuthUserClients);
+        this.memberLoginValidator = memberLoginValidator;
+        this.memberDuplicateValidator = memberDuplicateValidator;
+    }
 
     public OAuthResponse.Login loginWithKakao(
             String accessToken
     ) {
-        KakaoUserInfo userInfo = kakaoOAuthClient.getUserInfo(accessToken);
+        OAuthUserInfo userInfo = getOAuthUserInfo(OAuthProvider.KAKAO, accessToken);
         return loginWithOAuth(
                 OAuthProvider.KAKAO,
                 userInfo.providerUserId(),
@@ -41,7 +53,7 @@ public class OAuthService {
     public OAuthResponse.Login loginWithGoogle(
             String idToken
     ){
-        GoogleUserInfo userInfo = googleOAuthClient.verifyIdToken(idToken);
+        OAuthUserInfo userInfo = getOAuthUserInfo(OAuthProvider.GOOGLE, idToken);
         return loginWithOAuth(
                 OAuthProvider.GOOGLE,
                 userInfo.providerUserId(),
@@ -72,6 +84,24 @@ public class OAuthService {
                 providerUserId,
                 normalizedEmail
         );
+    }
+
+    private OAuthUserInfo getOAuthUserInfo(OAuthProvider provider, String token) {
+        OAuthUserClient oAuthUserClient = oAuthUserClients.get(provider);
+        if (oAuthUserClient == null) {
+            throw new IllegalStateException("OAuth client is not configured. provider=" + provider);
+        }
+        return oAuthUserClient.getUserInfo(token);
+    }
+
+    private Map<OAuthProvider, OAuthUserClient> mapOAuthUserClients(
+            List<OAuthUserClient> oAuthUserClients
+    ) {
+        Map<OAuthProvider, OAuthUserClient> result = new EnumMap<>(OAuthProvider.class);
+        for (OAuthUserClient oAuthUserClient : oAuthUserClients) {
+            result.put(oAuthUserClient.supports(), oAuthUserClient);
+        }
+        return result;
     }
 
     //기존 회원 처리

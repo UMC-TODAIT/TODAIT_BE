@@ -1,5 +1,6 @@
 package com.example.TODAIT__BE.infra.redis;
 
+import com.example.TODAIT__BE.domain.member.service.port.EmailVerificationStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -10,7 +11,7 @@ import java.util.List;
 import java.util.Locale;
 
 @Repository
-public class EmailVerificationRedisRepository {
+public class EmailVerificationRedisRepository implements EmailVerificationStore {
 
     private static final String CODE_KEY_PREFIX = "email-verification:code:";
     private static final String VERIFIED_KEY_PREFIX = "email-verification:verified:";
@@ -96,6 +97,7 @@ public class EmailVerificationRedisRepository {
         this.maxVerifyFailures = maxVerifyFailures;
     }
 
+    @Override
     public boolean saveCodeIfNotCoolingDown(String email, String code) {
         Long result = redisTemplate.execute(
                 SAVE_CODE_IF_NOT_COOLING_DOWN_SCRIPT,
@@ -109,6 +111,7 @@ public class EmailVerificationRedisRepository {
         return Long.valueOf(1L).equals(result);
     }
 
+    @Override
     public void deleteCodeAndCooldownIfMatches(String email, String code) {
         redisTemplate.execute(
                 DELETE_CODE_AND_COOLDOWN_IF_MATCHES_SCRIPT,
@@ -117,6 +120,7 @@ public class EmailVerificationRedisRepository {
         );
     }
 
+    @Override
     public VerifyCodeResult verifyCodeAndMarkVerified(String email, String code) {
         Long result = redisTemplate.execute(
                 VERIFY_CODE_AND_MARK_VERIFIED_SCRIPT,
@@ -128,9 +132,10 @@ public class EmailVerificationRedisRepository {
                 String.valueOf(verifyFailureTtl.toMillis())
         );
 
-        return VerifyCodeResult.from(result);
+        return toVerifyCodeResult(result);
     }
 
+    @Override
     public boolean isVerified(String email) {
         return VERIFIED_VALUE.equals(redisTemplate.opsForValue()
                 .get(verifiedKey(email)));
@@ -157,24 +162,17 @@ public class EmailVerificationRedisRepository {
                 .toLowerCase(Locale.ROOT);
     }
 
-    public enum VerifyCodeResult {
-        CODE_NOT_FOUND,
-        CODE_MISMATCH,
-        VERIFIED,
-        VERIFY_ATTEMPT_EXCEEDED;
-
-        private static VerifyCodeResult from(Long result) {
-            if (Long.valueOf(2L).equals(result)) {
-                return VERIFIED;
-            }
-            if (Long.valueOf(1L).equals(result)) {
-                return CODE_MISMATCH;
-            }
-            if (Long.valueOf(4L).equals(result)) {
-                return VERIFY_ATTEMPT_EXCEEDED;
-            }
-
-            return CODE_NOT_FOUND;
+    private VerifyCodeResult toVerifyCodeResult(Long result) {
+        if (Long.valueOf(2L).equals(result)) {
+            return VerifyCodeResult.VERIFIED;
         }
+        if (Long.valueOf(1L).equals(result)) {
+            return VerifyCodeResult.CODE_MISMATCH;
+        }
+        if (Long.valueOf(4L).equals(result)) {
+            return VerifyCodeResult.VERIFY_ATTEMPT_EXCEEDED;
+        }
+
+        return VerifyCodeResult.CODE_NOT_FOUND;
     }
 }
