@@ -12,7 +12,6 @@ import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -63,8 +62,7 @@ public class CourseDraftPlaceService {
 
     private void validateEditableDraft(CourseDraft courseDraft) {
         if (courseDraft.getStatus() == CourseDraftStatus.COMPLETED
-                || courseDraft.getStatus() == CourseDraftStatus.ABANDONED
-                || courseDraft.getExpiresAt().isBefore(LocalDateTime.now())) {
+                || courseDraft.getStatus() == CourseDraftStatus.ABANDONED) {
             throw new CourseException(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
         }
     }

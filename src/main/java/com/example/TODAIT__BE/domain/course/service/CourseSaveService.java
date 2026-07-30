@@ -32,7 +32,6 @@ import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomyErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -129,8 +128,8 @@ public class CourseSaveService {
         if (courseDraft.getStatus() == CourseDraftStatus.COMPLETED) {
             throw new CourseException(CourseErrorCode.COURSE_DRAFT_ALREADY_COMPLETED);
         }
-        if (courseDraft.getStatus() != CourseDraftStatus.ORDERING
-                || courseDraft.getExpiresAt().isBefore(LocalDateTime.now())) {
+
+        if (courseDraft.getStatus() != CourseDraftStatus.ORDERING) {
             throw new CourseException(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
         }
     }

@@ -37,7 +37,6 @@ import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -88,12 +87,15 @@ class CourseSaveServiceTest {
         return Member.builder().id(id).build();
     }
 
-    private CourseDraft courseDraft(Long id, Member owner, CourseDraftStatus status) {
+    private CourseDraft courseDraft(
+            Long id,
+            Member owner,
+            CourseDraftStatus status
+    ) {
         return CourseDraft.builder()
                 .id(id)
                 .member(owner)
                 .status(status)
-                .expiresAt(LocalDateTime.now().plusHours(1))
                 .build();
     }
 
@@ -145,26 +147,6 @@ class CourseSaveServiceTest {
     @Test
     void throwsWhenCourseDraftIsNotOrdering() {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.FOOD_SELECTING);
-        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
-
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모");
-
-        assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
-                .isInstanceOf(CourseException.class)
-                .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
-
-        verify(courseRepository, never()).save(any());
-    }
-
-    @Test
-    void throwsWhenCourseDraftExpired() {
-        CourseDraft draft = CourseDraft.builder()
-                .id(10L)
-                .member(member(1L))
-                .status(CourseDraftStatus.ORDERING)
-                .expiresAt(LocalDateTime.now().minusHours(1))
-                .build();
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         CourseSaveRequest request = new CourseSaveRequest("제목", "메모");

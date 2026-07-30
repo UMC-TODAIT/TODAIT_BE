@@ -11,18 +11,22 @@ import org.junit.jupiter.api.Test;
 class CourseDraftCreateResponseTest {
 
     @Test
-    void serializesLocalDateTimeFields() throws Exception {
+    void serializesCourseDraftCreateResponse() throws Exception {
         ObjectMapper objectMapper = new JacksonConfig().objectMapper();
-        CourseDraftCreateResponse response = new CourseDraftCreateResponse(
-                1L,
-                CourseDraftStatus.MOOD_SELECTING,
-                LocalDateTime.of(2026, 7, 16, 12, 30),
-                LocalDateTime.of(2026, 7, 16, 10, 0)
-        );
+
+        CourseDraftCreateResponse response =
+                new CourseDraftCreateResponse(
+                        1L,
+                        CourseDraftStatus.MOOD_SELECTING,
+                        LocalDateTime.of(2026, 7, 16, 10, 0)
+                );
 
         String json = objectMapper.writeValueAsString(response);
 
-        assertThat(json).contains("\"expiresAt\":\"2026-07-16T12:30:00\"");
+        assertThat(json).contains("\"courseDraftId\":1");
+        assertThat(json).contains("\"draftStatus\":\"MOOD_SELECTING\"");
         assertThat(json).contains("\"createdAt\":\"2026-07-16T10:00:00\"");
+        assertThat(json).doesNotContain("expiresAt");
+        assertThat(json).doesNotContain("\"status\"");
     }
 }
