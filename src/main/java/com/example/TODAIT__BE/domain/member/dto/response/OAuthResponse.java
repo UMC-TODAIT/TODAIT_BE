@@ -1,6 +1,7 @@
 package com.example.TODAIT__BE.domain.member.dto.response;
 
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
 public final class OAuthResponse {
@@ -9,6 +10,7 @@ public final class OAuthResponse {
     }
 
     @Builder
+    @Schema(name = "OAuthLoginResponse")
     public record Login(
             String loginStatus,
             String accessToken,

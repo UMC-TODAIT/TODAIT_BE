@@ -1,6 +1,7 @@
 package com.example.TODAIT__BE.domain.member.dto.request;
 
 import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -14,18 +15,21 @@ public final class OAuthRequest {
     private OAuthRequest() {
     }
 
+    @Schema(name = "OAuthKakaoAccessTokenRequest")
     public record KakaoAccessToken(
             @NotBlank
             String accessToken
     ) {
     }
 
+    @Schema(name = "OAuthGoogleIdTokenRequest")
     public record GoogleIdToken(
             @NotBlank
             String idToken
     ) {
     }
 
+    @Schema(name = "OAuthOnboardingRequest")
     public record Onboarding(
             @NotBlank
             @Size(min = 2, max = 12)

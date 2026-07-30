@@ -1,10 +1,13 @@
 package com.example.TODAIT__BE.domain.member.dto.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 public final class MemberResponse {
 
     private MemberResponse() {
     }
 
+    @Schema(name = "MemberMeResponse")
     public record Me(
             Long memberId,
             String email,
@@ -14,6 +17,7 @@ public final class MemberResponse {
     ) {
     }
 
+    @Schema(name = "NicknameAvailabilityResponse")
     public record NicknameAvailability(
             String nickname,
             boolean available
