@@ -1,35 +1,37 @@
 package com.example.TODAIT__BE.infra.mail;
 
+import com.example.TODAIT__BE.domain.member.service.port.EmailVerificationSender;
+import com.example.TODAIT__BE.domain.member.service.port.EmailVerificationStore;
 import com.example.TODAIT__BE.global.apiPayload.exception.ProjectException;
-import com.example.TODAIT__BE.infra.redis.EmailVerificationRedisRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
-public class EmailVerificationAsyncService {
+public class EmailVerificationAsyncService implements EmailVerificationSender {
 
     private static final Logger log = LoggerFactory.getLogger(EmailVerificationAsyncService.class);
     private static final String SUBJECT = "[TODAIT] 이메일 인증번호 안내";
 
     private final MailSender mailSender;
-    private final EmailVerificationRedisRepository emailVerificationRedisRepository;
+    private final EmailVerificationStore emailVerificationStore;
 
     public EmailVerificationAsyncService(
             MailSender mailSender,
-            EmailVerificationRedisRepository emailVerificationRedisRepository
+            EmailVerificationStore emailVerificationStore
     ) {
         this.mailSender = mailSender;
-        this.emailVerificationRedisRepository = emailVerificationRedisRepository;
+        this.emailVerificationStore = emailVerificationStore;
     }
 
+    @Override
     @Async("mailTaskExecutor")
-    public void sendVerificationCodeAsync(String email, String code) {
+    public void sendVerificationCode(String email, String code) {
         try {
             mailSender.send(email, SUBJECT, createVerificationText(code));
         } catch (ProjectException e) {
-            emailVerificationRedisRepository.deleteCodeAndCooldownIfMatches(email, code);
+            emailVerificationStore.deleteCodeAndCooldownIfMatches(email, code);
             log.warn("Failed to send email verification code. email={}", maskEmail(email), e);
         }
     }

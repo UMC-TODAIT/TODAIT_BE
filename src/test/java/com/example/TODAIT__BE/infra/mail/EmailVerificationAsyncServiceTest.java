@@ -1,8 +1,8 @@
 package com.example.TODAIT__BE.infra.mail;
 
 import com.example.TODAIT__BE.domain.member.code.EmailVerificationErrorCode;
+import com.example.TODAIT__BE.domain.member.service.port.EmailVerificationStore;
 import com.example.TODAIT__BE.global.apiPayload.exception.ProjectException;
-import com.example.TODAIT__BE.infra.redis.EmailVerificationRedisRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -23,37 +23,37 @@ class EmailVerificationAsyncServiceTest {
     private MailSender mailSender;
 
     @Mock
-    private EmailVerificationRedisRepository emailVerificationRedisRepository;
+    private EmailVerificationStore emailVerificationStore;
 
     @Test
     void sendVerificationCodeAsyncDelegatesToMailSender() {
         EmailVerificationAsyncService asyncService = new EmailVerificationAsyncService(
                 mailSender,
-                emailVerificationRedisRepository
+                emailVerificationStore
         );
 
-        asyncService.sendVerificationCodeAsync("test@example.com", "123456");
+        asyncService.sendVerificationCode("test@example.com", "123456");
 
         verify(mailSender).send(
                 eq("test@example.com"),
                 eq("[TODAIT] 이메일 인증번호 안내"),
                 contains("123456")
         );
-        verify(emailVerificationRedisRepository, never()).deleteCodeAndCooldownIfMatches(anyString(), anyString());
+        verify(emailVerificationStore, never()).deleteCodeAndCooldownIfMatches(anyString(), anyString());
     }
 
     @Test
     void sendVerificationCodeAsyncDoesNotPropagateMailFailure() {
         EmailVerificationAsyncService asyncService = new EmailVerificationAsyncService(
                 mailSender,
-                emailVerificationRedisRepository
+                emailVerificationStore
         );
         willThrow(new ProjectException(EmailVerificationErrorCode.SEND_FAILED))
                 .given(mailSender)
                 .send(eq("test@example.com"), eq("[TODAIT] 이메일 인증번호 안내"), anyString());
 
-        assertThatCode(() -> asyncService.sendVerificationCodeAsync("test@example.com", "123456"))
+        assertThatCode(() -> asyncService.sendVerificationCode("test@example.com", "123456"))
                 .doesNotThrowAnyException();
-        verify(emailVerificationRedisRepository).deleteCodeAndCooldownIfMatches("test@example.com", "123456");
+        verify(emailVerificationStore).deleteCodeAndCooldownIfMatches("test@example.com", "123456");
     }
 }

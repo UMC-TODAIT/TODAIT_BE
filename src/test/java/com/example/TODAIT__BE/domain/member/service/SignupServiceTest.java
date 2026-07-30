@@ -8,7 +8,7 @@ import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.Term;
 import com.example.TODAIT__BE.domain.member.enums.TermType;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
-import com.example.TODAIT__BE.infra.redis.EmailVerificationRedisRepository;
+import com.example.TODAIT__BE.domain.member.service.port.EmailVerificationStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.verify;
 class SignupServiceTest {
 
     @Mock
-    private EmailVerificationRedisRepository emailVerificationRedisRepository;
+    private EmailVerificationStore emailVerificationStore;
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
@@ -50,7 +50,7 @@ class SignupServiceTest {
     @BeforeEach
     void setUp() {
         signupService = new SignupService(
-                emailVerificationRedisRepository,
+                emailVerificationStore,
                 passwordEncoder,
                 authService,
                 termAgreementValidator,
@@ -71,7 +71,7 @@ class SignupServiceTest {
                 .build();
         AuthResponse.Token token = new AuthResponse.Token("access", "refresh");
 
-        given(emailVerificationRedisRepository.isVerified("tester@example.com")).willReturn(true);
+        given(emailVerificationStore.isVerified("tester@example.com")).willReturn(true);
         given(termAgreementValidator.validateAndGetAgreedTerms(request.termAgreements()))
                 .willReturn(agreedTerms);
         given(passwordEncoder.encode("password!1")).willReturn("encoded-password");
@@ -97,7 +97,7 @@ class SignupServiceTest {
     @Test
     void signupRejectsUnverifiedEmail() {
         AuthRequest.SignUp request = signupRequest("test@example.com", "tester");
-        given(emailVerificationRedisRepository.isVerified("test@example.com")).willReturn(false);
+        given(emailVerificationStore.isVerified("test@example.com")).willReturn(false);
 
         assertThatThrownBy(() -> signupService.signup(request))
                 .isInstanceOf(MemberException.class)
@@ -110,7 +110,7 @@ class SignupServiceTest {
     @Test
     void signupRejectsDuplicateEmail() {
         AuthRequest.SignUp request = signupRequest("test@example.com", "tester");
-        given(emailVerificationRedisRepository.isVerified("test@example.com")).willReturn(true);
+        given(emailVerificationStore.isVerified("test@example.com")).willReturn(true);
         givenDuplicateEmail("test@example.com");
 
         assertThatThrownBy(() -> signupService.signup(request))
@@ -124,7 +124,7 @@ class SignupServiceTest {
     @Test
     void signupRejectsDuplicateNickname() {
         AuthRequest.SignUp request = signupRequest("test@example.com", "tester");
-        given(emailVerificationRedisRepository.isVerified("test@example.com")).willReturn(true);
+        given(emailVerificationStore.isVerified("test@example.com")).willReturn(true);
         givenDuplicateNickname("tester");
 
         assertThatThrownBy(() -> signupService.signup(request))

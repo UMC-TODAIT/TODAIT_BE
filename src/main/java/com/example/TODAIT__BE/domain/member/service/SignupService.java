@@ -6,7 +6,7 @@ import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.Term;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
-import com.example.TODAIT__BE.infra.redis.EmailVerificationRedisRepository;
+import com.example.TODAIT__BE.domain.member.service.port.EmailVerificationStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,7 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SignupService {
 
-    private final EmailVerificationRedisRepository emailVerificationRedisRepository;
+    private final EmailVerificationStore emailVerificationStore;
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
     private final TermAgreementValidator termAgreementValidator;
@@ -55,7 +55,7 @@ public class SignupService {
     }
 
     private void validateEmailVerification(String email){
-        if(!emailVerificationRedisRepository.isVerified(email)){
+        if(!emailVerificationStore.isVerified(email)){
             throw new MemberException(
                     MemberErrorCode.EMAIL_VERIFICATION_REQUIRED
             );
