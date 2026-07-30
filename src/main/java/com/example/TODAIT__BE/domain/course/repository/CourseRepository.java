@@ -45,6 +45,22 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     @Query("""
             select c
             from Course c
+            join fetch c.area a
+            where c.visibility = :visibility
+              and c.sourceType = :sourceType
+              and c.deletedAt is null
+              and a.isActive = true
+              and a.code in :areaCodes
+            """)
+    List<Course> findRecommendedCourseCandidates(
+            @Param("visibility") CourseVisibility visibility,
+            @Param("sourceType") CourseSourceType sourceType,
+            @Param("areaCodes") List<String> areaCodes
+    );
+
+    @Query("""
+            select c
+            from Course c
             join fetch c.basePlace
             where c.member.id = :memberId
               and c.deletedAt is null
