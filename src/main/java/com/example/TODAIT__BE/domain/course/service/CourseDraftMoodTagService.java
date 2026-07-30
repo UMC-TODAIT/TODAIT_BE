@@ -78,8 +78,8 @@ public class CourseDraftMoodTagService {
 
     private void validateUpdatableStatus(CourseDraft courseDraft) {
         if (courseDraft.getStatus() != CourseDraftStatus.MOOD_SELECTING
-                && courseDraft.getStatus() != CourseDraftStatus.ORDERING) {
-            throw new CourseException(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
+                && courseDraft.getStatus() != CourseDraftStatus.FOOD_SELECTING) {
+            throw new CourseException(CourseErrorCode.MOOD_TAG_DRAFT_STATUS_CONFLICT);
         }
     }
 

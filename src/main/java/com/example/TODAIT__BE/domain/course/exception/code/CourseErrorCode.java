@@ -15,6 +15,7 @@ public enum CourseErrorCode implements BaseErrorCode {
     INVALID_COURSE_TITLE(HttpStatus.BAD_REQUEST, "COURSE_TITLE400", "코스 제목을 입력해주세요."),
     INVALID_MOOD_TAG_COUNT(HttpStatus.BAD_REQUEST, "COURSE_MOOD400", "분위기 태그는 중복 없이 2개 이상 6개 이하로 선택해야 합니다."),
     DUPLICATE_MOOD_TAG(HttpStatus.BAD_REQUEST, "COURSE400_2", "중복된 분위기 태그가 포함되어 있습니다."),
+    MOOD_TAG_DRAFT_STATUS_CONFLICT(HttpStatus.CONFLICT, "COURSE_MOOD409", "현재 임시 코스 상태에서는 분위기를 저장할 수 없습니다."),
     FOOD_CATEGORY_NOT_SELECTED(HttpStatus.BAD_REQUEST, "COURSE_FOOD400", "임시 코스에 선택된 음식 카테고리가 없습니다."),
     INVALID_FOOD_CATEGORY_COUNT(HttpStatus.BAD_REQUEST, "COURSE400_3", "음식 카테고리는 1개 이상 선택해야 합니다."),
     DUPLICATE_FOOD_CATEGORY(HttpStatus.BAD_REQUEST, "COURSE400_4", "중복된 음식 카테고리가 포함되어 있습니다."),
