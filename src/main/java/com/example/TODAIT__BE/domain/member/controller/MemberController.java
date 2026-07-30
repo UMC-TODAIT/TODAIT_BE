@@ -10,6 +10,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,27 +28,34 @@ public class MemberController implements MemberControllerDocs {
 
     @Override
     @GetMapping("/nickname-availability")
-    public ApiResponse<MemberResponse.NicknameAvailability> checkNicknameAvailability(
+    public ResponseEntity<ApiResponse<MemberResponse.NicknameAvailability>> checkNicknameAvailability(
             @RequestParam
             @NotBlank
             @Size(min = 2, max = 12)
             @Pattern(regexp = "^[\\uAC00-\\uD7A3a-zA-Z0-9]+$")
             String nickname
     ) {
-        return ApiResponse.onSuccess(
-                MemberSuccessCode.NICKNAME_AVAILABILITY_CHECKED,
-                memberService.checkNicknameAvailability(nickname)
-        );
+        MemberResponse.NicknameAvailability response =
+                memberService.checkNicknameAvailability(nickname);
+        return ResponseEntity
+                .status(MemberSuccessCode.NICKNAME_AVAILABILITY_CHECKED.getStatus())
+                .body(ApiResponse.onSuccess(
+                        MemberSuccessCode.NICKNAME_AVAILABILITY_CHECKED,
+                        response
+                ));
     }
 
     @Override
     @GetMapping("/me")
-    public ApiResponse<MemberResponse.Me> getMyInfo(
+    public ResponseEntity<ApiResponse<MemberResponse.Me>> getMyInfo(
             @AuthenticationPrincipal AuthMember authMember
     ) {
-        return ApiResponse.onSuccess(
-                MemberSuccessCode.MY_INFO_RETRIEVED,
-                memberService.getMyInfo(authMember.memberId())
-        );
+        MemberResponse.Me response = memberService.getMyInfo(authMember.memberId());
+        return ResponseEntity
+                .status(MemberSuccessCode.MY_INFO_RETRIEVED.getStatus())
+                .body(ApiResponse.onSuccess(
+                        MemberSuccessCode.MY_INFO_RETRIEVED,
+                        response
+                ));
     }
 }
