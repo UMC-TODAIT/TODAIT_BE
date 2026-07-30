@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CourseDraftMoodTagService {
 
     private static final int MIN_MOOD_TAG_COUNT = 2;
+    private static final int MAX_MOOD_TAG_COUNT = 6;
 
     private final CourseDraftRepository courseDraftRepository;
     private final CourseDraftMoodTagRepository courseDraftMoodTagRepository;
@@ -50,8 +51,10 @@ public class CourseDraftMoodTagService {
 
         List<Long> moodTagIds = request.moodTagIds();
 
-        if (moodTagIds == null || moodTagIds.size() < MIN_MOOD_TAG_COUNT) {
-            throw new CourseException(CourseErrorCode.MOOD_TAG_MIN_COUNT_NOT_MET);
+        if (moodTagIds == null
+                || moodTagIds.size() < MIN_MOOD_TAG_COUNT
+                || moodTagIds.size() > MAX_MOOD_TAG_COUNT) {
+            throw new CourseException(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
         }
 
         if (new HashSet<>(moodTagIds).size() != moodTagIds.size()) {

@@ -130,7 +130,25 @@ class CourseDraftMoodTagServiceTest {
         ))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.MOOD_TAG_MIN_COUNT_NOT_MET);
+                .isEqualTo(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
+
+        verify(moodTagRepository, never()).findAllById(any());
+        verify(courseDraftMoodTagRepository, never()).findByCourseDraft(any());
+    }
+
+    @Test
+    void throwsWhenMoodTagCountExceedsMaximum() {
+        CourseDraft draft = draft(CourseDraftStatus.MOOD_SELECTING);
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+
+        assertThatThrownBy(() -> courseDraftMoodTagService.saveMoodTags(
+                10L,
+                1L,
+                new CourseDraftMoodTagSaveRequest(List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L))
+        ))
+                .isInstanceOf(CourseException.class)
+                .extracting("errorCode")
+                .isEqualTo(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
 
         verify(moodTagRepository, never()).findAllById(any());
         verify(courseDraftMoodTagRepository, never()).findByCourseDraft(any());

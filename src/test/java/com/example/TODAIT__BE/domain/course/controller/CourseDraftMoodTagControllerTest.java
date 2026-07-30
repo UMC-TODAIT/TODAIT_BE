@@ -140,7 +140,7 @@ class CourseDraftMoodTagControllerTest {
     @Test
     void saveMoodTags_lessThanMinimumCount_returns400() throws Exception {
         given(courseDraftMoodTagService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new CourseException(CourseErrorCode.MOOD_TAG_MIN_COUNT_NOT_MET));
+                .willThrow(new CourseException(CourseErrorCode.INVALID_MOOD_TAG_COUNT));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/mood-tags", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken()))
@@ -148,7 +148,7 @@ class CourseDraftMoodTagControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 new CourseDraftMoodTagSaveRequest(List.of(1L)))))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(CourseErrorCode.MOOD_TAG_MIN_COUNT_NOT_MET.getCode()));
+                .andExpect(jsonPath("$.code").value(CourseErrorCode.INVALID_MOOD_TAG_COUNT.getCode()));
     }
 
     @Test
