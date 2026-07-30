@@ -2,7 +2,7 @@ package com.example.TODAIT__BE.infra.oauth;
 
 
 import com.example.TODAIT__BE.domain.member.code.OAuthErrorCode;
-import com.example.TODAIT__BE.domain.member.exception.OAuthException;
+import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.infra.oauth.dto.KakaoUserInfo;
 import com.example.TODAIT__BE.infra.oauth.dto.KakaoUserResponse;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -36,7 +36,7 @@ public class KakaoOAuthClient {
     private KakaoUserInfo requestUserInfo(String accessToken) {
         // accessToken 비어있음
         if(!StringUtils.hasText(accessToken)){
-            throw new OAuthException(
+            throw new MemberException(
                     OAuthErrorCode.INVALID_KAKAO_ACCESS_TOKEN
             );
 
@@ -49,7 +49,7 @@ public class KakaoOAuthClient {
                     .body(KakaoUserResponse.class);
 
             if (response == null || response.id() == null) {
-                throw new OAuthException(
+                throw new MemberException(
                         OAuthErrorCode.KAKAO_USER_INFO_REQUEST_FAILED
                 );
             }
@@ -67,20 +67,20 @@ public class KakaoOAuthClient {
             int statusCode = e.getStatusCode().value();
 
             if(statusCode == 400 || statusCode ==401){
-                throw new OAuthException(
+                throw new MemberException(
                         OAuthErrorCode.INVALID_KAKAO_ACCESS_TOKEN
                 );
             }
 
-            throw new OAuthException(
+            throw new MemberException(
                     OAuthErrorCode.KAKAO_USER_INFO_REQUEST_FAILED
             );
         }catch (HttpServerErrorException e){
-            throw new OAuthException(
+            throw new MemberException(
                     OAuthErrorCode.KAKAO_USER_INFO_REQUEST_FAILED
             );
         }catch (ResourceAccessException e){
-            throw new OAuthException(
+            throw new MemberException(
                     OAuthErrorCode.KAKAO_USER_INFO_REQUEST_FAILED
             );
         }

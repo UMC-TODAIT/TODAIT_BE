@@ -2,7 +2,7 @@ package com.example.TODAIT__BE.infra.oauth;
 
 
 import com.example.TODAIT__BE.domain.member.code.OAuthErrorCode;
-import com.example.TODAIT__BE.domain.member.exception.OAuthException;
+import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.infra.oauth.dto.GoogleUserInfo;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
@@ -43,7 +43,7 @@ public class GoogleOAuthClient {
                     idTokenValue
             );
         }catch (IOException | IllegalArgumentException e){
-            throw new OAuthException(
+            throw new MemberException(
                     OAuthErrorCode.INVALID_GOOGLE_ID_TOKEN
             );
         }
@@ -52,7 +52,7 @@ public class GoogleOAuthClient {
 
             // 잘못된 토큰일 경우
             if(!verifier.verify(idToken)){
-                throw new OAuthException(
+                throw new MemberException(
                         OAuthErrorCode.INVALID_GOOGLE_ID_TOKEN
                 );
             }
@@ -65,7 +65,7 @@ public class GoogleOAuthClient {
             if(!StringUtils.hasText(providerUserId)
                     || !StringUtils.hasText(email)
                     || !Boolean.TRUE.equals(payload.getEmailVerified())){
-                throw new OAuthException(
+                throw new MemberException(
                         OAuthErrorCode.INVALID_GOOGLE_ID_TOKEN
                 );
             }
@@ -73,12 +73,12 @@ public class GoogleOAuthClient {
             return new GoogleUserInfo(providerUserId, email);
         //가져오는 과정에서 네트워크 문제
         }catch (IOException e){
-            throw new OAuthException(
+            throw new MemberException(
                     OAuthErrorCode.GOOGLE_ID_TOKEN_VERIFICATION_FAILED
             );
         //암호화 서명 검증 문제
         }catch (GeneralSecurityException | IllegalArgumentException e){
-            throw new OAuthException(
+            throw new MemberException(
                     OAuthErrorCode.INVALID_GOOGLE_ID_TOKEN
             );
         }

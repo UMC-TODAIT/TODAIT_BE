@@ -3,7 +3,7 @@ package com.example.TODAIT__BE.domain.member.service;
 import com.example.TODAIT__BE.domain.member.code.EmailVerificationErrorCode;
 import com.example.TODAIT__BE.domain.member.dto.request.EmailVerificationRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationResponse;
-import com.example.TODAIT__BE.domain.member.exception.EmailVerificationException;
+import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.service.port.EmailVerificationSender;
 import com.example.TODAIT__BE.domain.member.service.port.EmailVerificationStore;
 import com.example.TODAIT__BE.domain.member.service.port.EmailVerificationStore.VerifyCodeResult;
@@ -71,7 +71,7 @@ class EmailVerificationServiceTest {
         assertThatThrownBy(() -> emailVerificationService.sendVerificationCode(
                 new EmailVerificationRequest.Send("invalid-email")
         ))
-                .isInstanceOf(EmailVerificationException.class)
+                .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(EmailVerificationErrorCode.INVALID_EMAIL_FORMAT);
 
@@ -91,7 +91,7 @@ class EmailVerificationServiceTest {
         assertThatThrownBy(() -> emailVerificationService.sendVerificationCode(
                 new EmailVerificationRequest.Send("test@example.com")
         ))
-                .isInstanceOf(EmailVerificationException.class)
+                .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(EmailVerificationErrorCode.RESEND_COOLDOWN);
 
@@ -124,7 +124,7 @@ class EmailVerificationServiceTest {
         assertThatThrownBy(() -> emailVerificationService.verifyCode(
                 new EmailVerificationRequest.Verify("test@example.com", "000000")
         ))
-                .isInstanceOf(EmailVerificationException.class)
+                .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(EmailVerificationErrorCode.CODE_MISMATCH);
 
@@ -141,7 +141,7 @@ class EmailVerificationServiceTest {
         assertThatThrownBy(() -> emailVerificationService.verifyCode(
                 new EmailVerificationRequest.Verify("test@example.com", "123456")
         ))
-                .isInstanceOf(EmailVerificationException.class)
+                .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(EmailVerificationErrorCode.CODE_NOT_FOUND);
     }
@@ -156,7 +156,7 @@ class EmailVerificationServiceTest {
         assertThatThrownBy(() -> emailVerificationService.verifyCode(
                 new EmailVerificationRequest.Verify("test@example.com", "123456")
         ))
-                .isInstanceOf(EmailVerificationException.class)
+                .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(EmailVerificationErrorCode.VERIFY_ATTEMPT_EXCEEDED);
     }
@@ -169,7 +169,7 @@ class EmailVerificationServiceTest {
         assertThatThrownBy(() -> emailVerificationService.sendVerificationCode(
                 new EmailVerificationRequest.Send("test@example.com")
         ))
-                .isInstanceOf(EmailVerificationException.class)
+                .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(EmailVerificationErrorCode.ALREADY_COMPLETED);
 
@@ -185,7 +185,7 @@ class EmailVerificationServiceTest {
         assertThatThrownBy(() -> emailVerificationService.verifyCode(
                 new EmailVerificationRequest.Verify("test@example.com", "123456")
         ))
-                .isInstanceOf(EmailVerificationException.class)
+                .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(EmailVerificationErrorCode.ALREADY_COMPLETED);
 
