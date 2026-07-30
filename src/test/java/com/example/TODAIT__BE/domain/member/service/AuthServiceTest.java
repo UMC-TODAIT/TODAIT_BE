@@ -11,7 +11,6 @@ import com.example.TODAIT__BE.domain.member.entity.Term;
 import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
 import com.example.TODAIT__BE.domain.member.enums.TermType;
-import com.example.TODAIT__BE.domain.member.exception.AuthException;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.member.repository.RefreshTokenRepository;
@@ -258,10 +257,10 @@ class AuthServiceTest {
         AuthRequest.Logout request = new AuthRequest.Logout("invalid-refresh-token");
 
         given(refreshTokenValidator.validateAndGetStoredToken(request.refreshToken()))
-                .willThrow(new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN));
+                .willThrow(new MemberException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
         assertThatThrownBy(() -> authService.logout(request))
-                .isInstanceOf(AuthException.class)
+                .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
     }
@@ -288,10 +287,10 @@ class AuthServiceTest {
         AuthRequest.TokenRefresh request = new AuthRequest.TokenRefresh("invalid-refresh-token");
 
         given(refreshTokenValidator.validateAndGetStoredToken(request.refreshToken()))
-                .willThrow(new AuthException(AuthErrorCode.INVALID_REFRESH_TOKEN));
+                .willThrow(new MemberException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
         assertThatThrownBy(() -> authService.refresh(request))
-                .isInstanceOf(AuthException.class)
+                .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
     }
