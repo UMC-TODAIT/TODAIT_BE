@@ -56,7 +56,8 @@ class TokenRefreshServiceTest {
 
         given(refreshTokenValidator.validateAndGetStoredToken(request.refreshToken()))
                 .willReturn(storedToken);
-        given(jwtTokenProvider.createAccessToken(member)).willReturn("new-access-token");
+        given(jwtTokenProvider.createAccessToken(member.getId(), member.getRole().name()))
+                .willReturn("new-access-token");
 
         AuthResponse.AccessToken response = tokenRefreshService.refresh(request);
 
