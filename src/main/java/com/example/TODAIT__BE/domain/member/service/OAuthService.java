@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -99,9 +100,26 @@ public class OAuthService {
     ) {
         Map<OAuthProvider, OAuthUserClient> result = new EnumMap<>(OAuthProvider.class);
         for (OAuthUserClient oAuthUserClient : oAuthUserClients) {
-            result.put(oAuthUserClient.supports(), oAuthUserClient);
+            OAuthProvider provider = Objects.requireNonNull(
+                    oAuthUserClient.supports(),
+                    "OAuth client provider must not be null."
+            );
+            if (result.put(provider, oAuthUserClient) != null) {
+                throw new IllegalStateException(
+                        "Duplicate OAuth client configured. provider=" + provider
+                );
+            }
         }
-        return result;
+
+        for (OAuthProvider provider : OAuthProvider.values()) {
+            if (!result.containsKey(provider)) {
+                throw new IllegalStateException(
+                        "OAuth client is not configured. provider=" + provider
+                );
+            }
+        }
+
+        return Map.copyOf(result);
     }
 
     //기존 회원 처리

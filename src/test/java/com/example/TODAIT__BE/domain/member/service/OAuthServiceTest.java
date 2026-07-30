@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -155,5 +156,34 @@ class OAuthServiceTest {
                 .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(MemberErrorCode.ALREADY_REGISTERED_EMAIL);
+    }
+
+    @Test
+    void constructorRejectsDuplicateOAuthProviderClients() {
+        OAuthUserClient duplicateKakaoOAuthUserClient = mock(OAuthUserClient.class);
+        given(duplicateKakaoOAuthUserClient.supports()).willReturn(OAuthProvider.KAKAO);
+
+        assertThatThrownBy(() -> new OAuthService(
+                memberOAuthAccountRepository,
+                authService,
+                List.of(kakaoOAuthUserClient, duplicateKakaoOAuthUserClient, googleOAuthUserClient),
+                memberLoginValidator,
+                memberDuplicateValidator
+        ))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Duplicate OAuth client configured");
+    }
+
+    @Test
+    void constructorRejectsMissingOAuthProviderClient() {
+        assertThatThrownBy(() -> new OAuthService(
+                memberOAuthAccountRepository,
+                authService,
+                List.of(kakaoOAuthUserClient),
+                memberLoginValidator,
+                memberDuplicateValidator
+        ))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("OAuth client is not configured");
     }
 }
