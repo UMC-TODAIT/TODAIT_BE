@@ -40,7 +40,7 @@ public class AuthService {
 
         String accessToken = jwtTokenProvider.createAccessToken(
                 managedMember.getId(),
-                managedMember.getRole().name()
+                managedMember.getRole()
         );
         String refreshToken = jwtTokenProvider.createRefreshToken(managedMember.getId());
         String refreshTokenHash = refreshTokenHasher.hash(refreshToken);

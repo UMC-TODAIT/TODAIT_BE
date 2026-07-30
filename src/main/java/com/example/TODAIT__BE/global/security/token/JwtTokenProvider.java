@@ -1,5 +1,6 @@
 package com.example.TODAIT__BE.global.security.token;
 
+import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -13,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Component
 public class JwtTokenProvider {
@@ -38,10 +40,13 @@ public class JwtTokenProvider {
         }
     }
 
-    public String createAccessToken(Long memberId, String role) {
+    public String createAccessToken(Long memberId, MemberRole role) {
+        Objects.requireNonNull(memberId, "memberId must not be null.");
+        Objects.requireNonNull(role, "role must not be null.");
+
         Map<String, Object> claims = new HashMap<>();
         claims.put("tokenType", TokenType.ACCESS.name());
-        claims.put("role", role);
+        claims.put("role", role.name());
 
         return createToken(
                 String.valueOf(memberId),
@@ -51,6 +56,8 @@ public class JwtTokenProvider {
     }
 
     public String createRefreshToken(Long memberId) {
+        Objects.requireNonNull(memberId, "memberId must not be null.");
+
         Map<String, Object> claims = new HashMap<>();
         claims.put("tokenType", TokenType.REFRESH.name());
 

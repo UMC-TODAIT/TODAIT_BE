@@ -28,7 +28,7 @@ public class TokenRefreshService {
 
         String newAccessToken = jwtTokenProvider.createAccessToken(
                 member.getId(),
-                member.getRole().name()
+                member.getRole()
         );
 
         return AuthResponse.AccessToken.builder()
