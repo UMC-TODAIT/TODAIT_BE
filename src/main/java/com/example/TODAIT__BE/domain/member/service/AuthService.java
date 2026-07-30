@@ -38,8 +38,11 @@ public class AuthService {
 
         managedMember.updateLastLoginAt(issuedAt);
 
-        String accessToken = jwtTokenProvider.createAccessToken(managedMember);
-        String refreshToken = jwtTokenProvider.createRefreshToken(managedMember);
+        String accessToken = jwtTokenProvider.createAccessToken(
+                managedMember.getId(),
+                managedMember.getRole()
+        );
+        String refreshToken = jwtTokenProvider.createRefreshToken(managedMember.getId());
         String refreshTokenHash = refreshTokenHasher.hash(refreshToken);
 
         List<RefreshToken> activeTokens = refreshTokenRepository.findAllByMemberAndRevokedAtIsNull(managedMember);
