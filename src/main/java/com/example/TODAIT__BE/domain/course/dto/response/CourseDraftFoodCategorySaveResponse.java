@@ -6,18 +6,18 @@ import java.util.List;
 
 public record CourseDraftFoodCategorySaveResponse(
         Long courseDraftId,
-        CourseDraftStatus status,
+        CourseDraftStatus draftStatus,
         List<FoodCategoryItem> foodCategories
 ) {
 
     public static CourseDraftFoodCategorySaveResponse of(
             Long courseDraftId,
-            CourseDraftStatus status,
+            CourseDraftStatus draftStatus,
             List<FoodCategory> foodCategories
     ) {
         return new CourseDraftFoodCategorySaveResponse(
                 courseDraftId,
-                status,
+                draftStatus,
                 foodCategories.stream().map(FoodCategoryItem::from).toList()
         );
     }
