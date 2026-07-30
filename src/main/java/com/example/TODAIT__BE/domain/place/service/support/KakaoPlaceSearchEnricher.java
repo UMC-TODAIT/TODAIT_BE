@@ -2,13 +2,6 @@ package com.example.TODAIT__BE.domain.place.service.support;
 
 import com.example.TODAIT__BE.domain.place.dto.response.KakaoPlaceSearchResponse;
 import com.example.TODAIT__BE.domain.place.entity.Place;
-import com.example.TODAIT__BE.domain.place.entity.PlaceSource;
-import com.example.TODAIT__BE.domain.place.enums.PlaceDataSourceCode;
-import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
-import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
-import com.example.TODAIT__BE.domain.place.enums.PlaceSearchImageType;
-import com.example.TODAIT__BE.domain.place.repository.PlaceImageRepository;
-import com.example.TODAIT__BE.domain.place.repository.PlaceSourceRepository;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +10,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -26,8 +17,9 @@ public class KakaoPlaceSearchEnricher {
 
     private final KakaoPlaceAreaResolver areaResolver;
     private final KakaoPlaceCategoryResolver categoryResolver;
-    private final PlaceSourceRepository placeSourceRepository;
-    private final PlaceImageRepository placeImageRepository;
+    private final KakaoPlaceSearchDataLoader dataLoader;
+    private final PlaceSearchImageResolver imageResolver;
+    private final PlaceDetailAvailabilityPolicy detailAvailabilityPolicy;
 
     public List<KakaoPlaceSearchResponse.PlaceItem> enrich(
             List<KakaoPlaceCandidate> candidates
@@ -42,26 +34,15 @@ public class KakaoPlaceSearchEnricher {
         Map<String, PlaceCategory> activeCategoriesByCode =
                 categoryResolver.getActiveCategoriesByCode();
 
-        Map<String, Place> registeredPlacesByExternalId =
-                findRegisteredPlacesByExternalId(candidates);
-
-        Map<Long, String> primaryImageUrlsByPlaceId =
-                findPrimaryImageUrlsByPlaceId(
-                        registeredPlacesByExternalId
-                );
-        Set<Long> operatorSourcePlaceIds =
-                findOperatorSourcePlaceIds(
-                        registeredPlacesByExternalId
-                );
+        KakaoPlaceSearchData searchData =
+                dataLoader.load(candidates);
 
         return candidates.stream()
                 .map(candidate -> toPlaceItem(
                         candidate,
                         activeAreasByCode,
                         activeCategoriesByCode,
-                        registeredPlacesByExternalId,
-                        primaryImageUrlsByPlaceId,
-                        operatorSourcePlaceIds
+                        searchData
                 ))
                 .filter(Objects::nonNull)
                 .toList();
@@ -71,9 +52,7 @@ public class KakaoPlaceSearchEnricher {
             KakaoPlaceCandidate candidate,
             Map<String, Area> activeAreasByCode,
             Map<String, PlaceCategory> activeCategoriesByCode,
-            Map<String, Place> registeredPlacesByExternalId,
-            Map<Long, String> primaryImageUrlsByPlaceId,
-            Set<Long> operatorSourcePlaceIds
+            KakaoPlaceSearchData searchData
     ) {
         Area area = areaResolver.resolve(
                 candidate.address(),
@@ -91,23 +70,23 @@ public class KakaoPlaceSearchEnricher {
         }
 
         Place registeredPlace =
-                registeredPlacesByExternalId.get(
+                searchData.registeredPlacesByExternalId().get(
                         candidate.externalPlaceId()
                 );
 
         boolean isRegistered = registeredPlace != null;
 
-        ImageSelection imageSelection =
-                selectImage(
+        PlaceSearchImageResolver.ImageSelection imageSelection =
+                imageResolver.resolve(
                         registeredPlace,
                         category,
-                        primaryImageUrlsByPlaceId
+                        searchData.primaryImageUrlsByPlaceId()
                 );
 
         boolean detailAvailable =
-                isDetailAvailable(
+                detailAvailabilityPolicy.isAvailable(
                         registeredPlace,
-                        operatorSourcePlaceIds
+                        searchData.operatorSourcePlaceIds()
                 );
 
         return new KakaoPlaceSearchResponse.PlaceItem(
@@ -154,152 +133,5 @@ public class KakaoPlaceSearchEnricher {
         String[] categories = categoryName.split(">");
 
         return categories[categories.length - 1].trim();
-    }
-
-
-    private Map<String, Place> findRegisteredPlacesByExternalId(
-            List<KakaoPlaceCandidate> candidates
-    ) {
-        if (candidates.isEmpty()) {
-            return Map.of();
-        }
-
-        List<String> externalPlaceIds = candidates.stream()
-                .map(KakaoPlaceCandidate::externalPlaceId)
-                .toList();
-
-        return placeSourceRepository
-                .findRegisteredPlaceSources(
-                        PlaceDataSourceCode.KAKAO.name(),
-                        externalPlaceIds
-                )
-                .stream()
-                .collect(
-                        Collectors.toMap(
-                                PlaceSource::getSourcePlaceId,
-                                PlaceSource::getPlace,
-                                (first, duplicate) -> first
-                        )
-                );
-    }
-
-    private Map<Long, String> findPrimaryImageUrlsByPlaceId(
-            Map<String, Place> registeredPlacesByExternalId
-    ) {
-        List<Long> placeIds =
-                registeredPlacesByExternalId.values()
-                        .stream()
-                        .map(Place::getId)
-                        .distinct()
-                        .toList();
-
-        if (placeIds.isEmpty()) {
-            return Map.of();
-        }
-
-        return placeImageRepository
-                .findPrimaryImageUrlsByPlaceIds(placeIds)
-                .stream()
-                .collect(
-                        Collectors.toMap(
-                                PlaceImageRepository
-                                        .PrimaryImageUrlView
-                                        ::getPlaceId,
-                                PlaceImageRepository
-                                        .PrimaryImageUrlView
-                                        ::getImageUrl,
-                                (first, duplicate) -> first
-                        )
-                );
-    }
-
-    private record ImageSelection(
-            String imageUrl,
-            PlaceSearchImageType imageType
-    ) {
-    }
-
-    private ImageSelection selectImage(
-            Place registeredPlace,
-            PlaceCategory category,
-            Map<Long, String> primaryImageUrlsByPlaceId
-    ) {
-        if (registeredPlace != null) {
-            String primaryImageUrl =
-                    primaryImageUrlsByPlaceId.get(
-                            registeredPlace.getId()
-                    );
-
-            if (hasText(primaryImageUrl)) {
-                return new ImageSelection(
-                        primaryImageUrl,
-                        PlaceSearchImageType.PLACE_IMAGE
-                );
-            }
-
-            if (hasText(registeredPlace.getDefaultImageUrl())) {
-                return new ImageSelection(
-                        registeredPlace.getDefaultImageUrl().trim(),
-                        PlaceSearchImageType.PLACE_IMAGE
-                );
-            }
-        }
-
-        return new ImageSelection(
-                PlaceCategoryDefaultImage.getImageUrl(
-                        category.getCode()
-                ),
-                PlaceSearchImageType.CATEGORY_DEFAULT
-        );
-    }
-
-    private boolean hasText(String value) {
-        return value != null && !value.isBlank();
-    }
-
-    private Set<Long> findOperatorSourcePlaceIds(
-            Map<String, Place> registeredPlacesByExternalId
-    ) {
-        List<Long> placeIds =
-                registeredPlacesByExternalId.values()
-                        .stream()
-                        .map(Place::getId)
-                        .distinct()
-                        .toList();
-
-        if (placeIds.isEmpty()) {
-            return Set.of();
-        }
-
-        return placeSourceRepository
-                .findPlaceIdsHavingActiveDataSource(
-                        placeIds,
-                        PlaceDataSourceCode.OPERATOR.name()
-                );
-    }
-
-    private boolean isDetailAvailable(
-            Place place,
-            Set<Long> operatorSourcePlaceIds
-    ) {
-        if (place == null) {
-            return false;
-        }
-
-        return operatorSourcePlaceIds.contains(place.getId())
-                && Boolean.TRUE.equals(place.getIsActive())
-                && place.getReviewStatus() == PlaceReviewStatus.APPROVED
-                && place.getExposureStatus() == PlaceExposureStatus.ACTIVE
-                && place.getDeletedAt() == null
-                && hasRequiredDetailData(place);
-    }
-
-    private boolean hasRequiredDetailData(Place place) {
-        return hasText(place.getName())
-                && hasText(place.getAddress())
-                && place.getLatitude() != null
-                && place.getLongitude() != null
-                && place.getArea() != null
-                && place.getPlaceCategory() != null;
     }
 }
