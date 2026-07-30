@@ -89,26 +89,15 @@ public class KakaoPlaceCategoryResolver {
             return "RESTAURANT";
         }
 
-        if (isActivity(
-                groupCode,
-                categoryName
-        )) {
+        if (isActivity(categoryName)) {
             return "ACTIVITY";
         }
 
         return null;
     }
 
-    private boolean isActivity(
-            String groupCode,
-            String categoryName
-    ) {
-        boolean supportedGroup =
-                CULTURE_GROUP_CODE.equals(groupCode)
-                        || ATTRACTION_GROUP_CODE.equals(groupCode);
-
-        return supportedGroup
-                && containsAnyKeyword(
+    private boolean isActivity(String categoryName) {
+        return containsAnyKeyword(
                 categoryName,
                 ACTIVITY_KEYWORDS
         );
