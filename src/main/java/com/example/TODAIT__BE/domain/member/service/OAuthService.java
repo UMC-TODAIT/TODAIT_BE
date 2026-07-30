@@ -8,6 +8,8 @@ import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
 import com.example.TODAIT__BE.domain.member.repository.MemberOAuthAccountRepository;
 import com.example.TODAIT__BE.domain.member.service.port.OAuthUserClient;
 import com.example.TODAIT__BE.domain.member.service.port.OAuthUserInfo;
+import com.example.TODAIT__BE.domain.member.service.validator.MemberDuplicateValidator;
+import com.example.TODAIT__BE.domain.member.service.validator.MemberLoginValidator;
 import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
 import org.springframework.stereotype.Service;
 

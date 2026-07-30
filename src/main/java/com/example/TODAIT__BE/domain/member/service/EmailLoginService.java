@@ -6,6 +6,7 @@ import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
+import com.example.TODAIT__BE.domain.member.service.validator.MemberLoginValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
