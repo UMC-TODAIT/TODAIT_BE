@@ -6,7 +6,7 @@ import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.code.MemberSuccessCode;
-import com.example.TODAIT__BE.domain.member.service.OnboardingService;
+import com.example.TODAIT__BE.domain.member.service.OAuthService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.token.JwtBearerTokenExtractor;
 import jakarta.validation.Valid;
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class OnboardingController implements OnboardingControllerDocs {
 
-    private final OnboardingService onboardingService;
+    private final OAuthService oAuthService;
 
     @PatchMapping("/api/members/me/onboarding")
     @Override
@@ -44,7 +44,7 @@ public class OnboardingController implements OnboardingControllerDocs {
                       MemberErrorCode.INVALID_ONBOARDING_TOKEN
               ));
 
-      AuthResponse.Token response = onboardingService.complete(onboardingToken,request);
+      AuthResponse.Token response = oAuthService.completeOnboarding(onboardingToken, request);
 
       return ResponseEntity
               .status(MemberSuccessCode.ONBOARDING_COMPLETED.getStatus())
