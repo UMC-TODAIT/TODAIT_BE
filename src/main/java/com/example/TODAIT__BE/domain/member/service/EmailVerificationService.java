@@ -3,6 +3,7 @@ package com.example.TODAIT__BE.domain.member.service;
 import com.example.TODAIT__BE.domain.member.code.EmailVerificationErrorCode;
 import com.example.TODAIT__BE.domain.member.dto.request.EmailVerificationRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationResponse;
+import com.example.TODAIT__BE.domain.member.exception.EmailVerificationException;
 import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
 import com.example.TODAIT__BE.global.apiPayload.exception.ProjectException;
 import com.example.TODAIT__BE.global.util.RandomCodeGenerator;
@@ -37,7 +38,7 @@ public class EmailVerificationService {
     ) {
         String email = normalizeAndValidateEmail(request.email());
         if (emailVerificationRedisRepository.isVerified(email)) {
-            throw new ProjectException(EmailVerificationErrorCode.ALREADY_COMPLETED);
+            throw new EmailVerificationException(EmailVerificationErrorCode.ALREADY_COMPLETED);
         }
 
         String code = randomCodeGenerator.generateNumericCode();
@@ -52,7 +53,7 @@ public class EmailVerificationService {
     ) {
         String email = normalizeAndValidateEmail(request.email());
         if (emailVerificationRedisRepository.isVerified(email)) {
-            throw new ProjectException(EmailVerificationErrorCode.ALREADY_COMPLETED);
+            throw new EmailVerificationException(EmailVerificationErrorCode.ALREADY_COMPLETED);
         }
 
         VerifyCodeResult result = emailVerificationRedisRepository.verifyCodeAndMarkVerified(
@@ -60,13 +61,13 @@ public class EmailVerificationService {
                 request.code().trim()
         );
         if (result == VerifyCodeResult.CODE_NOT_FOUND) {
-            throw new ProjectException(EmailVerificationErrorCode.CODE_NOT_FOUND);
+            throw new EmailVerificationException(EmailVerificationErrorCode.CODE_NOT_FOUND);
         }
         if (result == VerifyCodeResult.CODE_MISMATCH) {
-            throw new ProjectException(EmailVerificationErrorCode.CODE_MISMATCH);
+            throw new EmailVerificationException(EmailVerificationErrorCode.CODE_MISMATCH);
         }
         if (result == VerifyCodeResult.VERIFY_ATTEMPT_EXCEEDED) {
-            throw new ProjectException(EmailVerificationErrorCode.VERIFY_ATTEMPT_EXCEEDED);
+            throw new EmailVerificationException(EmailVerificationErrorCode.VERIFY_ATTEMPT_EXCEEDED);
         }
 
         return new EmailVerificationResponse.Verify(email, true);
@@ -76,19 +77,19 @@ public class EmailVerificationService {
         try {
             boolean saved = emailVerificationRedisRepository.saveCodeIfNotCoolingDown(email, code);
             if (!saved) {
-                throw new ProjectException(EmailVerificationErrorCode.RESEND_COOLDOWN);
+                throw new EmailVerificationException(EmailVerificationErrorCode.RESEND_COOLDOWN);
             }
         } catch (RuntimeException e) {
             if (e instanceof ProjectException) {
                 throw e;
             }
-            throw new ProjectException(EmailVerificationErrorCode.STORE_FAILED);
+            throw new EmailVerificationException(EmailVerificationErrorCode.STORE_FAILED, e);
         }
     }
 
     private String normalizeAndValidateEmail(String email) {
         if (!MemberInputPolicy.isValidEmail(email)) {
-            throw new ProjectException(EmailVerificationErrorCode.INVALID_EMAIL_FORMAT);
+            throw new EmailVerificationException(EmailVerificationErrorCode.INVALID_EMAIL_FORMAT);
         }
 
         return MemberInputPolicy.normalizeEmail(email);
