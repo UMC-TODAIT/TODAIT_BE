@@ -8,10 +8,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface CourseMoodTagRepository extends JpaRepository<CourseMoodTag, Long> {
+public interface CourseMoodTagRepository
+        extends JpaRepository<CourseMoodTag, Long> {
 
     @EntityGraph(attributePaths = "moodTag")
     Optional<CourseMoodTag> findFirstByCourseIdOrderByIdAsc(
+            Long courseId
+    );
+
+    @EntityGraph(attributePaths = "moodTag")
+    List<CourseMoodTag> findAllByCourseIdOrderByIdAsc(
             Long courseId
     );
 

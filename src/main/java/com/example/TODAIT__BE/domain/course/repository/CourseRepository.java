@@ -16,14 +16,16 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     long countByMemberId(Long memberId);
 
     @Query("""
-            select c
-            from Course c
-            join c.area a
-            where c.id = :id
-              and c.visibility = :visibility
-              and c.sourceType = :sourceType
-              and a.isActive = true
-            """)
+        select c
+        from Course c
+        join fetch c.area a
+        join fetch c.basePlace bp
+        where c.id = :id
+          and c.visibility = :visibility
+          and c.sourceType = :sourceType
+          and c.deletedAt is null
+          and a.isActive = true
+        """)
     Optional<Course> findActiveRecommendedCourseById(
             @Param("id") Long id,
             @Param("visibility") CourseVisibility visibility,
