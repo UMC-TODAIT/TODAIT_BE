@@ -1,30 +1,43 @@
 package com.example.TODAIT__BE.domain.member.service;
 
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
+import com.example.TODAIT__BE.domain.member.dto.request.OAuthRequest;
+import com.example.TODAIT__BE.domain.member.dto.request.TermAgreementRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.domain.member.dto.response.OAuthResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.MemberOAuthAccount;
+import com.example.TODAIT__BE.domain.member.entity.Term;
 import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
+import com.example.TODAIT__BE.domain.member.enums.TermType;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberOAuthAccountRepository;
 import com.example.TODAIT__BE.domain.member.service.port.OAuthUserClient;
 import com.example.TODAIT__BE.domain.member.service.port.OAuthUserInfo;
+import com.example.TODAIT__BE.domain.member.service.support.MemberRegistrationService;
+import com.example.TODAIT__BE.domain.member.service.validator.MemberDuplicateValidator;
+import com.example.TODAIT__BE.domain.member.service.validator.MemberLoginValidator;
+import com.example.TODAIT__BE.domain.member.service.validator.TermAgreementValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,6 +55,10 @@ class OAuthServiceTest {
     private MemberLoginValidator memberLoginValidator;
     @Mock
     private MemberDuplicateValidator memberDuplicateValidator;
+    @Mock
+    private TermAgreementValidator termAgreementValidator;
+    @Mock
+    private MemberRegistrationService memberRegistrationService;
 
     private OAuthService oAuthService;
 
@@ -54,7 +71,9 @@ class OAuthServiceTest {
                 authService,
                 List.of(kakaoOAuthUserClient, googleOAuthUserClient),
                 memberLoginValidator,
-                memberDuplicateValidator
+                memberDuplicateValidator,
+                termAgreementValidator,
+                memberRegistrationService
         );
     }
 
@@ -168,7 +187,9 @@ class OAuthServiceTest {
                 authService,
                 List.of(kakaoOAuthUserClient, duplicateKakaoOAuthUserClient, googleOAuthUserClient),
                 memberLoginValidator,
-                memberDuplicateValidator
+                memberDuplicateValidator,
+                termAgreementValidator,
+                memberRegistrationService
         ))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Duplicate OAuth client configured");
@@ -181,9 +202,143 @@ class OAuthServiceTest {
                 authService,
                 List.of(kakaoOAuthUserClient),
                 memberLoginValidator,
-                memberDuplicateValidator
+                memberDuplicateValidator,
+                termAgreementValidator,
+                memberRegistrationService
         ))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("OAuth client is not configured");
+    }
+
+    @Test
+    void completeOnboardingRejectsInvalidOnboardingToken() {
+        OAuthRequest.Onboarding request = onboardingRequest("tester");
+        willThrow(new MemberException(MemberErrorCode.INVALID_ONBOARDING_TOKEN))
+                .given(authService)
+                .validateOAuthOnboardingToken("token");
+
+        assertThatThrownBy(() -> oAuthService.completeOnboarding("token", request))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(MemberErrorCode.INVALID_ONBOARDING_TOKEN);
+
+        verify(memberRegistrationService, never()).saveMember(any());
+    }
+
+    @Test
+    void completeOnboardingCreatesMemberOauthAccountTermAgreementsAndTokens() {
+        OAuthRequest.Onboarding request = onboardingRequest(" tester ");
+        Term serviceTerm = term(TermType.SERVICE);
+        List<Term> agreedTerms = List.of(serviceTerm);
+        Member savedMember = Member.builder()
+                .id(1L)
+                .email("user@example.com")
+                .nickname("tester")
+                .build();
+        AuthResponse.Token token = new AuthResponse.Token("access", "refresh");
+
+        givenValidOnboardingToken("token");
+        given(termAgreementValidator.validateAndGetAgreedTerms(request.termAgreements()))
+                .willReturn(agreedTerms);
+        given(memberRegistrationService.saveMember(any(Member.class))).willReturn(savedMember);
+        given(authService.issueTokens(savedMember)).willReturn(token);
+
+        AuthResponse.Token response = oAuthService.completeOnboarding("token", request);
+
+        assertThat(response).isEqualTo(token);
+
+        ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
+        verify(memberRegistrationService).saveMember(memberCaptor.capture());
+        assertThat(memberCaptor.getValue().getEmail()).isEqualTo("user@example.com");
+        assertThat(memberCaptor.getValue().getNickname()).isEqualTo("tester");
+
+        verify(memberRegistrationService).saveOAuthAccount(
+                eq(savedMember),
+                eq(OAuthProvider.GOOGLE),
+                eq("provider-user-id"),
+                eq("user@example.com"),
+                any(LocalDateTime.class)
+        );
+
+        verify(memberRegistrationService).saveTermAgreements(
+                eq(savedMember),
+                eq(agreedTerms),
+                any(LocalDateTime.class)
+        );
+    }
+
+    @Test
+    void completeOnboardingRejectsDuplicateNickname() {
+        OAuthRequest.Onboarding request = onboardingRequest("tester");
+        givenValidOnboardingToken("token");
+        willThrow(new MemberException(MemberErrorCode.ALREADY_REGISTERED_NICKNAME))
+                .given(memberDuplicateValidator)
+                .validateNicknameAvailable("tester");
+
+        assertThatThrownBy(() -> oAuthService.completeOnboarding("token", request))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(MemberErrorCode.ALREADY_REGISTERED_NICKNAME);
+
+        verify(memberRegistrationService, never()).saveMember(any());
+    }
+
+    @Test
+    void completeOnboardingRejectsDuplicateOAuthAccount() {
+        OAuthRequest.Onboarding request = onboardingRequest("tester");
+        givenValidOnboardingToken("token");
+        willThrow(new MemberException(MemberErrorCode.ALREADY_REGISTERED_OAUTH_ACCOUNT))
+                .given(memberDuplicateValidator)
+                .validateOAuthAccountAvailable(OAuthProvider.GOOGLE, "provider-user-id");
+
+        assertThatThrownBy(() -> oAuthService.completeOnboarding("token", request))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(MemberErrorCode.ALREADY_REGISTERED_OAUTH_ACCOUNT);
+
+        verify(memberRegistrationService, never()).saveMember(any());
+    }
+
+    @Test
+    void completeOnboardingRejectsDuplicateEmail() {
+        OAuthRequest.Onboarding request = onboardingRequest("tester");
+        givenValidOnboardingToken("token");
+        willThrow(new MemberException(MemberErrorCode.ALREADY_REGISTERED_EMAIL))
+                .given(memberDuplicateValidator)
+                .validateEmailAvailable("user@example.com");
+
+        assertThatThrownBy(() -> oAuthService.completeOnboarding("token", request))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(MemberErrorCode.ALREADY_REGISTERED_EMAIL);
+
+        verify(memberRegistrationService, never()).saveMember(any());
+    }
+
+    private void givenValidOnboardingToken(String token) {
+        given(authService.validateOAuthOnboardingToken(token))
+                .willReturn(new AuthService.OAuthOnboardingTokenClaims(
+                        OAuthProvider.GOOGLE,
+                        "provider-user-id",
+                        " User@Example.com "
+                ));
+    }
+
+    private OAuthRequest.Onboarding onboardingRequest(String nickname) {
+        return new OAuthRequest.Onboarding(
+                nickname,
+                List.of(new TermAgreementRequest(TermType.SERVICE, true))
+        );
+    }
+
+    private Term term(TermType termType) {
+        return Term.builder()
+                .termType(termType)
+                .title(termType.name())
+                .content("content")
+                .version("1.0")
+                .isRequired(true)
+                .isActive(true)
+                .build();
     }
 }

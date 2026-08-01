@@ -1,16 +1,24 @@
 package com.example.TODAIT__BE.domain.member.service;
 
+import com.example.TODAIT__BE.domain.member.dto.request.OAuthRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.domain.member.dto.response.OAuthResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.MemberOAuthAccount;
+import com.example.TODAIT__BE.domain.member.entity.Term;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
 import com.example.TODAIT__BE.domain.member.repository.MemberOAuthAccountRepository;
 import com.example.TODAIT__BE.domain.member.service.port.OAuthUserClient;
 import com.example.TODAIT__BE.domain.member.service.port.OAuthUserInfo;
+import com.example.TODAIT__BE.domain.member.service.support.MemberRegistrationService;
+import com.example.TODAIT__BE.domain.member.service.validator.MemberDuplicateValidator;
+import com.example.TODAIT__BE.domain.member.service.validator.MemberLoginValidator;
+import com.example.TODAIT__BE.domain.member.service.validator.TermAgreementValidator;
 import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -25,19 +33,25 @@ public class OAuthService {
     private final Map<OAuthProvider, OAuthUserClient> oAuthUserClients;
     private final MemberLoginValidator memberLoginValidator;
     private final MemberDuplicateValidator memberDuplicateValidator;
+    private final TermAgreementValidator termAgreementValidator;
+    private final MemberRegistrationService memberRegistrationService;
 
     public OAuthService(
             MemberOAuthAccountRepository memberOAuthAccountRepository,
             AuthService authService,
             List<OAuthUserClient> oAuthUserClients,
             MemberLoginValidator memberLoginValidator,
-            MemberDuplicateValidator memberDuplicateValidator
+            MemberDuplicateValidator memberDuplicateValidator,
+            TermAgreementValidator termAgreementValidator,
+            MemberRegistrationService memberRegistrationService
     ) {
         this.memberOAuthAccountRepository = memberOAuthAccountRepository;
         this.authService = authService;
         this.oAuthUserClients = mapOAuthUserClients(oAuthUserClients);
         this.memberLoginValidator = memberLoginValidator;
         this.memberDuplicateValidator = memberDuplicateValidator;
+        this.termAgreementValidator = termAgreementValidator;
+        this.memberRegistrationService = memberRegistrationService;
     }
 
     public OAuthResponse.Login loginWithKakao(
@@ -60,6 +74,51 @@ public class OAuthService {
                 userInfo.providerUserId(),
                 userInfo.email()
         );
+    }
+
+    @Transactional
+    public AuthResponse.Token completeOnboarding(
+            String onboardingToken,
+            OAuthRequest.Onboarding request
+    ){
+        AuthService.OAuthOnboardingTokenClaims claims =
+                authService.validateOAuthOnboardingToken(onboardingToken);
+        String providerUserId = claims.providerUserId();
+        OAuthProvider provider = claims.provider();
+        String email = MemberInputPolicy.normalizeEmail(
+                claims.email()
+        );
+        String nickname = request.nickname();
+
+        memberDuplicateValidator.validateNicknameAvailable(nickname);
+        memberDuplicateValidator.validateOAuthAccountAvailable(provider, providerUserId);
+        memberDuplicateValidator.validateEmailAvailable(email);
+
+        List<Term> agreedTerms =
+                termAgreementValidator.validateAndGetAgreedTerms(
+                        request.termAgreements()
+                );
+
+        LocalDateTime now = LocalDateTime.now();
+
+        Member savedMember = memberRegistrationService.saveMember(
+                Member.builder()
+                        .email(email)
+                        .nickname(nickname)
+                        .build()
+        );
+
+        memberRegistrationService.saveOAuthAccount(
+                savedMember,
+                provider,
+                providerUserId,
+                email,
+                now
+        );
+
+        memberRegistrationService.saveTermAgreements(savedMember, agreedTerms, now);
+
+        return authService.issueTokens(savedMember);
     }
 
     private OAuthResponse.Login loginWithOAuth(

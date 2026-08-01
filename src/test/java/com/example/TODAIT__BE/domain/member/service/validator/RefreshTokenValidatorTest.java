@@ -1,8 +1,8 @@
-package com.example.TODAIT__BE.domain.member.service;
+package com.example.TODAIT__BE.domain.member.service.validator;
 
 import com.example.TODAIT__BE.domain.member.code.AuthErrorCode;
 import com.example.TODAIT__BE.domain.member.entity.RefreshToken;
-import com.example.TODAIT__BE.domain.member.exception.AuthException;
+import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.RefreshTokenRepository;
 import com.example.TODAIT__BE.global.security.token.JwtTokenProvider;
 import com.example.TODAIT__BE.global.security.token.RefreshTokenHasher;
@@ -62,7 +62,7 @@ class RefreshTokenValidatorTest {
         given(jwtTokenProvider.getTokenType("access-token")).willReturn(TokenType.ACCESS);
 
         assertThatThrownBy(() -> refreshTokenValidator.validateAndGetStoredToken("access-token"))
-                .isInstanceOf(AuthException.class)
+                .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
     }
@@ -74,7 +74,7 @@ class RefreshTokenValidatorTest {
                 .getTokenType("expired-refresh-token");
 
         assertThatThrownBy(() -> refreshTokenValidator.validateAndGetStoredToken("expired-refresh-token"))
-                .isInstanceOf(AuthException.class)
+                .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(AuthErrorCode.EXPIRED_REFRESH_TOKEN);
     }
@@ -86,7 +86,7 @@ class RefreshTokenValidatorTest {
                 .getTokenType("malformed-refresh-token");
 
         assertThatThrownBy(() -> refreshTokenValidator.validateAndGetStoredToken("malformed-refresh-token"))
-                .isInstanceOf(AuthException.class)
+                .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
     }
@@ -99,7 +99,7 @@ class RefreshTokenValidatorTest {
                 .willReturn(Optional.empty());
 
         assertThatThrownBy(() -> refreshTokenValidator.validateAndGetStoredToken("refresh-token"))
-                .isInstanceOf(AuthException.class)
+                .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
     }
@@ -112,7 +112,7 @@ class RefreshTokenValidatorTest {
         givenStoredRefreshToken("refresh-token", 1L, storedToken);
 
         assertThatThrownBy(() -> refreshTokenValidator.validateAndGetStoredToken("refresh-token"))
-                .isInstanceOf(AuthException.class)
+                .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
     }
@@ -125,7 +125,7 @@ class RefreshTokenValidatorTest {
         givenStoredRefreshToken("refresh-token", 1L, storedToken);
 
         assertThatThrownBy(() -> refreshTokenValidator.validateAndGetStoredToken("refresh-token"))
-                .isInstanceOf(AuthException.class)
+                .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(AuthErrorCode.REVOKED_REFRESH_TOKEN);
     }
@@ -137,7 +137,7 @@ class RefreshTokenValidatorTest {
         givenStoredRefreshToken("refresh-token", 1L, storedToken);
 
         assertThatThrownBy(() -> refreshTokenValidator.validateAndGetStoredToken("refresh-token"))
-                .isInstanceOf(AuthException.class)
+                .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(AuthErrorCode.EXPIRED_REFRESH_TOKEN);
     }
