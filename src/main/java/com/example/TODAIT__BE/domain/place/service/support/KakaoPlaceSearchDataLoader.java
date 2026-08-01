@@ -3,6 +3,7 @@ package com.example.TODAIT__BE.domain.place.service.support;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.entity.PlaceSource;
 import com.example.TODAIT__BE.domain.place.enums.PlaceDataSourceCode;
+import com.example.TODAIT__BE.domain.place.port.out.ExternalPlaceCandidate;
 import com.example.TODAIT__BE.domain.place.repository.PlaceImageRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceSourceRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ public class KakaoPlaceSearchDataLoader {
     private final PlaceImageRepository placeImageRepository;
 
     public KakaoPlaceSearchData load(
-            List<KakaoPlaceCandidate> candidates
+            List<ExternalPlaceCandidate> candidates
     ) {
         Map<String, Place> registeredPlacesByExternalId =
                 findRegisteredPlacesByExternalId(candidates);
@@ -41,19 +42,30 @@ public class KakaoPlaceSearchDataLoader {
     }
 
     private Map<String, Place> findRegisteredPlacesByExternalId(
-            List<KakaoPlaceCandidate> candidates
+            List<ExternalPlaceCandidate> candidates
     ) {
         if (candidates.isEmpty()) {
             return Map.of();
         }
 
+        PlaceDataSourceCode source = candidates.get(0).source();
+
+        boolean containsDifferentSource = candidates.stream()
+                .anyMatch(candidate -> candidate.source() != source);
+
+        if (containsDifferentSource) {
+            throw new IllegalStateException(
+                    "한 번의 장소 검색 결과에는 하나의 외부 출처만 포함할 수 있습니다."
+            );
+        }
+
         List<String> externalPlaceIds = candidates.stream()
-                .map(KakaoPlaceCandidate::externalPlaceId)
+                .map(ExternalPlaceCandidate::externalPlaceId)
                 .toList();
 
         return placeSourceRepository
                 .findRegisteredPlaceSources(
-                        PlaceDataSourceCode.KAKAO.name(),
+                        source.name(),
                         externalPlaceIds
                 )
                 .stream()

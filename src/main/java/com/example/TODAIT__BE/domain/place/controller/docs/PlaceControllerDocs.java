@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.place.controller.docs;
 
-import com.example.TODAIT__BE.domain.place.dto.response.KakaoPlaceSearchResponse;
+import com.example.TODAIT__BE.domain.place.dto.response.PlaceSearchResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -21,7 +21,7 @@ public interface PlaceControllerDocs {
                     """
     )
     ResponseEntity<
-            ApiResponse<KakaoPlaceSearchResponse.SearchResult>
+            ApiResponse<PlaceSearchResponse.SearchResult>
             > searchPlaces(
             @Parameter(
                     description = "카카오 장소 검색에 사용할 검색어",

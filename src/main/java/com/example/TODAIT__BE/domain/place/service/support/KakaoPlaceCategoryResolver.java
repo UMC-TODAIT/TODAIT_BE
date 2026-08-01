@@ -1,5 +1,6 @@
 package com.example.TODAIT__BE.domain.place.service.support;
 
+import com.example.TODAIT__BE.domain.place.port.out.ExternalPlaceCandidate;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import com.example.TODAIT__BE.domain.taxonomy.repository.PlaceCategoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +53,7 @@ public class KakaoPlaceCategoryResolver {
     }
 
     public PlaceCategory resolve(
-            KakaoPlaceCandidate candidate,
+            ExternalPlaceCandidate candidate,
             Map<String, PlaceCategory> activeCategoriesByCode
     ) {
         String categoryCode = determineCategoryCode(candidate);
@@ -65,7 +66,7 @@ public class KakaoPlaceCategoryResolver {
     }
 
     private String determineCategoryCode(
-            KakaoPlaceCandidate candidate
+            ExternalPlaceCandidate candidate
     ) {
         String groupCode =
                 normalize(candidate.categoryGroupCode());

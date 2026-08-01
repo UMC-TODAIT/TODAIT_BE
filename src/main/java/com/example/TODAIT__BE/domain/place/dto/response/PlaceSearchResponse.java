@@ -1,20 +1,22 @@
 package com.example.TODAIT__BE.domain.place.dto.response;
+
 import com.example.TODAIT__BE.domain.place.enums.PlaceSearchImageType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-public final class KakaoPlaceSearchResponse {
+public final class PlaceSearchResponse {
 
-    private KakaoPlaceSearchResponse(){}
+    private PlaceSearchResponse() {
+    }
 
     public record SearchResult(
             String query,
             int resultCount,
             List<PlaceItem> places
-
-    ){}
+    ) {
+    }
 
     public record PlaceItem(
             String externalPlaceId,
@@ -34,17 +36,20 @@ public final class KakaoPlaceSearchResponse {
             String imageUrl,
             PlaceSearchImageType imageType,
             boolean detailAvailable
-    ){}
+    ) {
+    }
 
     public record AreaInfo(
             Long areaId,
             String code,
             String name
-    ){}
+    ) {
+    }
 
     public record CategoryInfo(
             Long placeCategoryId,
             String code,
             String name
-    ) {}
+    ) {
+    }
 }

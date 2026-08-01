@@ -1,6 +1,10 @@
-package com.example.TODAIT__BE.domain.place.service.support;
+package com.example.TODAIT__BE.infra.kakao.local;
 
+import com.example.TODAIT__BE.domain.place.enums.PlaceDataSourceCode;
+import com.example.TODAIT__BE.domain.place.port.out.ExternalPlaceCandidate;
+import com.example.TODAIT__BE.domain.place.port.out.PlaceSearchPort;
 import com.example.TODAIT__BE.infra.kakao.local.dto.KakaoKeywordSearchResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -10,17 +14,30 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class KakaoPlaceCandidateMapper {
+@RequiredArgsConstructor
+public class KakaoPlaceSearchAdapter implements PlaceSearchPort {
 
-    public List<KakaoPlaceCandidate> map(
-            KakaoKeywordSearchResponse.Result response
+    private final KakaoLocalClient kakaoLocalClient;
+
+    @Override
+    public List<ExternalPlaceCandidate> searchByKeyword(
+            String query,
+            int page,
+            int size
     ) {
-        Map<String, KakaoPlaceCandidate> uniqueCandidates =
+        KakaoKeywordSearchResponse.Result response =
+                kakaoLocalClient.searchByKeyword(
+                        query,
+                        page,
+                        size
+                );
+
+        Map<String, ExternalPlaceCandidate> uniqueCandidates =
                 new LinkedHashMap<>();
 
-        for (KakaoKeywordSearchResponse.Document document : getDocuments(response)) {
-
-            KakaoPlaceCandidate candidate = toCandidate(document);
+        for (KakaoKeywordSearchResponse.Document document
+                : getDocuments(response)) {
+            ExternalPlaceCandidate candidate = toCandidate(document);
 
             if (candidate == null) {
                 continue;
@@ -35,7 +52,7 @@ public class KakaoPlaceCandidateMapper {
         return new ArrayList<>(uniqueCandidates.values());
     }
 
-    private KakaoPlaceCandidate toCandidate(
+    private ExternalPlaceCandidate toCandidate(
             KakaoKeywordSearchResponse.Document document
     ) {
         if (document == null
@@ -46,17 +63,15 @@ public class KakaoPlaceCandidateMapper {
             return null;
         }
 
-        BigDecimal latitude =
-                parseCoordinate(document.y());
-
-        BigDecimal longitude =
-                parseCoordinate(document.x());
+        BigDecimal latitude = parseCoordinate(document.y());
+        BigDecimal longitude = parseCoordinate(document.x());
 
         if (!isValidCoordinate(latitude, longitude)) {
             return null;
         }
 
-        return new KakaoPlaceCandidate(
+        return new ExternalPlaceCandidate(
+                PlaceDataSourceCode.KAKAO,
                 document.id(),
                 document.placeName(),
                 document.categoryName(),
@@ -103,17 +118,11 @@ public class KakaoPlaceCandidateMapper {
 
         boolean validLatitude =
                 latitude.compareTo(BigDecimal.valueOf(-90)) >= 0
-                        && latitude.compareTo(
-                        BigDecimal.valueOf(90)
-                ) <= 0;
+                        && latitude.compareTo(BigDecimal.valueOf(90)) <= 0;
 
         boolean validLongitude =
-                longitude.compareTo(
-                        BigDecimal.valueOf(-180)
-                ) >= 0
-                        && longitude.compareTo(
-                        BigDecimal.valueOf(180)
-                ) <= 0;
+                longitude.compareTo(BigDecimal.valueOf(-180)) >= 0
+                        && longitude.compareTo(BigDecimal.valueOf(180)) <= 0;
 
         return validLatitude && validLongitude;
     }

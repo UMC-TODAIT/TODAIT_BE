@@ -1,8 +1,11 @@
-package com.example.TODAIT__BE.domain.place.service.support;
+package com.example.TODAIT__BE.domain.place.port.out;
+
+import com.example.TODAIT__BE.domain.place.enums.PlaceDataSourceCode;
 
 import java.math.BigDecimal;
 
-public record KakaoPlaceCandidate(
+public record ExternalPlaceCandidate(
+        PlaceDataSourceCode source,
         String externalPlaceId,
         String name,
         String categoryName,

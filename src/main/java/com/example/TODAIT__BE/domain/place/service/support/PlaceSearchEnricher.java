@@ -1,7 +1,8 @@
 package com.example.TODAIT__BE.domain.place.service.support;
 
-import com.example.TODAIT__BE.domain.place.dto.response.KakaoPlaceSearchResponse;
+import com.example.TODAIT__BE.domain.place.dto.response.PlaceSearchResponse;
 import com.example.TODAIT__BE.domain.place.entity.Place;
+import com.example.TODAIT__BE.domain.place.port.out.ExternalPlaceCandidate;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,7 @@ import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
-public class KakaoPlaceSearchEnricher {
+public class PlaceSearchEnricher {
 
     private final KakaoPlaceAreaResolver areaResolver;
     private final KakaoPlaceCategoryResolver categoryResolver;
@@ -21,8 +22,8 @@ public class KakaoPlaceSearchEnricher {
     private final PlaceSearchImageResolver imageResolver;
     private final PlaceDetailAvailabilityPolicy detailAvailabilityPolicy;
 
-    public List<KakaoPlaceSearchResponse.PlaceItem> enrich(
-            List<KakaoPlaceCandidate> candidates
+    public List<PlaceSearchResponse.PlaceItem> enrich(
+            List<ExternalPlaceCandidate> candidates
     ) {
         if (candidates.isEmpty()) {
             return List.of();
@@ -34,8 +35,7 @@ public class KakaoPlaceSearchEnricher {
         Map<String, PlaceCategory> activeCategoriesByCode =
                 categoryResolver.getActiveCategoriesByCode();
 
-        KakaoPlaceSearchData searchData =
-                dataLoader.load(candidates);
+        KakaoPlaceSearchData searchData = dataLoader.load(candidates);
 
         return candidates.stream()
                 .map(candidate -> toPlaceItem(
@@ -48,8 +48,8 @@ public class KakaoPlaceSearchEnricher {
                 .toList();
     }
 
-    private KakaoPlaceSearchResponse.PlaceItem toPlaceItem(
-            KakaoPlaceCandidate candidate,
+    private PlaceSearchResponse.PlaceItem toPlaceItem(
+            ExternalPlaceCandidate candidate,
             Map<String, Area> activeAreasByCode,
             Map<String, PlaceCategory> activeCategoriesByCode,
             KakaoPlaceSearchData searchData
@@ -89,7 +89,7 @@ public class KakaoPlaceSearchEnricher {
                         searchData.operatorSourcePlaceIds()
                 );
 
-        return new KakaoPlaceSearchResponse.PlaceItem(
+        return new PlaceSearchResponse.PlaceItem(
                 candidate.externalPlaceId(),
                 isRegistered ? registeredPlace.getId() : null,
                 candidate.name(),
@@ -99,12 +99,12 @@ public class KakaoPlaceSearchEnricher {
                 candidate.longitude(),
                 emptyToNull(candidate.phone()),
                 emptyToNull(candidate.sourceUrl()),
-                new KakaoPlaceSearchResponse.AreaInfo(
+                new PlaceSearchResponse.AreaInfo(
                         area.getId(),
                         area.getCode(),
                         area.getName()
                 ),
-                new KakaoPlaceSearchResponse.CategoryInfo(
+                new PlaceSearchResponse.CategoryInfo(
                         category.getId(),
                         category.getCode(),
                         category.getName()
