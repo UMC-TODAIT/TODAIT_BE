@@ -123,7 +123,29 @@ class CourseDraftPlaceServiceTest {
         assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
+                .isEqualTo(CourseErrorCode.PLACE_ORDER_DRAFT_STATUS_CONFLICT);
+    }
+
+    @Test
+    void throwsWhenDraftStatusIsNotOrdering() {
+        PlaceOrderUpdateRequest request = new PlaceOrderUpdateRequest(List.of(new PlaceOrderItem(101L, 2)));
+
+        for (CourseDraftStatus status : CourseDraftStatus.values()) {
+            if (status == CourseDraftStatus.ORDERING) {
+                continue;
+            }
+            CourseDraft draft = CourseDraft.builder()
+                    .id(10L)
+                    .member(member(1L))
+                    .status(status)
+                    .build();
+            given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
+
+            assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 1L, request))
+                    .isInstanceOf(CourseException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(CourseErrorCode.PLACE_ORDER_DRAFT_STATUS_CONFLICT);
+        }
     }
 
     @Test
