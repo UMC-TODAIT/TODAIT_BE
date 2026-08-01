@@ -46,7 +46,7 @@ public enum CourseSuccessCode implements BaseSuccessCode {
 
     RECOMMENDED_COURSE_SAVE_OK(
             HttpStatus.CREATED,
-            "COURSE201",
+            "COURSE202",
             "추천 코스 저장 성공"
     );
 
