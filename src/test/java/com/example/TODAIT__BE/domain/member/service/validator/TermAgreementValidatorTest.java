@@ -1,4 +1,4 @@
-package com.example.TODAIT__BE.domain.member.service;
+package com.example.TODAIT__BE.domain.member.service.validator;
 
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.dto.request.TermAgreementRequest;

@@ -1,19 +1,27 @@
 package com.example.TODAIT__BE.domain.member.service;
 
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
+import com.example.TODAIT__BE.domain.member.dto.request.AuthRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.entity.RefreshToken;
+import com.example.TODAIT__BE.domain.member.entity.Term;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.member.repository.RefreshTokenRepository;
+import com.example.TODAIT__BE.domain.member.service.port.EmailVerificationStore;
+import com.example.TODAIT__BE.domain.member.service.support.MemberRegistrationService;
+import com.example.TODAIT__BE.domain.member.service.validator.MemberDuplicateValidator;
+import com.example.TODAIT__BE.domain.member.service.validator.MemberLoginValidator;
+import com.example.TODAIT__BE.domain.member.service.validator.RefreshTokenValidator;
+import com.example.TODAIT__BE.domain.member.service.validator.TermAgreementValidator;
 import com.example.TODAIT__BE.global.security.token.JwtTokenProvider;
 import com.example.TODAIT__BE.global.security.token.RefreshTokenHasher;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -27,6 +35,82 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final MemberRepository memberRepository;
     private final RefreshTokenHasher refreshTokenHasher;
+    private final EmailVerificationStore emailVerificationStore;
+    private final PasswordEncoder passwordEncoder;
+    private final TermAgreementValidator termAgreementValidator;
+    private final MemberRegistrationService memberRegistrationService;
+    private final MemberDuplicateValidator memberDuplicateValidator;
+    private final MemberLoginValidator memberLoginValidator;
+    private final RefreshTokenValidator refreshTokenValidator;
+
+    @Transactional
+    public AuthResponse.Token signup(
+            AuthRequest.SignUp request
+    ){
+        validateEmailVerification(request.email());
+        memberDuplicateValidator.validateEmailAvailable(request.email());
+        memberDuplicateValidator.validateNicknameAvailable(request.nickname());
+
+        List<Term> agreedTerms =
+                termAgreementValidator.validateAndGetAgreedTerms(
+                        request.termAgreements()
+                );
+        String passwordHash = passwordEncoder.encode(request.password());
+
+        LocalDateTime now = LocalDateTime.now();
+
+        Member savedMember = memberRegistrationService.saveMember(
+                Member.builder()
+                        .email(request.email())
+                        .nickname(request.nickname())
+                        .passwordHash(passwordHash)
+                        .build()
+        );
+        memberRegistrationService.saveTermAgreements(savedMember, agreedTerms, now);
+
+        return issueTokens(savedMember);
+    }
+
+    @Transactional
+    public AuthResponse.Token login(
+            AuthRequest.Login request
+    ){
+        Member member = findMember(request.email());
+
+        validatePassword(
+                request.password(),
+                member.getPasswordHash()
+        );
+
+        memberLoginValidator.validateLoginAvailable(member);
+
+        return issueTokens(member);
+    }
+
+    @Transactional
+    public void logout(AuthRequest.Logout request) {
+        RefreshToken storedToken = refreshTokenValidator.validateAndGetStoredToken(request.refreshToken());
+        storedToken.revoke();
+    }
+
+    @Transactional(readOnly = true)
+    public AuthResponse.AccessToken refresh(
+            AuthRequest.TokenRefresh request
+    ){
+        RefreshToken storedToken = refreshTokenValidator.validateAndGetStoredToken(request.refreshToken());
+        Member member = storedToken.getMember();
+
+        memberLoginValidator.validateLoginAvailable(member);
+
+        String newAccessToken = jwtTokenProvider.createAccessToken(
+                member.getId(),
+                member.getRole()
+        );
+
+        return AuthResponse.AccessToken.builder()
+                .accessToken(newAccessToken)
+                .build();
+    }
 
     @Transactional
     public AuthResponse.Token issueTokens(Member member){
@@ -38,8 +122,11 @@ public class AuthService {
 
         managedMember.updateLastLoginAt(issuedAt);
 
-        String accessToken = jwtTokenProvider.createAccessToken(managedMember);
-        String refreshToken = jwtTokenProvider.createRefreshToken(managedMember);
+        String accessToken = jwtTokenProvider.createAccessToken(
+                managedMember.getId(),
+                managedMember.getRole()
+        );
+        String refreshToken = jwtTokenProvider.createRefreshToken(managedMember.getId());
         String refreshTokenHash = refreshTokenHasher.hash(refreshToken);
 
         List<RefreshToken> activeTokens = refreshTokenRepository.findAllByMemberAndRevokedAtIsNull(managedMember);
@@ -95,6 +182,28 @@ public class AuthService {
             String providerUserId,
             String email
     ) {
+    }
+
+    private Member findMember(String email){
+        return memberRepository.findByEmail(email)
+                .orElseThrow(()-> new MemberException(MemberErrorCode.INVALID_EMAIL_OR_PASSWORD));
+    }
+
+    private void validatePassword(
+            String rawPassword,
+            String passwordHash
+    ){
+        if(passwordHash == null || !passwordEncoder.matches(rawPassword,passwordHash)){
+            throw new MemberException(MemberErrorCode.INVALID_EMAIL_OR_PASSWORD);
+        }
+    }
+
+    private void validateEmailVerification(String email){
+        if(!emailVerificationStore.isVerified(email)){
+            throw new MemberException(
+                    MemberErrorCode.EMAIL_VERIFICATION_REQUIRED
+            );
+        }
     }
 
 }

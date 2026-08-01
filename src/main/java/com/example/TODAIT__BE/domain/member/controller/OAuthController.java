@@ -18,14 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class OAuthController implements OAuthControllerDocs {
 
-    private final OAuthService oAuthService;
+    private final OAuthService oauthService;
 
     @PostMapping("/api/auth/kakao/login")
     @Override
     public ResponseEntity<ApiResponse<OAuthResponse.Login>> kakaoLogin(
             @Valid @RequestBody OAuthRequest.KakaoAccessToken request
     ) {
-        OAuthResponse.Login response = oAuthService.loginWithKakao(request.accessToken());
+        OAuthResponse.Login response = oauthService.loginWithKakao(request.accessToken());
 
         return ResponseEntity
                 .status(OAuthSuccessCode.OAUTH_LOGIN_OK.getStatus())
@@ -37,8 +37,8 @@ public class OAuthController implements OAuthControllerDocs {
     @Override
     public ResponseEntity<ApiResponse<OAuthResponse.Login>> googleLogin(
             @Valid @RequestBody OAuthRequest.GoogleIdToken request
-    ){
-        OAuthResponse.Login response = oAuthService.loginWithGoogle(request.idToken());
+    ) {
+        OAuthResponse.Login response = oauthService.loginWithGoogle(request.idToken());
 
         return ResponseEntity
                 .status(OAuthSuccessCode.OAUTH_LOGIN_OK.getStatus())

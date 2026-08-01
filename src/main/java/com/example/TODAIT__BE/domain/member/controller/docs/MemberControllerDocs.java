@@ -5,6 +5,7 @@ import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -62,7 +63,7 @@ public interface MemberControllerDocs {
                     ```
                     """
     )
-    ApiResponse<MemberResponse.NicknameAvailability> checkNicknameAvailability(
+    ResponseEntity<ApiResponse<MemberResponse.NicknameAvailability>> checkNicknameAvailability(
             @RequestParam
             String nickname
     );
@@ -71,7 +72,7 @@ public interface MemberControllerDocs {
             summary = "내 회원 정보 조회",
             description = "현재 로그인한 사용자의 기본 정보와 마이페이지 요약 정보를 조회합니다."
     )
-    ApiResponse<MemberResponse.Me> getMyInfo(
+    ResponseEntity<ApiResponse<MemberResponse.Me>> getMyInfo(
             @AuthenticationPrincipal AuthMember authMember
     );
 }
