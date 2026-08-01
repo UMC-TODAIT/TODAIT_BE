@@ -12,8 +12,13 @@ public enum RecommendationSuccessCode implements BaseSuccessCode {
     HOME_RECOMMENDED_COURSE_LIST_OK(HttpStatus.OK,
             "RECOMMENDATION200",
             "홈 화면 추천 코스 목록 조회 성공"),
-    ;
 
+    HOME_RECOMMENDED_PLACE_LIST_OK(
+            HttpStatus.OK,
+            "RECOMMENDATION200",
+            "홈 화면 추천 장소 목록 조회 성공"
+    ),
+    ;
     private final HttpStatus status;
     private final String code;
     private final String message;
