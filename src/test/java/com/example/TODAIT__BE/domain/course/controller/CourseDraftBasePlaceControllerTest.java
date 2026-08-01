@@ -21,7 +21,7 @@ import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftBasePlaceService;
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.domain.place.exception.PlaceException;
-import com.example.TODAIT__BE.domain.place.exception.code.PlaceErrorCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomyErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
