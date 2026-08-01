@@ -1,7 +1,10 @@
 package com.example.TODAIT__BE.infra.kakao.local;
 
+import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
 import com.example.TODAIT__BE.domain.place.enums.PlaceDataSourceCode;
+import com.example.TODAIT__BE.domain.place.exception.PlaceException;
 import com.example.TODAIT__BE.domain.place.port.out.ExternalPlaceCandidate;
+import com.example.TODAIT__BE.domain.place.port.out.ExternalPlaceSearchResult;
 import com.example.TODAIT__BE.domain.place.port.out.PlaceSearchPort;
 import com.example.TODAIT__BE.infra.kakao.local.dto.KakaoKeywordSearchResponse;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +23,7 @@ public class KakaoPlaceSearchAdapter implements PlaceSearchPort {
     private final KakaoLocalClient kakaoLocalClient;
 
     @Override
-    public List<ExternalPlaceCandidate> searchByKeyword(
+    public ExternalPlaceSearchResult searchByKeyword(
             String query,
             int page,
             int size
@@ -31,6 +34,12 @@ public class KakaoPlaceSearchAdapter implements PlaceSearchPort {
                         page,
                         size
                 );
+
+        if (response.meta() == null) {
+            throw new PlaceException(
+                    PlaceErrorCode.KAKAO_LOCAL_API_REQUEST_FAILED
+            );
+        }
 
         Map<String, ExternalPlaceCandidate> uniqueCandidates =
                 new LinkedHashMap<>();
@@ -49,7 +58,11 @@ public class KakaoPlaceSearchAdapter implements PlaceSearchPort {
             );
         }
 
-        return new ArrayList<>(uniqueCandidates.values());
+
+        return new ExternalPlaceSearchResult(
+                new ArrayList<>(uniqueCandidates.values()),
+                response.meta().end()
+        );
     }
 
     private ExternalPlaceCandidate toCandidate(
