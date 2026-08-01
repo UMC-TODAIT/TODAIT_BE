@@ -65,4 +65,8 @@ public class CourseDraftPlace {
     public void updateVisitOrder(Integer visitOrder) {
         this.visitOrder = visitOrder;
     }
+
+    public void updatePlace(Place place) {
+        this.place = place;
+    }
 }

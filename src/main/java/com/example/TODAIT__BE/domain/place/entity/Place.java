@@ -23,12 +23,16 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "place")
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Place extends BaseEntity {
 
@@ -68,6 +72,7 @@ public class Place extends BaseEntity {
     @Column(name = "default_recommend_reason", comment = "기본 추천 이유")
     private String defaultRecommendReason;
 
+    @Builder.Default
     @Column(name = "operator_priority", nullable = false, comment = "운영자 우선순위")
     private Integer operatorPriority = 0;
 
@@ -79,12 +84,15 @@ public class Place extends BaseEntity {
     @JoinColumn(name = "primary_food_category_id", comment = "대표 음식 카테고리 FK")
     private FoodCategory primaryFoodCategory;
 
+    @Builder.Default
     @OneToMany(mappedBy = "place")
     private List<PlaceMoodTag> placeMoodTags = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "place")
     private List<PlaceFoodCategory> placeFoodCategories = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "place")
     private List<PlaceImage> placeImages = new ArrayList<>();
 
@@ -96,27 +104,61 @@ public class Place extends BaseEntity {
     @Column(name = "review_status", nullable = false, comment = "운영자 검수 상태")
     private PlaceReviewStatus reviewStatus;
 
+    @Builder.Default
     @Column(name = "is_active", nullable = false, comment = "앱 추천/검색 사용 여부")
     private Boolean isActive = false;
 
+    @Builder.Default
     @Column(name = "is_reviewed", nullable = false, comment = "운영자 검수 완료 여부")
     private Boolean isReviewed = false;
 
     @Column(name = "admin_memo", comment = "운영자 메모")
     private String adminMemo;
 
+    @Builder.Default
     @Column(name = "selected_count", nullable = false, comment = "코스 추가 횟수")
     private Long selectedCount = 0L;
 
+    @Builder.Default
     @Column(name = "saved_count", nullable = false, comment = "저장된 코스 포함 횟수")
     private Long savedCount = 0L;
 
+    @Builder.Default
     @Column(name = "viewed_count", nullable = false, comment = "조회 횟수")
     private Long viewedCount = 0L;
 
+    @Builder.Default
     @Column(name = "popularity_score", nullable = false, precision = 10, scale = 4, comment = "내부 인기도 점수")
     private BigDecimal popularityScore = BigDecimal.ZERO;
 
     @Column(name = "deleted_at", comment = "소프트 삭제 시각")
     private LocalDateTime deletedAt;
+
+    public static Place createFromExternalSource(
+            Area area,
+            PlaceCategory placeCategory,
+            String name,
+            String address,
+            String roadAddress,
+            Double latitude,
+            Double longitude,
+            String phone,
+            String subCategory
+    ) {
+        return Place.builder()
+                .area(area)
+                .placeCategory(placeCategory)
+                .name(name)
+                .address(address)
+                .roadAddress(roadAddress)
+                .latitude(latitude)
+                .longitude(longitude)
+                .phone(phone)
+                .subCategory(subCategory)
+                .exposureStatus(PlaceExposureStatus.ACTIVE)
+                .reviewStatus(PlaceReviewStatus.BEFORE_REVIEW)
+                .isActive(true)
+                .isReviewed(false)
+                .build();
+    }
 }
