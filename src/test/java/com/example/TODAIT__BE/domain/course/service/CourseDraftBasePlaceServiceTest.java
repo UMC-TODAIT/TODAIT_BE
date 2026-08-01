@@ -31,6 +31,7 @@ import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
 import com.example.TODAIT__BE.domain.place.repository.DataSourceRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceSourceRepository;
+import com.example.TODAIT__BE.domain.place.service.ExternalPlaceRegistrationService;
 import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomyErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
@@ -43,7 +44,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -64,6 +64,8 @@ class CourseDraftBasePlaceServiceTest {
     private AreaRepository areaRepository;
     @Mock
     private PlaceCategoryRepository placeCategoryRepository;
+    @Mock
+    private ExternalPlaceRegistrationService externalPlaceRegistrationService;
 
     private CourseDraftBasePlaceService courseDraftBasePlaceService;
 
@@ -76,7 +78,8 @@ class CourseDraftBasePlaceServiceTest {
                 placeSourceRepository,
                 dataSourceRepository,
                 areaRepository,
-                placeCategoryRepository
+                placeCategoryRepository,
+                externalPlaceRegistrationService
         );
     }
 
@@ -152,10 +155,14 @@ class CourseDraftBasePlaceServiceTest {
         given(placeCategoryRepository.findByCode("CAFE")).willReturn(Optional.of(category));
         given(placeSourceRepository.findByDataSourceAndSourcePlaceId(kakao, "1234567890"))
                 .willReturn(Optional.empty());
-        given(placeRepository.saveAndFlush(any(Place.class)))
-                .willAnswer(invocation -> invocation.getArgument(0));
-        given(placeSourceRepository.saveAndFlush(any(PlaceSource.class)))
-                .willAnswer(invocation -> invocation.getArgument(0));
+        Place createdPlace = availablePlace(84L);
+        given(externalPlaceRegistrationService.register(
+                area, category, kakao,
+                externalPlace.name(), externalPlace.address(), externalPlace.roadAddress(),
+                externalPlace.latitude(), externalPlace.longitude(),
+                externalPlace.phone(), externalPlace.subCategory(),
+                externalPlace.sourcePlaceId(), externalPlace.sourceUrl()
+        )).willReturn(createdPlace);
         given(courseDraftPlaceRepository.findByCourseDraftAndPlaceRole(draft, PlaceRole.BASE))
                 .willReturn(List.of());
         given(courseDraftPlaceRepository.save(any(CourseDraftPlace.class)))
@@ -165,14 +172,105 @@ class CourseDraftBasePlaceServiceTest {
                 10L, 1L, new CourseDraftBasePlaceSaveRequest(null, externalPlace)
         );
 
-        ArgumentCaptor<PlaceSource> placeSourceCaptor = ArgumentCaptor.forClass(PlaceSource.class);
-        verify(placeSourceRepository).saveAndFlush(placeSourceCaptor.capture());
-        assertThat(placeSourceCaptor.getValue().getIsPrimary()).isTrue();
-        assertThat(placeSourceCaptor.getValue().getSourcePlaceId()).isEqualTo("1234567890");
-
+        verify(externalPlaceRegistrationService).register(
+                area, category, kakao,
+                externalPlace.name(), externalPlace.address(), externalPlace.roadAddress(),
+                externalPlace.latitude(), externalPlace.longitude(),
+                externalPlace.phone(), externalPlace.subCategory(),
+                externalPlace.sourcePlaceId(), externalPlace.sourceUrl()
+        );
         assertThat(response.basePlace().isNewPlace()).isTrue();
-        assertThat(response.basePlace().name()).isEqualTo("연남동 카페 투데잇");
+        assertThat(response.basePlace().placeId()).isEqualTo(84L);
         assertThat(response.basePlace().sourceType()).isEqualTo("KAKAO");
+    }
+
+    @Test
+    void reusesExistingPlaceWhenUniqueConstraintRaceLosesToAnotherRequest() {
+        CourseDraft draft = draft(CourseDraftStatus.BASE_PLACE_SELECTING);
+        DataSource kakao = dataSource(1L, "KAKAO");
+        Area area = area(2L, "YEONNAM", true);
+        PlaceCategory category = placeCategory(1L, "CAFE", "카페", true);
+        Place raceWinnerPlace = availablePlace(84L);
+        PlaceSource raceWinnerSource = PlaceSource.builder()
+                .place(raceWinnerPlace)
+                .dataSource(kakao)
+                .sourcePlaceId("1234567890")
+                .isPrimary(true)
+                .build();
+        ExternalPlace externalPlace = new ExternalPlace(
+                "KAKAO", "1234567890", "연남동 카페 투데잇", "서울 마포구 연남동 123-4", "서울 마포구 동교로 00길 12",
+                37.561234, 126.923456, "YEONNAM", "CAFE", "디저트 카페", "02-1234-5678",
+                "https://place.map.kakao.com/1234567890"
+        );
+
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+        given(dataSourceRepository.findByCode("KAKAO")).willReturn(Optional.of(kakao));
+        given(areaRepository.findByCode("YEONNAM")).willReturn(Optional.of(area));
+        given(placeCategoryRepository.findByCode("CAFE")).willReturn(Optional.of(category));
+        given(placeSourceRepository.findByDataSourceAndSourcePlaceId(kakao, "1234567890"))
+                .willReturn(Optional.empty(), Optional.of(raceWinnerSource));
+        given(externalPlaceRegistrationService.register(
+                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
+        )).willThrow(new org.springframework.dao.DataIntegrityViolationException("unique violation"));
+        given(courseDraftPlaceRepository.findByCourseDraftAndPlaceRole(draft, PlaceRole.BASE))
+                .willReturn(List.of());
+        given(courseDraftPlaceRepository.save(any(CourseDraftPlace.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        CourseDraftBasePlaceSaveResponse response = courseDraftBasePlaceService.saveBasePlace(
+                10L, 1L, new CourseDraftBasePlaceSaveRequest(null, externalPlace)
+        );
+
+        assertThat(response.basePlace().isNewPlace()).isFalse();
+        assertThat(response.basePlace().placeId()).isEqualTo(84L);
+    }
+
+    @Test
+    void throwsWhenReusedExternalPlaceIsNotAvailable() {
+        CourseDraft draft = draft(CourseDraftStatus.BASE_PLACE_SELECTING);
+        DataSource kakao = dataSource(1L, "KAKAO");
+        Area area = area(2L, "YEONNAM", true);
+        PlaceCategory category = placeCategory(1L, "CAFE", "카페", true);
+        Place unavailablePlace = Place.builder()
+                .id(84L)
+                .area(area)
+                .placeCategory(category)
+                .name("연남동 카페 투데잇")
+                .address("서울 마포구 연남동 123-4")
+                .latitude(37.561234)
+                .longitude(126.923456)
+                .exposureStatus(PlaceExposureStatus.INACTIVE)
+                .reviewStatus(PlaceReviewStatus.APPROVED)
+                .isActive(true)
+                .build();
+        PlaceSource existingSource = PlaceSource.builder()
+                .place(unavailablePlace)
+                .dataSource(kakao)
+                .sourcePlaceId("1234567890")
+                .isPrimary(true)
+                .build();
+        ExternalPlace externalPlace = new ExternalPlace(
+                "KAKAO", "1234567890", "연남동 카페 투데잇", "서울 마포구 연남동 123-4", null,
+                37.561234, 126.923456, "YEONNAM", "CAFE", null, null, null
+        );
+
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+        given(dataSourceRepository.findByCode("KAKAO")).willReturn(Optional.of(kakao));
+        given(areaRepository.findByCode("YEONNAM")).willReturn(Optional.of(area));
+        given(placeCategoryRepository.findByCode("CAFE")).willReturn(Optional.of(category));
+        given(placeSourceRepository.findByDataSourceAndSourcePlaceId(kakao, "1234567890"))
+                .willReturn(Optional.of(existingSource));
+
+        assertThatThrownBy(() -> courseDraftBasePlaceService.saveBasePlace(
+                10L, 1L, new CourseDraftBasePlaceSaveRequest(null, externalPlace)
+        ))
+                .isInstanceOf(PlaceException.class)
+                .extracting("errorCode")
+                .isEqualTo(PlaceErrorCode.PLACE_NOT_AVAILABLE);
+
+        verify(externalPlaceRegistrationService, never()).register(
+                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
+        );
     }
 
     @Test
@@ -301,6 +399,33 @@ class CourseDraftBasePlaceServiceTest {
                 .build();
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
         given(placeRepository.findById(21L)).willReturn(Optional.of(inactivePlace));
+
+        assertThatThrownBy(() -> courseDraftBasePlaceService.saveBasePlace(
+                10L, 1L, new CourseDraftBasePlaceSaveRequest(21L, null)
+        ))
+                .isInstanceOf(PlaceException.class)
+                .extracting("errorCode")
+                .isEqualTo(PlaceErrorCode.PLACE_NOT_AVAILABLE);
+    }
+
+    @Test
+    void throwsWhenInternalPlaceIsSoftDeleted() {
+        CourseDraft draft = draft(CourseDraftStatus.BASE_PLACE_SELECTING);
+        Place deletedPlace = Place.builder()
+                .id(21L)
+                .area(area(2L, "YEONNAM", true))
+                .placeCategory(placeCategory(1L, "RESTAURANT", "식당", true))
+                .name("애몽")
+                .address("서울 마포구 연남로3길 13")
+                .latitude(37.561234)
+                .longitude(126.923456)
+                .exposureStatus(PlaceExposureStatus.ACTIVE)
+                .reviewStatus(PlaceReviewStatus.APPROVED)
+                .isActive(true)
+                .deletedAt(LocalDateTime.now().minusDays(1))
+                .build();
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+        given(placeRepository.findById(21L)).willReturn(Optional.of(deletedPlace));
 
         assertThatThrownBy(() -> courseDraftBasePlaceService.saveBasePlace(
                 10L, 1L, new CourseDraftBasePlaceSaveRequest(21L, null)

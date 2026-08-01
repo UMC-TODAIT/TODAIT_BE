@@ -22,6 +22,7 @@ import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
 import com.example.TODAIT__BE.domain.place.repository.DataSourceRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceSourceRepository;
+import com.example.TODAIT__BE.domain.place.service.ExternalPlaceRegistrationService;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomyErrorCode;
@@ -53,6 +54,7 @@ public class CourseDraftBasePlaceService {
     private final DataSourceRepository dataSourceRepository;
     private final AreaRepository areaRepository;
     private final PlaceCategoryRepository placeCategoryRepository;
+    private final ExternalPlaceRegistrationService externalPlaceRegistrationService;
 
     @Transactional
     public CourseDraftBasePlaceSaveResponse saveBasePlace(
@@ -118,6 +120,7 @@ public class CourseDraftBasePlaceService {
         boolean available = Boolean.TRUE.equals(place.getIsActive())
                 && place.getReviewStatus() == PlaceReviewStatus.APPROVED
                 && place.getExposureStatus() == PlaceExposureStatus.ACTIVE
+                && place.getDeletedAt() == null
                 && area != null && Boolean.TRUE.equals(area.getIsActive())
                 && placeCategory != null && Boolean.TRUE.equals(placeCategory.getIsActive())
                 && place.getLatitude() != null
@@ -146,7 +149,9 @@ public class CourseDraftBasePlaceService {
         Optional<PlaceSource> existingSource =
                 placeSourceRepository.findByDataSourceAndSourcePlaceId(dataSource, externalPlace.sourcePlaceId());
         if (existingSource.isPresent()) {
-            return new ResolvedPlace(existingSource.get().getPlace(), dataSource.getCode(), false);
+            Place existingPlace = existingSource.get().getPlace();
+            validateAvailablePlace(existingPlace);
+            return new ResolvedPlace(existingPlace, dataSource.getCode(), false);
         }
 
         return createExternalPlace(dataSource, area, placeCategory, externalPlace);
@@ -158,27 +163,21 @@ public class CourseDraftBasePlaceService {
             PlaceCategory placeCategory,
             ExternalPlace externalPlace
     ) {
-        Place newPlace = Place.createFromExternalSource(
-                area,
-                placeCategory,
-                externalPlace.name(),
-                externalPlace.address(),
-                externalPlace.roadAddress(),
-                externalPlace.latitude(),
-                externalPlace.longitude(),
-                externalPlace.phone(),
-                externalPlace.subCategory()
-        );
-
         try {
-            Place savedPlace = placeRepository.saveAndFlush(newPlace);
-            placeSourceRepository.saveAndFlush(PlaceSource.builder()
-                    .place(savedPlace)
-                    .dataSource(dataSource)
-                    .sourcePlaceId(externalPlace.sourcePlaceId())
-                    .sourceUrl(externalPlace.sourceUrl())
-                    .isPrimary(true)
-                    .build());
+            Place savedPlace = externalPlaceRegistrationService.register(
+                    area,
+                    placeCategory,
+                    dataSource,
+                    externalPlace.name(),
+                    externalPlace.address(),
+                    externalPlace.roadAddress(),
+                    externalPlace.latitude(),
+                    externalPlace.longitude(),
+                    externalPlace.phone(),
+                    externalPlace.subCategory(),
+                    externalPlace.sourcePlaceId(),
+                    externalPlace.sourceUrl()
+            );
             return new ResolvedPlace(savedPlace, dataSource.getCode(), true);
         } catch (DataIntegrityViolationException e) {
             PlaceSource reloaded = placeSourceRepository
