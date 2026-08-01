@@ -11,6 +11,9 @@ public enum PlaceSuccessCode implements BaseSuccessCode {
     PLACE_SEARCH_OK(HttpStatus.OK,
             "PLACE200",
             "장소 검색 성공"),
+    PLACE_DETAIL_OK(HttpStatus.OK,
+            "PLACE200",
+            "장소 상세 조회 성공"),
     ;
 
     private final HttpStatus status;
