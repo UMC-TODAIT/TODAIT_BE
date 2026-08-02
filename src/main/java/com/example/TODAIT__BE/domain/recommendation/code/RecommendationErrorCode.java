@@ -19,18 +19,36 @@ public enum RecommendationErrorCode implements BaseErrorCode {
     INVALID_HOT_PLACE_SIZE(
             HttpStatus.BAD_REQUEST,
             "RECOMMENDATION400_2",
-                    "추천 장소 조회 개수는 1개 이상 10개 이하여야 합니다."
+            "추천 장소 조회 개수는 1개 이상 10개 이하여야 합니다."
     ),
     INCOMPLETE_COORDINATES(
             HttpStatus.BAD_REQUEST,
             "RECOMMENDATION400_3",
-                    "위도와 경도는 함께 전달해야 합니다."
+            "위도와 경도는 함께 전달해야 합니다."
     ),
 
     INVALID_COORDINATES(
             HttpStatus.BAD_REQUEST,
             "RECOMMENDATION400_4",
-                    "유효하지 않은 위치 좌표입니다."
+            "유효하지 않은 위치 좌표입니다."
+    ),
+
+    INVALID_PLACE_SIZE(
+            HttpStatus.BAD_REQUEST,
+            "RECOMMENDATION400",
+            "추천 장소 조회 개수는 1개 이상 20개 이하여야 합니다."
+    ),
+
+    INVALID_LOCATION_PAIR(
+            HttpStatus.BAD_REQUEST,
+            "LOCATION400",
+            "위도와 경도는 함께 전달해야 합니다."
+    ),
+
+    INVALID_LOCATION_RANGE(
+            HttpStatus.BAD_REQUEST,
+            "LOCATION400",
+            "유효하지 않은 위치 좌표입니다."
     );
 
     private final HttpStatus status;
