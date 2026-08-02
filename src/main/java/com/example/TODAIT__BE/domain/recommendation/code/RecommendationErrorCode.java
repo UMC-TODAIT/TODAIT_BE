@@ -1,4 +1,4 @@
-package com.example.TODAIT__BE.domain.recommendation.exception.code;
+package com.example.TODAIT__BE.domain.recommendation.code;
 
 import com.example.TODAIT__BE.global.apiPayload.code.BaseErrorCode;
 import lombok.Getter;
@@ -15,6 +15,23 @@ public enum RecommendationErrorCode implements BaseErrorCode {
     INVALID_SIZE(HttpStatus.BAD_REQUEST,
             "RECOMMENDATION400",
             "추천 코스 조회 개수는 1개 이상 18개 이하여야 합니다."),
+
+    INVALID_HOT_PLACE_SIZE(
+            HttpStatus.BAD_REQUEST,
+            "RECOMMENDATION400_2",
+            "추천 장소 조회 개수는 1개 이상 10개 이하여야 합니다."
+    ),
+    INCOMPLETE_COORDINATES(
+            HttpStatus.BAD_REQUEST,
+            "RECOMMENDATION400_3",
+            "위도와 경도는 함께 전달해야 합니다."
+    ),
+
+    INVALID_COORDINATES(
+            HttpStatus.BAD_REQUEST,
+            "RECOMMENDATION400_4",
+            "유효하지 않은 위치 좌표입니다."
+    ),
 
     INVALID_PLACE_SIZE(
             HttpStatus.BAD_REQUEST,
@@ -33,7 +50,12 @@ public enum RecommendationErrorCode implements BaseErrorCode {
             "LOCATION400",
             "유효하지 않은 위치 좌표입니다."
     ),
-    ;
+
+    REQUEST_CONTEXT_SERIALIZATION_FAILED(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "RECOMMENDATION500_1",
+            "추천 요청 정보를 처리하는 중 오류가 발생했습니다."
+    );
 
     private final HttpStatus status;
     private final String code;
