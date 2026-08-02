@@ -24,7 +24,7 @@ import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommended
 import com.example.TODAIT__BE.domain.recommendation.entity.RecommendationLog;
 import com.example.TODAIT__BE.domain.recommendation.entity.RecommendationResult;
 import com.example.TODAIT__BE.domain.recommendation.exception.RecommendationException;
-import com.example.TODAIT__BE.domain.recommendation.exception.code.RecommendationErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.RecommendationErrorCode;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationLogRepository;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationResultRepository;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
