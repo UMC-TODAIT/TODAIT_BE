@@ -194,13 +194,19 @@ public class HomeRecommendedPlaceService {
             return;
         }
 
+        boolean invalidFiniteValue =
+                !Double.isFinite(latitude)
+                        || !Double.isFinite(longitude);
+
         boolean invalidLatitude =
                 latitude < -90.0 || latitude > 90.0;
 
         boolean invalidLongitude =
                 longitude < -180.0 || longitude > 180.0;
 
-        if (invalidLatitude || invalidLongitude) {
+        if (invalidFiniteValue
+                || invalidLatitude
+                || invalidLongitude) {
             throw new RecommendationException(
                     RecommendationErrorCode.INVALID_LOCATION_RANGE
             );
