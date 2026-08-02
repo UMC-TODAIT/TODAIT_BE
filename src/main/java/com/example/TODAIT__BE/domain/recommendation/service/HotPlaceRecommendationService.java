@@ -273,8 +273,9 @@ public class HotPlaceRecommendationService {
                     requestContext
             );
         } catch (JsonProcessingException exception) {
-            throw new IllegalStateException(
-                    "추천 요청 정보 직렬화에 실패했습니다.",
+            throw new RecommendationException(
+                    RecommendationErrorCode
+                            .REQUEST_CONTEXT_SERIALIZATION_FAILED,
                     exception
             );
         }

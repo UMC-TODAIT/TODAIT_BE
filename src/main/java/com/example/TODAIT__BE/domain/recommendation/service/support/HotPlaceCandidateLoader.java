@@ -9,6 +9,7 @@ import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
 import com.example.TODAIT__BE.domain.place.repository.PlaceFoodCategoryRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceMoodTagRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -21,6 +22,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class HotPlaceCandidateLoader {
 
+    private static final int CANDIDATE_LIMIT = 200;
+
     private final CoursePlaceRepository coursePlaceRepository;
     private final PlaceMoodTagRepository placeMoodTagRepository;
     private final PlaceFoodCategoryRepository placeFoodCategoryRepository;
@@ -31,7 +34,8 @@ public class HotPlaceCandidateLoader {
                         CourseVisibility.RECOMMENDED,
                         CourseSourceType.SERVICE_CREATED,
                         PlaceReviewStatus.APPROVED,
-                        PlaceExposureStatus.ACTIVE
+                        PlaceExposureStatus.ACTIVE,
+                        PageRequest.of(0, CANDIDATE_LIMIT)
                 );
 
         if (places.isEmpty()) {

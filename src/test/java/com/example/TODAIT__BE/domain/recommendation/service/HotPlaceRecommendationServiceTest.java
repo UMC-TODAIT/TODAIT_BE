@@ -23,6 +23,7 @@ import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceCand
 import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceRankingPolicy;
 import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceRecommendationReasonResolver;
 import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceRecommendationResponseAssembler;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -370,6 +371,80 @@ class HotPlaceRecommendationServiceTest {
                 .isEqualTo(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
 
         verify(candidateLoader, never()).load();
+    }
+
+    @Test
+    void convertsRequestContextSerializationFailureToRecommendationException()
+            throws JsonProcessingException {
+        CourseDraft courseDraft = courseDraft(
+                MEMBER_ID,
+                CourseDraftStatus.BASE_PLACE_SELECTING
+        );
+        HotPlaceCandidateData candidateData =
+                new HotPlaceCandidateData(
+                        List.of(),
+                        Map.of(),
+                        Map.of()
+                );
+        ObjectMapper failingObjectMapper = mock(ObjectMapper.class);
+        JsonProcessingException serializationFailure =
+                new JsonProcessingException("직렬화 실패") {
+                };
+
+        HotPlaceRecommendationService failingService =
+                new HotPlaceRecommendationService(
+                        courseDraftRepository,
+                        courseDraftMoodTagRepository,
+                        courseDraftFoodCategoryRepository,
+                        candidateLoader,
+                        rankingPolicy,
+                        reasonResolver,
+                        recommendationLogRepository,
+                        failingObjectMapper,
+                        recommendationResultRepository,
+                        responseAssembler
+                );
+
+        given(courseDraftRepository.findById(COURSE_DRAFT_ID))
+                .willReturn(Optional.of(courseDraft));
+        given(courseDraftMoodTagRepository
+                .findMoodTagIdsByCourseDraftId(COURSE_DRAFT_ID))
+                .willReturn(List.of(10L));
+        given(courseDraftFoodCategoryRepository
+                .findFoodCategoryIdsByCourseDraftId(COURSE_DRAFT_ID))
+                .willReturn(List.of(20L));
+        given(candidateLoader.load()).willReturn(candidateData);
+        given(rankingPolicy.evaluateAndSort(
+                any(),
+                any(),
+                any(),
+                eq(null),
+                eq(null),
+                eq(false)
+        )).willReturn(List.of());
+        given(failingObjectMapper.writeValueAsString(any()))
+                .willThrow(serializationFailure);
+
+        assertThatThrownBy(() -> failingService.getHotPlaces(
+                MEMBER_ID,
+                COURSE_DRAFT_ID,
+                null,
+                null,
+                4
+        ))
+                .isInstanceOf(RecommendationException.class)
+                .hasCause(serializationFailure)
+                .extracting(exception ->
+                        ((RecommendationException) exception)
+                                .getErrorCode()
+                )
+                .isEqualTo(
+                        RecommendationErrorCode
+                                .REQUEST_CONTEXT_SERIALIZATION_FAILED
+                );
+
+        verify(recommendationLogRepository, never())
+                .save(any(RecommendationLog.class));
     }
 
     private CourseDraft courseDraft(

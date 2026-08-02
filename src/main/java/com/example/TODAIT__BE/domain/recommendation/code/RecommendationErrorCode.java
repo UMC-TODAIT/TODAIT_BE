@@ -49,6 +49,12 @@ public enum RecommendationErrorCode implements BaseErrorCode {
             HttpStatus.BAD_REQUEST,
             "LOCATION400",
             "유효하지 않은 위치 좌표입니다."
+    ),
+
+    REQUEST_CONTEXT_SERIALIZATION_FAILED(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "RECOMMENDATION500_1",
+            "추천 요청 정보를 처리하는 중 오류가 발생했습니다."
     );
 
     private final HttpStatus status;

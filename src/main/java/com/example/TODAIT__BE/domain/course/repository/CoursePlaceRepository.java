@@ -13,6 +13,7 @@ import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 
 public interface CoursePlaceRepository extends JpaRepository<CoursePlace, Long> {
@@ -60,7 +61,10 @@ public interface CoursePlaceRepository extends JpaRepository<CoursePlace, Long> 
           and p.longitude is not null
           and a.isActive = true
           and pc.isActive = true
-        order by p.createdAt asc, p.id asc
+        order by p.operatorPriority desc,
+                 p.popularityScore desc,
+                 p.selectedCount desc,
+                 p.id asc
         """)
     List<Place> findHotPlaceCandidates(
             @Param("courseVisibility")
@@ -73,6 +77,8 @@ public interface CoursePlaceRepository extends JpaRepository<CoursePlace, Long> 
             PlaceReviewStatus reviewStatus,
 
             @Param("exposureStatus")
-            PlaceExposureStatus exposureStatus
+            PlaceExposureStatus exposureStatus,
+
+            Pageable pageable
     );
 }

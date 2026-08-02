@@ -8,4 +8,11 @@ public class RecommendationException extends ProjectException {
     public RecommendationException(RecommendationErrorCode errorCode) {
         super(errorCode);
     }
+
+    public RecommendationException(
+            RecommendationErrorCode errorCode,
+            Throwable cause
+    ) {
+        super(errorCode, cause);
+    }
 }
