@@ -1,5 +1,6 @@
 package com.example.TODAIT__BE.domain.place.controller.docs;
 
+import com.example.TODAIT__BE.domain.place.dto.response.PlaceDetailResponse;
 import com.example.TODAIT__BE.domain.place.dto.response.PlaceSearchResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,5 +29,19 @@ public interface PlaceControllerDocs {
                     example = "연남동 카페"
             )
             String query
+    );
+    @Operation(
+            summary = "장소 카드 상세 조회",
+            description = """
+                    placeId에 해당하는 장소의 기본 정보·이미지·카테고리·분위기 태그·음식 카테고리·메뉴를 조회합니다.
+                    노출 대상이 아닌 장소는 PLACE400, 존재하지 않는 장소는 PLACE404를 반환합니다.
+                    """
+    )
+    ResponseEntity<ApiResponse<PlaceDetailResponse>>
+    getPlaceDetail(
+            @Parameter(
+                    description = "상세 조회할 장소 ID"
+            )
+            Long placeId
     );
 }

@@ -96,7 +96,9 @@ public class CourseSaveService {
                 .memo(request.memo())
                 .visibility(CourseVisibility.PRIVATE)
                 .sourceType(CourseSourceType.USER_CREATED)
+                .placeCount(draftPlaces.size())
                 .build());
+
 
         List<CourseMoodTagResponse> moodTagResponses = saveCourseMoodTags(course, moodTags);
         List<CourseFoodCategoryResponse> foodCategoryResponses = saveCourseFoodCategories(course, draftFoodCategories);

@@ -27,6 +27,18 @@ public enum PlaceErrorCode implements BaseErrorCode {
             "장소 검색어는 100자 이하여야 합니다."
     ),
 
+    PLACE_NOT_EXPOSED(
+            HttpStatus.BAD_REQUEST,
+            "PLACE400",
+            "노출 대상이 아닌 장소입니다."
+    ),
+
+    PLACE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "PLACE404",
+            "장소 정보를 찾을 수 없습니다."
+    ),
+
     KAKAO_LOCAL_API_RATE_LIMIT_EXCEEDED(
             HttpStatus.TOO_MANY_REQUESTS,
             "PLACE429_1",
