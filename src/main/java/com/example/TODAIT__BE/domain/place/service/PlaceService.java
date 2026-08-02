@@ -5,8 +5,6 @@ import com.example.TODAIT__BE.domain.place.dto.response.PlaceDetailFoodCategoryR
 import com.example.TODAIT__BE.domain.place.dto.response.PlaceDetailMoodTagResponse;
 import com.example.TODAIT__BE.domain.place.dto.response.PlaceDetailResponse;
 import com.example.TODAIT__BE.domain.place.dto.response.PlaceMenuResponse;
-import com.example.TODAIT__BE.domain.place.dto.response.PlaceResponse;
-import com.example.TODAIT__BE.domain.place.dto.response.PlaceSearchResponse;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.entity.PlaceImage;
 import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
@@ -43,22 +41,6 @@ public class PlaceService {
     private final PlaceImageRepository placeImageRepository;
     private final PlaceMenuRepository placeMenuRepository;
 
-    public PlaceSearchResponse searchPlaces(String keyword) {
-        if (keyword == null || keyword.isBlank()) {
-            throw new PlaceException(PlaceErrorCode.INVALID_SEARCH_KEYWORD);
-        }
-
-        List<PlaceResponse> places = placeRepository
-                .searchExposablePlacesByName(
-                        escapeLikeKeyword(keyword.trim()),
-                        PlaceExposureStatus.ACTIVE
-                )
-                .stream()
-                .map(PlaceResponse::from)
-                .toList();
-
-        return new PlaceSearchResponse(places);
-    }
 
     public PlaceDetailResponse getPlaceDetail(Long placeId) {
         Place place = placeRepository.findDetailById(placeId)
@@ -172,10 +154,5 @@ public class PlaceService {
                 .toList();
     }
 
-    private String escapeLikeKeyword(String keyword) {
-        return keyword
-                .replace("!", "!!")
-                .replace("%", "!%")
-                .replace("_", "!_");
-    }
+
 }

@@ -57,15 +57,6 @@ class PlaceServiceTest {
     @InjectMocks
     private PlaceService placeService;
 
-    @Test
-    void searchPlacesRejectsBlankKeyword() {
-        assertThatThrownBy(() -> placeService.searchPlaces(" "))
-                .isInstanceOf(PlaceException.class)
-                .extracting("errorCode")
-                .isEqualTo(PlaceErrorCode.INVALID_SEARCH_KEYWORD);
-
-        verifyNoInteractions(placeRepository);
-    }
 
     @Test
     void returnsPlaceDetailWithAllMappedSections() {

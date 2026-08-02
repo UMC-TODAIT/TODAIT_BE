@@ -73,6 +73,9 @@ app:
   oauth:
     google:
       web-client-id: ${GOOGLE_WEB_CLIENT_ID}
+  kakao:
+    local:
+      rest-api-key: ${KAKAO_REST_API_KEY}
 
 jwt:
   secret: ${JWT_SECRET}

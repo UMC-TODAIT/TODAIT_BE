@@ -9,22 +9,47 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum PlaceErrorCode implements BaseErrorCode {
 
-    INVALID_SEARCH_KEYWORD(
+    INVALID_PLACE_SEARCH_QUERY(
             HttpStatus.BAD_REQUEST,
             "PLACE400_1",
-            "검색어를 입력해주세요."
+            "장소 검색어를 입력해야 합니다."
     ),
+
+    PLACE_SEARCH_QUERY_TOO_SHORT(
+            HttpStatus.BAD_REQUEST,
+            "PLACE400_2",
+            "장소 검색어는 2자 이상이어야 합니다."
+    ),
+
+    PLACE_SEARCH_QUERY_TOO_LONG(
+            HttpStatus.BAD_REQUEST,
+            "PLACE400_3",
+            "장소 검색어는 100자 이하여야 합니다."
+    ),
+
     PLACE_NOT_EXPOSED(
             HttpStatus.BAD_REQUEST,
             "PLACE400",
             "노출 대상이 아닌 장소입니다."
     ),
+
     PLACE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "PLACE404",
             "장소 정보를 찾을 수 없습니다."
     ),
-    ;
+
+    KAKAO_LOCAL_API_RATE_LIMIT_EXCEEDED(
+            HttpStatus.TOO_MANY_REQUESTS,
+            "PLACE429_1",
+            "카카오 장소 검색 요청 한도를 초과했습니다."
+    ),
+
+    KAKAO_LOCAL_API_REQUEST_FAILED(
+            HttpStatus.BAD_GATEWAY,
+            "PLACE502_1",
+            "카카오 장소 검색에 실패했습니다."
+    );
 
     private final HttpStatus status;
     private final String code;
