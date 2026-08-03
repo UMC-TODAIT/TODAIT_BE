@@ -61,9 +61,8 @@ public class CourseDraftPlaceService {
     }
 
     private void validateEditableDraft(CourseDraft courseDraft) {
-        if (courseDraft.getStatus() == CourseDraftStatus.COMPLETED
-                || courseDraft.getStatus() == CourseDraftStatus.ABANDONED) {
-            throw new CourseException(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
+        if (courseDraft.getStatus() != CourseDraftStatus.ORDERING) {
+            throw new CourseException(CourseErrorCode.PLACE_ORDER_DRAFT_STATUS_CONFLICT);
         }
     }
 

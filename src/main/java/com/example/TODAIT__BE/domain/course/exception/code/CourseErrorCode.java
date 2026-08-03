@@ -26,6 +26,7 @@ public enum CourseErrorCode implements BaseErrorCode {
     SELECTED_PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "COURSE_PLACE404", "임시 코스에 속하지 않은 선택 장소가 포함되어 있습니다."),
     BASE_PLACE_NOT_REORDERABLE(HttpStatus.BAD_REQUEST, "COURSE_BASE_REORDER400", "기준 장소는 순서 변경 대상이 될 수 없습니다."),
     INVALID_VISIT_ORDER(HttpStatus.BAD_REQUEST, "COURSE_ORDER400", "방문 순서가 올바르지 않습니다."),
+    PLACE_ORDER_DRAFT_STATUS_CONFLICT(HttpStatus.CONFLICT, "COURSE_ORDER409", "현재 임시 코스 상태에서는 장소 순서를 변경할 수 없습니다."),
     RECOMMENDED_COURSE_NOT_FOUND(HttpStatus.NOT_FOUND, "COURSE404", "추천 코스를 찾을 수 없습니다."),
     SAVED_COURSE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "COURSE403_2", "해당 저장 코스에 접근할 권한이 없습니다."),
     SAVED_COURSE_NOT_FOUND(HttpStatus.NOT_FOUND, "COURSE404_1", "저장 코스를 찾을 수 없습니다."),
