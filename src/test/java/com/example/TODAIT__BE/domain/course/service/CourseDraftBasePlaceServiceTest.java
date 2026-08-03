@@ -21,14 +21,14 @@ import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.member.entity.Member;
-import com.example.TODAIT__BE.domain.place.entity.DataSource;
+import com.example.TODAIT__BE.domain.place.entity.PlaceDataSource;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.entity.PlaceSource;
 import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
 import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
 import com.example.TODAIT__BE.domain.place.exception.PlaceException;
 import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
-import com.example.TODAIT__BE.domain.place.repository.DataSourceRepository;
+import com.example.TODAIT__BE.domain.place.repository.PlaceDataSourceRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceSourceRepository;
 import com.example.TODAIT__BE.domain.place.service.ExternalPlaceRegistrationService;
@@ -59,7 +59,7 @@ class CourseDraftBasePlaceServiceTest {
     @Mock
     private PlaceSourceRepository placeSourceRepository;
     @Mock
-    private DataSourceRepository dataSourceRepository;
+    private PlaceDataSourceRepository dataSourceRepository;
     @Mock
     private AreaRepository areaRepository;
     @Mock
@@ -140,7 +140,7 @@ class CourseDraftBasePlaceServiceTest {
     @Test
     void createsNewPlaceAndPlaceSourceWhenExternalPlaceIsNotRegistered() {
         CourseDraft draft = draft(CourseDraftStatus.BASE_PLACE_SELECTING);
-        DataSource kakao = dataSource(1L, "KAKAO");
+        PlaceDataSource kakao = dataSource(1L, "KAKAO");
         Area area = area(2L, "YEONNAM", true);
         PlaceCategory category = placeCategory(1L, "CAFE", "카페", true);
         ExternalPlace externalPlace = new ExternalPlace(
@@ -150,7 +150,7 @@ class CourseDraftBasePlaceServiceTest {
         );
 
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
-        given(dataSourceRepository.findByCode("KAKAO")).willReturn(Optional.of(kakao));
+        given(dataSourceRepository.findByCodeAndIsActiveTrue("KAKAO")).willReturn(Optional.of(kakao));
         given(areaRepository.findByCode("YEONNAM")).willReturn(Optional.of(area));
         given(placeCategoryRepository.findByCode("CAFE")).willReturn(Optional.of(category));
         given(placeSourceRepository.findByDataSourceAndSourcePlaceId(kakao, "1234567890"))
@@ -187,7 +187,7 @@ class CourseDraftBasePlaceServiceTest {
     @Test
     void reusesExistingPlaceWhenUniqueConstraintRaceLosesToAnotherRequest() {
         CourseDraft draft = draft(CourseDraftStatus.BASE_PLACE_SELECTING);
-        DataSource kakao = dataSource(1L, "KAKAO");
+        PlaceDataSource kakao = dataSource(1L, "KAKAO");
         Area area = area(2L, "YEONNAM", true);
         PlaceCategory category = placeCategory(1L, "CAFE", "카페", true);
         Place raceWinnerPlace = availablePlace(84L);
@@ -204,7 +204,7 @@ class CourseDraftBasePlaceServiceTest {
         );
 
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
-        given(dataSourceRepository.findByCode("KAKAO")).willReturn(Optional.of(kakao));
+        given(dataSourceRepository.findByCodeAndIsActiveTrue("KAKAO")).willReturn(Optional.of(kakao));
         given(areaRepository.findByCode("YEONNAM")).willReturn(Optional.of(area));
         given(placeCategoryRepository.findByCode("CAFE")).willReturn(Optional.of(category));
         given(placeSourceRepository.findByDataSourceAndSourcePlaceId(kakao, "1234567890"))
@@ -228,7 +228,7 @@ class CourseDraftBasePlaceServiceTest {
     @Test
     void throwsWhenReusedExternalPlaceIsNotAvailable() {
         CourseDraft draft = draft(CourseDraftStatus.BASE_PLACE_SELECTING);
-        DataSource kakao = dataSource(1L, "KAKAO");
+        PlaceDataSource kakao = dataSource(1L, "KAKAO");
         Area area = area(2L, "YEONNAM", true);
         PlaceCategory category = placeCategory(1L, "CAFE", "카페", true);
         Place unavailablePlace = Place.builder()
@@ -255,7 +255,7 @@ class CourseDraftBasePlaceServiceTest {
         );
 
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
-        given(dataSourceRepository.findByCode("KAKAO")).willReturn(Optional.of(kakao));
+        given(dataSourceRepository.findByCodeAndIsActiveTrue("KAKAO")).willReturn(Optional.of(kakao));
         given(areaRepository.findByCode("YEONNAM")).willReturn(Optional.of(area));
         given(placeCategoryRepository.findByCode("CAFE")).willReturn(Optional.of(category));
         given(placeSourceRepository.findByDataSourceAndSourcePlaceId(kakao, "1234567890"))
@@ -276,7 +276,7 @@ class CourseDraftBasePlaceServiceTest {
     @Test
     void reusesExistingPlaceWhenExternalPlaceIsAlreadyRegistered() {
         CourseDraft draft = draft(CourseDraftStatus.BASE_PLACE_SELECTING);
-        DataSource kakao = dataSource(1L, "KAKAO");
+        PlaceDataSource kakao = dataSource(1L, "KAKAO");
         Area area = area(2L, "YEONNAM", true);
         PlaceCategory category = placeCategory(1L, "CAFE", "카페", true);
         Place existingPlace = availablePlace(84L);
@@ -292,7 +292,7 @@ class CourseDraftBasePlaceServiceTest {
         );
 
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
-        given(dataSourceRepository.findByCode("KAKAO")).willReturn(Optional.of(kakao));
+        given(dataSourceRepository.findByCodeAndIsActiveTrue("KAKAO")).willReturn(Optional.of(kakao));
         given(areaRepository.findByCode("YEONNAM")).willReturn(Optional.of(area));
         given(placeCategoryRepository.findByCode("CAFE")).willReturn(Optional.of(category));
         given(placeSourceRepository.findByDataSourceAndSourcePlaceId(kakao, "1234567890"))
@@ -455,9 +455,9 @@ class CourseDraftBasePlaceServiceTest {
     @Test
     void throwsWhenAreaCodeIsNotSupported() {
         CourseDraft draft = draft(CourseDraftStatus.BASE_PLACE_SELECTING);
-        DataSource kakao = dataSource(1L, "KAKAO");
+        PlaceDataSource kakao = dataSource(1L, "KAKAO");
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
-        given(dataSourceRepository.findByCode("KAKAO")).willReturn(Optional.of(kakao));
+        given(dataSourceRepository.findByCodeAndIsActiveTrue("KAKAO")).willReturn(Optional.of(kakao));
         given(areaRepository.findByCode("UNKNOWN")).willReturn(Optional.empty());
 
         ExternalPlace externalPlace = new ExternalPlace(
@@ -514,8 +514,8 @@ class CourseDraftBasePlaceServiceTest {
         return placeCategory;
     }
 
-    private DataSource dataSource(Long id, String code) {
-        DataSource dataSource = mock(DataSource.class);
+    private PlaceDataSource dataSource(Long id, String code) {
+        PlaceDataSource dataSource = mock(PlaceDataSource.class);
         lenient().when(dataSource.getId()).thenReturn(id);
         lenient().when(dataSource.getCode()).thenReturn(code);
         return dataSource;

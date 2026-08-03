@@ -5,6 +5,7 @@ import com.example.TODAIT__BE.global.apiPayload.code.BaseErrorCode;
 import com.example.TODAIT__BE.global.apiPayload.code.GeneralErrorCode;
 import com.example.TODAIT__BE.global.apiPayload.exception.ProjectException;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 @RestControllerAdvice
+@Slf4j
 public class GeneralExceptionAdvice {
 
     // 프로젝트에서 발생한 예외 처리
@@ -41,16 +43,13 @@ public class GeneralExceptionAdvice {
 
     // 그 외의 정의되지 않은 모든 예외 처리
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<String>> handleException(
+    public ResponseEntity<ApiResponse<Void>> handleException(
             Exception ex
     ) {
+        log.error("처리되지 않은 서버 예외가 발생했습니다.", ex);
 
         BaseErrorCode code = GeneralErrorCode.INTERNAL_SERVER_ERROR;
         return ResponseEntity.status(code.getStatus())
-                .body(ApiResponse.onFailure(
-                                code,
-                                ex.getMessage()
-                        )
-                );
+                .body(ApiResponse.onFailure(code, null));
     }
 }

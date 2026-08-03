@@ -8,7 +8,7 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import java.time.Duration;
 
 @Configuration
-public class OAuthClientConfig {
+public class KakaoHttpClientConfig {
     private static final Duration KAKAO_CONNECT_TIMEOUT = Duration.ofSeconds(3);
     private static final Duration KAKAO_READ_TIMEOUT = Duration.ofSeconds(5);
 

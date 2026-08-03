@@ -12,14 +12,14 @@ import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
-import com.example.TODAIT__BE.domain.place.entity.DataSource;
+import com.example.TODAIT__BE.domain.place.entity.PlaceDataSource;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.entity.PlaceSource;
 import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
 import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
 import com.example.TODAIT__BE.domain.place.exception.PlaceException;
 import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
-import com.example.TODAIT__BE.domain.place.repository.DataSourceRepository;
+import com.example.TODAIT__BE.domain.place.repository.PlaceDataSourceRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceSourceRepository;
 import com.example.TODAIT__BE.domain.place.service.ExternalPlaceRegistrationService;
@@ -51,7 +51,7 @@ public class CourseDraftBasePlaceService {
     private final CourseDraftPlaceRepository courseDraftPlaceRepository;
     private final PlaceRepository placeRepository;
     private final PlaceSourceRepository placeSourceRepository;
-    private final DataSourceRepository dataSourceRepository;
+    private final PlaceDataSourceRepository dataSourceRepository;
     private final AreaRepository areaRepository;
     private final PlaceCategoryRepository placeCategoryRepository;
     private final ExternalPlaceRegistrationService externalPlaceRegistrationService;
@@ -135,7 +135,7 @@ public class CourseDraftBasePlaceService {
         validateExternalPlaceRequiredFields(externalPlace);
         validateCoordinates(externalPlace.latitude(), externalPlace.longitude());
 
-        DataSource dataSource = dataSourceRepository.findByCode(externalPlace.dataSourceCode())
+        PlaceDataSource dataSource = dataSourceRepository.findByCodeAndIsActiveTrue(externalPlace.dataSourceCode())
                 .orElseThrow(() -> new PlaceException(PlaceErrorCode.DATA_SOURCE_NOT_FOUND));
 
         Area area = areaRepository.findByCode(externalPlace.areaCode())
@@ -158,7 +158,7 @@ public class CourseDraftBasePlaceService {
     }
 
     private ResolvedPlace createExternalPlace(
-            DataSource dataSource,
+            PlaceDataSource dataSource,
             Area area,
             PlaceCategory placeCategory,
             ExternalPlace externalPlace

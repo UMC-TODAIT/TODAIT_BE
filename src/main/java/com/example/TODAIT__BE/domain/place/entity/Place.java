@@ -72,6 +72,12 @@ public class Place extends BaseEntity {
     @Column(name = "default_recommend_reason", comment = "기본 추천 이유")
     private String defaultRecommendReason;
 
+    @Column(name = "business_hours", comment = "영업시간 원본 데이터 (예: HH:mm-HH:mm)")
+    private String businessHours;
+
+    @Column(name = "last_order_time", comment = "라스트오더 시각")
+    private java.time.LocalTime lastOrderTime;
+
     @Builder.Default
     @Column(name = "operator_priority", nullable = false, comment = "운영자 우선순위")
     private Integer operatorPriority = 0;

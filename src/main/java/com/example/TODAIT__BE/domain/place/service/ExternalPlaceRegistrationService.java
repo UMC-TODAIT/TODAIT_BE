@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.place.service;
 
-import com.example.TODAIT__BE.domain.place.entity.DataSource;
+import com.example.TODAIT__BE.domain.place.entity.PlaceDataSource;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.entity.PlaceSource;
 import com.example.TODAIT__BE.domain.place.repository.PlaceRepository;
@@ -23,7 +23,7 @@ public class ExternalPlaceRegistrationService {
     public Place register(
             Area area,
             PlaceCategory placeCategory,
-            DataSource dataSource,
+            PlaceDataSource dataSource,
             String name,
             String address,
             String roadAddress,

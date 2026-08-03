@@ -40,7 +40,7 @@ public class PlaceSource extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "data_source_id", nullable = false)
-    private DataSource dataSource;
+    private PlaceDataSource dataSource;
 
     @Column(name = "source_place_id", nullable = false, comment = "외부 데이터 출처의 장소 고유 ID")
     private String sourcePlaceId;
