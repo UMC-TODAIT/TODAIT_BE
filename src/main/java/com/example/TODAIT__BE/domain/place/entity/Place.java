@@ -105,9 +105,6 @@ public class Place extends BaseEntity {
     @Column(name = "is_active", nullable = false, comment = "앱 추천/검색 사용 여부")
     private Boolean isActive = false;
 
-    @Column(name = "is_reviewed", nullable = false, comment = "운영자 검수 완료 여부")
-    private Boolean isReviewed = false;
-
     @Column(name = "admin_memo", comment = "운영자 메모")
     private String adminMemo;
 
