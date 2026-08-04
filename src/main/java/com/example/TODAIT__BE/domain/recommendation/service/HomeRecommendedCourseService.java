@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +56,9 @@ public class HomeRecommendedCourseService {
     private final RecommendationLogRepository recommendationLogRepository;
     private final RecommendationResultRepository recommendationResultRepository;
     private final ObjectMapper objectMapper;
+
+    @Value("${recommendation.cursor-secret:${jwt.secret:test-home-recommendation-cursor-secret}}")
+    private String cursorSecret = "test-home-recommendation-cursor-secret";
 
     public HomeRecommendedCourseService(
             CourseRepository courseRepository,
@@ -84,7 +88,11 @@ public class HomeRecommendedCourseService {
 
         LocalDate today = LocalDate.now(SERVICE_ZONE_ID);
         HomeRecommendationCursor cursor =
-                HomeRecommendationCursor.decodeOrFirst(cursorParam, today);
+                HomeRecommendationCursor.decodeOrFirst(
+                        cursorParam,
+                        today,
+                        cursorSecret
+                );
         LocalDate rotationDate = cursor.rotationDate();
         long from = cursor.offset();
         long epochDay = rotationDate.toEpochDay();
@@ -98,7 +106,7 @@ public class HomeRecommendedCourseService {
                 ? new HomeRecommendationCursor(
                         rotationDate,
                         from + size
-                ).encode()
+                ).encode(cursorSecret)
                 : null;
 
         List<Course> pageCourses = slice(fullOrder, from, size);

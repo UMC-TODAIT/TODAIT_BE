@@ -34,8 +34,10 @@ import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -284,12 +286,31 @@ class HomeRecommendedCourseServiceTest {
                         RecommendationException.class,
                         exception -> assertThat(exception.getErrorCode())
                                 .isEqualTo(RecommendationErrorCode.INVALID_CURSOR)
-                );
+                )
+                .hasCauseInstanceOf(IllegalArgumentException.class);
 
         verify(courseRepository, never())
                 .findRecommendedCourseCandidates(any(), any(), any());
         verify(recommendationLogRepository, never())
                 .save(any(RecommendationLog.class));
+    }
+
+    @Test
+    void throwsInvalidCursorWhenCursorSignatureIsTampered() {
+        String tamperedCursor = unsignedCursor("2099-01-01:2:bad-signature");
+
+        assertThatThrownBy(() ->
+                service.getHomeRecommendedCourses(MEMBER_ID, tamperedCursor, 3)
+        )
+                .isInstanceOfSatisfying(
+                        RecommendationException.class,
+                        exception -> assertThat(exception.getErrorCode())
+                                .isEqualTo(RecommendationErrorCode.INVALID_CURSOR)
+                )
+                .hasCauseInstanceOf(IllegalArgumentException.class);
+
+        verify(courseRepository, never())
+                .findRecommendedCourseCandidates(any(), any(), any());
     }
 
     @Test
@@ -425,5 +446,11 @@ class HomeRecommendedCourseServiceTest {
         given(courseMoodTag.getCourse()).willReturn(course);
         given(courseMoodTag.getMoodTag()).willReturn(moodTag);
         return courseMoodTag;
+    }
+
+    private String unsignedCursor(String raw) {
+        return Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(raw.getBytes(StandardCharsets.UTF_8));
     }
 }

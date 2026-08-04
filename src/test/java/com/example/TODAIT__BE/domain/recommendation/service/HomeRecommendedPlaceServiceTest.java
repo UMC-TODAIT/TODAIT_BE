@@ -28,7 +28,9 @@ import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -467,7 +469,38 @@ class HomeRecommendedPlaceServiceTest {
                                 .isEqualTo(
                                         RecommendationErrorCode.INVALID_CURSOR
                                 )
+                )
+                .hasCauseInstanceOf(IllegalArgumentException.class);
+
+        verify(placeRepository, never())
+                .findHomeRecommendedPlaceCandidates(
+                        any(),
+                        any(),
+                        any()
                 );
+    }
+
+    @Test
+    void throwsInvalidCursorWhenCursorSignatureIsTampered() {
+        String tamperedCursor = unsignedCursor("2099-01-01:2:bad-signature");
+
+        assertThatThrownBy(() ->
+                service.getHomeRecommendedPlaces(
+                        MEMBER_ID,
+                        tamperedCursor,
+                        2,
+                        null,
+                        null
+                )
+        )
+                .isInstanceOfSatisfying(
+                        RecommendationException.class,
+                        exception -> assertThat(exception.getErrorCode())
+                                .isEqualTo(
+                                        RecommendationErrorCode.INVALID_CURSOR
+                                )
+                )
+                .hasCauseInstanceOf(IllegalArgumentException.class);
 
         verify(placeRepository, never())
                 .findHomeRecommendedPlaceCandidates(
@@ -537,5 +570,11 @@ class HomeRecommendedPlaceServiceTest {
 
         return USER_LATITUDE
                 + Math.toDegrees(latitudeDeltaRadians);
+    }
+
+    private String unsignedCursor(String raw) {
+        return Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(raw.getBytes(StandardCharsets.UTF_8));
     }
 }

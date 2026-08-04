@@ -29,6 +29,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +56,9 @@ public class HomeRecommendedPlaceService {
     private final RecommendationResultRepository recommendationResultRepository;
     private final ObjectMapper objectMapper;
 
+    @Value("${recommendation.cursor-secret:${jwt.secret:test-home-recommendation-cursor-secret}}")
+    private String cursorSecret = "test-home-recommendation-cursor-secret";
+
     public HomeRecommendedPlaceService(
             PlaceRepository placeRepository,
             MemberRepository memberRepository,
@@ -80,7 +84,11 @@ public class HomeRecommendedPlaceService {
         int size = resolveSize(sizeParam);
         LocalDate today = LocalDate.now(SERVICE_ZONE_ID);
         HomeRecommendationCursor cursor =
-                HomeRecommendationCursor.decodeOrFirst(cursorParam, today);
+                HomeRecommendationCursor.decodeOrFirst(
+                        cursorParam,
+                        today,
+                        cursorSecret
+                );
         LocalDate rotationDate = cursor.rotationDate();
         long from = cursor.offset();
 
@@ -124,7 +132,7 @@ public class HomeRecommendedPlaceService {
                 ? new HomeRecommendationCursor(
                         rotationDate,
                         from + size
-                ).encode()
+                ).encode(cursorSecret)
                 : null;
         List<RankedPlace> pagePlaces =
                 slice(fullOrder, from, size);
