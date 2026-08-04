@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -153,7 +152,7 @@ public class HomeRecommendedCourseService {
         Map<Long, List<CoursePlace>> coursePlacesByCourseId =
                 loadCoursePlaces(candidates);
 
-        // 지역별 그룹화 (지역 내부 정렬: operatorPriority ASC, createdAt ASC, id ASC)
+        // 지역별 그룹화: 지역 내부 순서는 Repository 정렬 결과를 유지한다.
         Map<String, List<Course>> groupByArea = new LinkedHashMap<>();
         for (String areaCode : AREA_CODES) {
             groupByArea.put(areaCode, new ArrayList<>());
@@ -169,15 +168,6 @@ public class HomeRecommendedCourseService {
                 group.add(course);
             }
         }
-
-        Comparator<Course> areaInternalOrder = Comparator
-                .comparing(Course::getOperatorPriority)
-                .thenComparing(
-                        Course::getCreatedAt,
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                )
-                .thenComparing(Course::getId);
-        groupByArea.values().forEach(group -> group.sort(areaInternalOrder));
 
         // 지역 응답 순서 로테이션
         List<String> areaOrder = rotatedAreaOrder(epochDay);
