@@ -25,4 +25,10 @@ class PlaceCategoryDefaultImageTest {
         assertThat(PlaceCategoryDefaultImage.getImageUrl("UNKNOWN"))
                 .isNull();
     }
+
+    @Test
+    void trimsCategoryCodeBeforeLookup() {
+        assertThat(PlaceCategoryDefaultImage.getImageUrl(" CAFE "))
+                .isEqualTo(PlaceCategoryDefaultImage.CAFE.getImageUrl());
+    }
 }

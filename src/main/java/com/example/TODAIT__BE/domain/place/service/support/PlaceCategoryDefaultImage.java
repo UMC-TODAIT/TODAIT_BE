@@ -1,11 +1,17 @@
 package com.example.TODAIT__BE.domain.place.service.support;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public enum PlaceCategoryDefaultImage {
 
     CAFE(null),
     RESTAURANT(null),
     BAR(null),
     ACTIVITY(null);
+
+    private static final Logger log =
+            LoggerFactory.getLogger(PlaceCategoryDefaultImage.class);
 
     private final String imageUrl;
 
@@ -27,9 +33,15 @@ public enum PlaceCategoryDefaultImage {
             return null;
         }
 
+        String normalizedCode = categoryCode.trim();
+
         try {
-            return valueOf(categoryCode).imageUrl;
+            return valueOf(normalizedCode).imageUrl;
         } catch (IllegalArgumentException exception) {
+            log.warn(
+                    "Unknown place category code for default image: {}",
+                    categoryCode
+            );
             return null;
         }
     }
