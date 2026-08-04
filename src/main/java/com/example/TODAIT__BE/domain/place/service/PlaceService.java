@@ -9,6 +9,7 @@ import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.entity.PlaceImage;
 import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
 import com.example.TODAIT__BE.domain.place.enums.PlaceImageType;
+import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
 import com.example.TODAIT__BE.domain.place.exception.PlaceException;
 import com.example.TODAIT__BE.domain.place.repository.PlaceFoodCategoryRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceImageRepository;
@@ -16,6 +17,7 @@ import com.example.TODAIT__BE.domain.place.repository.PlaceMenuRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceMoodTagRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceRepository;
 import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
@@ -76,8 +78,22 @@ public class PlaceService {
     }
 
     private boolean isExposable(Place place) {
-        return place.getExposureStatus() == PlaceExposureStatus.ACTIVE
-                && Boolean.TRUE.equals(place.getIsActive());
+        return place.getReviewStatus() == PlaceReviewStatus.APPROVED
+                && place.getExposureStatus() == PlaceExposureStatus.ACTIVE
+                && Boolean.TRUE.equals(place.getIsActive())
+                && place.getLatitude() != null
+                && place.getLongitude() != null
+                && isActiveArea(place.getArea())
+                && isActivePlaceCategory(place.getPlaceCategory());
+    }
+
+    private boolean isActiveArea(Area area) {
+        return area != null && Boolean.TRUE.equals(area.getIsActive());
+    }
+
+    private boolean isActivePlaceCategory(PlaceCategory placeCategory) {
+        return placeCategory != null
+                && Boolean.TRUE.equals(placeCategory.getIsActive());
     }
 
     private String formatLastOrderTime(LocalTime lastOrderTime) {

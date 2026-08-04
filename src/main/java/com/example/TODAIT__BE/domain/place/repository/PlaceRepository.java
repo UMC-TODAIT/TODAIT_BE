@@ -2,20 +2,20 @@ package com.example.TODAIT__BE.domain.place.repository;
 
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
+import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
-import java.util.List;
 
 public interface PlaceRepository extends JpaRepository<Place, Long> {
 
     @Query("""
             select p
             from Place p
+            left join fetch p.area
             left join fetch p.placeCategory
             left join fetch p.primaryFoodCategory
             where p.id = :placeId
