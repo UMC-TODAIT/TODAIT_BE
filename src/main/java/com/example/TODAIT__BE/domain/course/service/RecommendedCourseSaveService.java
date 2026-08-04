@@ -7,6 +7,7 @@ import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
 import com.example.TODAIT__BE.domain.course.entity.CoursePlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
+import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseFoodCategoryRepository;
@@ -15,16 +16,15 @@ import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.entity.Member;
+import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
-import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
-import java.util.HashSet;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -57,6 +57,8 @@ public class RecommendedCourseSaveService {
         List<CourseFoodCategory> sourceFoodCategories =
                 courseFoodCategoryRepository
                         .findAllByCourseIdOrderByIdAsc(sourceCourseId);
+
+        validateSourceCategories(sourceMoodTags, sourceFoodCategories);
 
         Course savedCourse = createSavedCourse(
                 sourceCourse,
@@ -115,7 +117,7 @@ public class RecommendedCourseSaveService {
                 || sourceCourse.getArea() == null
                 || sourcePlaces.isEmpty()) {
             throw new CourseException(
-                    CourseErrorCode.INVALID_RECOMMENDED_COURSE
+                    CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE
             );
         }
 
@@ -127,7 +129,19 @@ public class RecommendedCourseSaveService {
 
         if (basePlaceCount != 1) {
             throw new CourseException(
-                    CourseErrorCode.INVALID_RECOMMENDED_COURSE
+                    CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE
+            );
+        }
+
+        long selectedPlaceCount = sourcePlaces.stream()
+                .filter(coursePlace ->
+                        coursePlace.getPlaceRole() == PlaceRole.SELECTED
+                )
+                .count();
+
+        if (selectedPlaceCount < 1) {
+            throw new CourseException(
+                    CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE
             );
         }
 
@@ -138,14 +152,14 @@ public class RecommendedCourseSaveService {
                 .findFirst()
                 .orElseThrow(() ->
                         new CourseException(
-                                CourseErrorCode.INVALID_RECOMMENDED_COURSE
+                                CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE
                         )
                 );
 
         if (!sourceCourse.getBasePlace().getId()
                 .equals(baseCoursePlace.getPlace().getId())) {
             throw new CourseException(
-                    CourseErrorCode.INVALID_RECOMMENDED_COURSE
+                    CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE
             );
         }
 
@@ -159,9 +173,20 @@ public class RecommendedCourseSaveService {
                     || !visitOrders.add(visitOrder)
                     || visitOrder != index + 1) {
                 throw new CourseException(
-                        CourseErrorCode.INVALID_RECOMMENDED_COURSE
+                        CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE
                 );
             }
+        }
+    }
+
+    private void validateSourceCategories(
+            List<CourseMoodTag> sourceMoodTags,
+            List<CourseFoodCategory> sourceFoodCategories
+    ) {
+        if (sourceMoodTags.isEmpty() || sourceFoodCategories.isEmpty()) {
+            throw new CourseException(
+                    CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE
+            );
         }
     }
 
