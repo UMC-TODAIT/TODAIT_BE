@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.example.TODAIT__BE.domain.course.entity.Course;
@@ -113,11 +114,9 @@ class HomeRecommendedCourseServiceTest {
         HomeRecommendedCourseListResponse response =
                 service.getHomeRecommendedCourses(MEMBER_ID, null, null);
 
-        assertThat(response.page()).isZero();
         assertThat(response.size()).isEqualTo(3);
-        assertThat(response.totalElements()).isEqualTo(3);
-        assertThat(response.totalPages()).isEqualTo(1);
         assertThat(response.hasNext()).isFalse();
+        assertThat(response.nextCursor()).isNull();
         assertThat(response.courses()).hasSize(3);
 
         // 지역 순서는 날짜 로테이션에 따라 달라지므로 집합/구조 불변식으로 검증한다.
@@ -181,9 +180,8 @@ class HomeRecommendedCourseServiceTest {
                 .willReturn(List.of());
 
         HomeRecommendedCourseListResponse response =
-                service.getHomeRecommendedCourses(MEMBER_ID, 0, 6);
+                service.getHomeRecommendedCourses(MEMBER_ID, null, 6);
 
-        assertThat(response.totalElements()).isEqualTo(6);
         assertThat(response.courses()).hasSize(6);
         assertThat(response.courses())
                 .extracting(HomeRecommendedCourseResponse::rank)
@@ -205,6 +203,58 @@ class HomeRecommendedCourseServiceTest {
     }
 
     @Test
+    void usesCursorOffsetForNextPageRanksAndResults() {
+        List<Course> candidates = new ArrayList<>();
+        List<CoursePlace> coursePlaces = new ArrayList<>();
+        long id = 1L;
+        for (String areaCode : List.of("HONGDAE", "YEONNAM", "SEONGSU")) {
+            for (int priority = 1; priority <= 2; priority++) {
+                Course course = course(
+                        id, areaCode, id * 10, areaCode, priority,
+                        areaCode + priority
+                );
+                candidates.add(course);
+                coursePlaces.add(representativePlace(course, "sub", "img"));
+                id++;
+            }
+        }
+
+        given(courseRepository.findRecommendedCourseCandidates(
+                any(), any(), any()
+        )).willReturn(candidates);
+        given(coursePlaceRepository.findAllWithCourseAndPlaceByCourseIds(any()))
+                .willReturn(coursePlaces);
+        given(courseMoodTagRepository.findAllWithCourseAndMoodTagByCourseIds(any()))
+                .willReturn(List.of());
+
+        HomeRecommendedCourseListResponse firstResponse =
+                service.getHomeRecommendedCourses(MEMBER_ID, null, 2);
+        HomeRecommendedCourseListResponse secondResponse =
+                service.getHomeRecommendedCourses(
+                        MEMBER_ID,
+                        firstResponse.nextCursor(),
+                        2
+                );
+
+        assertThat(firstResponse.hasNext()).isTrue();
+        assertThat(firstResponse.nextCursor()).isNotBlank();
+        assertThat(firstResponse.courses())
+                .extracting(HomeRecommendedCourseResponse::rank)
+                .containsExactly(1, 2);
+        assertThat(secondResponse.courses())
+                .extracting(HomeRecommendedCourseResponse::rank)
+                .containsExactly(3, 4);
+
+        ArgumentCaptor<List<RecommendationResult>> resultsCaptor =
+                ArgumentCaptor.forClass(List.class);
+        verify(recommendationResultRepository, times(2))
+                .saveAll(resultsCaptor.capture());
+        assertThat(resultsCaptor.getAllValues().get(1))
+                .extracting(RecommendationResult::getRankNo)
+                .containsExactly(3, 4);
+    }
+
+    @Test
     void returnsEmptyResponseAndSkipsResultSaveWhenNoCandidates() {
         given(courseRepository.findRecommendedCourseCandidates(any(), any(), any()))
                 .willReturn(List.of());
@@ -213,9 +263,8 @@ class HomeRecommendedCourseServiceTest {
                 service.getHomeRecommendedCourses(MEMBER_ID, null, null);
 
         assertThat(response.courses()).isEmpty();
-        assertThat(response.totalElements()).isZero();
-        assertThat(response.totalPages()).isZero();
         assertThat(response.hasNext()).isFalse();
+        assertThat(response.nextCursor()).isNull();
 
         // 빈 결과여도 추천 요청 기록(log)은 저장하고, result는 저장하지 않는다.
         verify(recommendationLogRepository).save(any(RecommendationLog.class));
@@ -223,14 +272,14 @@ class HomeRecommendedCourseServiceTest {
     }
 
     @Test
-    void throwsInvalidPageWhenPageIsNegative() {
+    void throwsInvalidCursorWhenCursorIsMalformed() {
         assertThatThrownBy(() ->
-                service.getHomeRecommendedCourses(MEMBER_ID, -1, 3)
+                service.getHomeRecommendedCourses(MEMBER_ID, "invalid-cursor", 3)
         )
                 .isInstanceOfSatisfying(
                         RecommendationException.class,
                         exception -> assertThat(exception.getErrorCode())
-                                .isEqualTo(RecommendationErrorCode.INVALID_PAGE)
+                                .isEqualTo(RecommendationErrorCode.INVALID_CURSOR)
                 );
 
         verify(courseRepository, never())
@@ -242,7 +291,7 @@ class HomeRecommendedCourseServiceTest {
     @Test
     void throwsInvalidSizeWhenSizeOutOfRange() {
         assertThatThrownBy(() ->
-                service.getHomeRecommendedCourses(MEMBER_ID, 0, 0)
+                service.getHomeRecommendedCourses(MEMBER_ID, null, 0)
         )
                 .isInstanceOfSatisfying(
                         RecommendationException.class,
@@ -251,7 +300,7 @@ class HomeRecommendedCourseServiceTest {
                 );
 
         assertThatThrownBy(() ->
-                service.getHomeRecommendedCourses(MEMBER_ID, 0, 19)
+                service.getHomeRecommendedCourses(MEMBER_ID, null, 19)
         )
                 .isInstanceOfSatisfying(
                         RecommendationException.class,

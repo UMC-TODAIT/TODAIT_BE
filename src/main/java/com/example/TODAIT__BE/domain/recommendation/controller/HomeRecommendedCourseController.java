@@ -27,13 +27,13 @@ public class HomeRecommendedCourseController
     public ResponseEntity<ApiResponse<HomeRecommendedCourseListResponse>>
     getHomeRecommendedCourses(
             @AuthenticationPrincipal AuthMember authMember,
-            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) String cursor,
             @RequestParam(required = false) Integer size
     ) {
         HomeRecommendedCourseListResponse result =
                 homeRecommendedCourseService.getHomeRecommendedCourses(
                         authMember.memberId(),
-                        page,
+                        cursor,
                         size
                 );
 

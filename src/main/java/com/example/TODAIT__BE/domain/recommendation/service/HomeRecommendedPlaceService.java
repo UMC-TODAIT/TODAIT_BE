@@ -17,8 +17,11 @@ import com.example.TODAIT__BE.domain.recommendation.exception.RecommendationExce
 import com.example.TODAIT__BE.domain.recommendation.code.RecommendationErrorCode;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationLogRepository;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationResultRepository;
+import com.example.TODAIT__BE.domain.recommendation.service.support.HomeRecommendationCursor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -30,10 +33,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class HomeRecommendedPlaceService {
 
-    private static final int DEFAULT_PAGE = 0;
     private static final int DEFAULT_SIZE = 2;
     private static final int MIN_SIZE = 1;
     private static final int MAX_SIZE = 20;
+    private static final ZoneId SERVICE_ZONE_ID = ZoneId.of("Asia/Seoul");
 
     private static final int NEARBY_THRESHOLD_METERS = 500;
     private static final double EARTH_RADIUS_METERS = 6_371_000.0;
@@ -67,13 +70,17 @@ public class HomeRecommendedPlaceService {
     @Transactional
     public HomeRecommendedPlaceListResponse getHomeRecommendedPlaces(
             Long memberId,
-            Integer pageParam,
+            String cursorParam,
             Integer sizeParam,
             Double latitude,
             Double longitude
     ) {
-        int page = resolvePage(pageParam);
         int size = resolveSize(sizeParam);
+        LocalDate today = LocalDate.now(SERVICE_ZONE_ID);
+        HomeRecommendationCursor cursor =
+                HomeRecommendationCursor.decodeOrFirst(cursorParam, today);
+        LocalDate rotationDate = cursor.rotationDate();
+        long from = cursor.offset();
 
         validateLocation(latitude, longitude);
 
@@ -108,9 +115,15 @@ public class HomeRecommendedPlaceService {
                 : buildAreaBalancedOrder(distinctCandidates);
 
         /*
-         * 4. 전체 추천 순서 확정 후 page와 size 적용
+         * 4. 전체 추천 순서 확정 후 cursor와 size 적용
          */
-        long from = (long) page * size;
+        boolean hasNext = from + size < fullOrder.size();
+        String nextCursor = hasNext
+                ? new HomeRecommendationCursor(
+                        rotationDate,
+                        from + size
+                ).encode()
+                : null;
         List<RankedPlace> pagePlaces =
                 slice(fullOrder, from, size);
 
@@ -120,7 +133,8 @@ public class HomeRecommendedPlaceService {
         RecommendationLog recommendationLog =
                 saveRecommendationLog(
                         memberId,
-                        page,
+                        rotationDate,
+                        from,
                         size,
                         latitude,
                         longitude,
@@ -134,30 +148,18 @@ public class HomeRecommendedPlaceService {
                 buildResponsesAndSaveResults(
                         pagePlaces,
                         recommendationLog,
-                        locationAvailable
+                        locationAvailable,
+                        from
                 );
 
         return new HomeRecommendedPlaceListResponse(
                 recommendationLog.getId(),
-                page,
                 size,
                 locationAvailable,
+                hasNext,
+                nextCursor,
                 placeResponses
         );
-    }
-
-    private int resolvePage(Integer pageParam) {
-        if (pageParam == null) {
-            return DEFAULT_PAGE;
-        }
-
-        if (pageParam < 0) {
-            throw new RecommendationException(
-                    RecommendationErrorCode.INVALID_PAGE
-            );
-        }
-
-        return pageParam;
     }
 
     private int resolveSize(Integer sizeParam) {
@@ -388,7 +390,8 @@ public class HomeRecommendedPlaceService {
 
     private RecommendationLog saveRecommendationLog(
             Long memberId,
-            int page,
+            LocalDate rotationDate,
+            long offset,
             int size,
             Double latitude,
             Double longitude,
@@ -415,7 +418,8 @@ public class HomeRecommendedPlaceService {
                         .userLongitude(longitude)
                         .requestContext(
                                 buildRequestContext(
-                                        page,
+                                        rotationDate,
+                                        offset,
                                         size,
                                         locationAvailable
                                 )
@@ -431,7 +435,8 @@ public class HomeRecommendedPlaceService {
     buildResponsesAndSaveResults(
             List<RankedPlace> pagePlaces,
             RecommendationLog recommendationLog,
-            boolean locationAvailable
+            boolean locationAvailable,
+            long offset
     ) {
         if (pagePlaces.isEmpty()) {
             return List.of();
@@ -443,10 +448,10 @@ public class HomeRecommendedPlaceService {
         List<RecommendationResult> results =
                 new ArrayList<>(pagePlaces.size());
 
-        int rank = 1;
-
-        for (RankedPlace rankedPlace : pagePlaces) {
+        for (int index = 0; index < pagePlaces.size(); index++) {
+            RankedPlace rankedPlace = pagePlaces.get(index);
             Place place = rankedPlace.place();
+            int rank = Math.toIntExact(offset + index + 1);
 
             String recommendationReason =
                     buildRecommendationReason(
@@ -477,7 +482,6 @@ public class HomeRecommendedPlaceService {
                     )
             );
 
-            rank++;
         }
 
         recommendationResultRepository.saveAll(results);
@@ -539,7 +543,8 @@ public class HomeRecommendedPlaceService {
     }
 
     private String buildRequestContext(
-            int page,
+            LocalDate rotationDate,
+            long offset,
             int size,
             boolean locationAvailable
     ) {
@@ -561,6 +566,7 @@ public class HomeRecommendedPlaceService {
                 "OPERATOR_MANAGED_PLACES"
         );
         context.put("includedAreaCodes", AREA_CODES);
+        context.put("rotationDate", rotationDate.toString());
 
         if (locationAvailable) {
             context.put(
@@ -593,7 +599,7 @@ public class HomeRecommendedPlaceService {
             );
         }
 
-        context.put("page", page);
+        context.put("offset", offset);
         context.put("limit", size);
         context.put(
                 "policyVersion",

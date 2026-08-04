@@ -27,7 +27,7 @@ public class HomeRecommendedPlaceController
     public ResponseEntity<ApiResponse<HomeRecommendedPlaceListResponse>>
     getHomeRecommendedPlaces(
             @AuthenticationPrincipal AuthMember authMember,
-            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) String cursor,
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) Double latitude,
             @RequestParam(required = false) Double longitude
@@ -35,7 +35,7 @@ public class HomeRecommendedPlaceController
         HomeRecommendedPlaceListResponse result =
                 homeRecommendedPlaceService.getHomeRecommendedPlaces(
                         authMember.memberId(),
-                        page,
+                        cursor,
                         size,
                         latitude,
                         longitude

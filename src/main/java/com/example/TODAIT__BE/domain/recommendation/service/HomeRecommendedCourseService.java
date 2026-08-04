@@ -21,10 +21,12 @@ import com.example.TODAIT__BE.domain.recommendation.exception.RecommendationExce
 import com.example.TODAIT__BE.domain.recommendation.code.RecommendationErrorCode;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationLogRepository;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationResultRepository;
+import com.example.TODAIT__BE.domain.recommendation.service.support.HomeRecommendationCursor;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -36,10 +38,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class HomeRecommendedCourseService {
 
-    private static final int DEFAULT_PAGE = 0;
     private static final int DEFAULT_SIZE = 3;
     private static final int MIN_SIZE = 1;
     private static final int MAX_SIZE = 18;
+    private static final ZoneId SERVICE_ZONE_ID = ZoneId.of("Asia/Seoul");
 
     // MVP 지원 지역 및 기본 노출 순서
     private static final List<String> AREA_CODES =
@@ -74,55 +76,48 @@ public class HomeRecommendedCourseService {
     @Transactional
     public HomeRecommendedCourseListResponse getHomeRecommendedCourses(
             Long memberId,
-            Integer pageParam,
+            String cursorParam,
             Integer sizeParam
     ) {
-        int page = resolvePage(pageParam);
         int size = resolveSize(sizeParam);
 
-        LocalDate today = LocalDate.now();
-        long epochDay = today.toEpochDay();
+        LocalDate today = LocalDate.now(SERVICE_ZONE_ID);
+        HomeRecommendationCursor cursor =
+                HomeRecommendationCursor.decodeOrFirst(cursorParam, today);
+        LocalDate rotationDate = cursor.rotationDate();
+        long from = cursor.offset();
+        long epochDay = rotationDate.toEpochDay();
 
         // 1. 추천 후보 조회 및 지역별 그룹화 → 전체 추천 순서 확정
         List<Course> fullOrder = buildFullRecommendedOrder(epochDay);
 
         long totalElements = fullOrder.size();
-        int totalPages = (int) Math.ceil((double) totalElements / size);
-        long from = (long) page * size;
         boolean hasNext = from + size < totalElements;
+        String nextCursor = hasNext
+                ? new HomeRecommendationCursor(
+                        rotationDate,
+                        from + size
+                ).encode()
+                : null;
 
         List<Course> pageCourses = slice(fullOrder, from, size);
 
         // 2. 추천 요청 기록 저장 (log 1건)
         RecommendationLog log = saveRecommendationLog(
-                memberId, today, page, size
+                memberId, rotationDate, from, size
         );
 
         // 3. 응답 코스 상세 구성 + 추천 결과 저장 (result N건)
         List<HomeRecommendedCourseResponse> courses =
-                buildCourseResponses(pageCourses, log);
+                buildCourseResponses(pageCourses, log, from);
 
         return new HomeRecommendedCourseListResponse(
                 log.getId(),
-                page,
                 size,
-                totalElements,
-                totalPages,
                 hasNext,
+                nextCursor,
                 courses
         );
-    }
-
-    private int resolvePage(Integer pageParam) {
-        if (pageParam == null) {
-            return DEFAULT_PAGE;
-        }
-        if (pageParam < 0) {
-            throw new RecommendationException(
-                    RecommendationErrorCode.INVALID_PAGE
-            );
-        }
-        return pageParam;
     }
 
     private int resolveSize(Integer sizeParam) {
@@ -244,7 +239,7 @@ public class HomeRecommendedCourseService {
     private RecommendationLog saveRecommendationLog(
             Long memberId,
             LocalDate rotationDate,
-            int page,
+            long offset,
             int size
     ) {
         Member member = memberRepository.getReferenceById(memberId);
@@ -252,7 +247,7 @@ public class HomeRecommendedCourseService {
         RecommendationLog log = RecommendationLog.builder()
                 .member(member)
                 .recommendationType(RecommendationType.HOME_POPULAR_COURSE)
-                .requestContext(buildRequestContext(rotationDate, page, size))
+                .requestContext(buildRequestContext(rotationDate, offset, size))
                 .build();
 
         return recommendationLogRepository.save(log);
@@ -260,7 +255,8 @@ public class HomeRecommendedCourseService {
 
     private List<HomeRecommendedCourseResponse> buildCourseResponses(
             List<Course> pageCourses,
-            RecommendationLog log
+            RecommendationLog log,
+            long offset
     ) {
         if (pageCourses.isEmpty()) {
             return List.of();
@@ -280,8 +276,9 @@ public class HomeRecommendedCourseService {
         List<RecommendationResult> results =
                 new ArrayList<>(pageCourses.size());
 
-        int rank = 1;
-        for (Course course : pageCourses) {
+        for (int index = 0; index < pageCourses.size(); index++) {
+            Course course = pageCourses.get(index);
+            int rank = Math.toIntExact(offset + index + 1);
             List<CoursePlace> coursePlaces =
                     coursePlacesByCourseId.getOrDefault(
                             course.getId(), List.of()
@@ -304,7 +301,6 @@ public class HomeRecommendedCourseService {
             ));
 
             results.add(RecommendationResult.forCourse(log, course, rank, null));
-            rank++;
         }
 
         recommendationResultRepository.saveAll(results);
@@ -371,7 +367,7 @@ public class HomeRecommendedCourseService {
         return tags;
     }
 
-    private String buildRequestContext(LocalDate rotationDate, int page, int size) {
+    private String buildRequestContext(LocalDate rotationDate, long offset, int size) {
         Map<String, Object> context = new LinkedHashMap<>();
         context.put("sourcePolicy", "RESEARCH_DOCUMENT");
         context.put("candidatePolicy", "OPERATOR_RECOMMENDED_18_COURSES");
@@ -386,7 +382,7 @@ public class HomeRecommendedCourseService {
                 "CREATED_AT_ASC",
                 "COURSE_ID_ASC"
         ));
-        context.put("page", page);
+        context.put("offset", offset);
         context.put("limit", size);
         context.put("policyVersion", "HOME_COURSE_V1");
 
