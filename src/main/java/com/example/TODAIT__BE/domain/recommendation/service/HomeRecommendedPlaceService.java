@@ -1,6 +1,8 @@
 package com.example.TODAIT__BE.domain.recommendation.service;
 
+import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.entity.Member;
+import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
@@ -397,12 +399,9 @@ public class HomeRecommendedPlaceService {
             Double longitude,
             boolean locationAvailable
     ) {
-        /*
-         * 기존 홈 추천 코스 서비스와 동일하게
-         * 실제 조회 쿼리 없이 FK 참조를 생성한다.
-         */
-        Member member =
-                memberRepository.getReferenceById(memberId);
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() ->
+                        new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         RecommendationLog recommendationLog =
                 RecommendationLog.builder()
@@ -608,8 +607,11 @@ public class HomeRecommendedPlaceService {
 
         try {
             return objectMapper.writeValueAsString(context);
-        } catch (JsonProcessingException e) {
-            return null;
+        } catch (JsonProcessingException exception) {
+            throw new RecommendationException(
+                    RecommendationErrorCode.REQUEST_CONTEXT_SERIALIZATION_FAILED,
+                    exception
+            );
         }
     }
 

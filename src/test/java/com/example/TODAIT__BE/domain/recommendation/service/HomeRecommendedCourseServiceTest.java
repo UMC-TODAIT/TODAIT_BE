@@ -17,7 +17,9 @@ import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
+import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.entity.Member;
+import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendedCourseListResponse;
@@ -30,10 +32,12 @@ import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationLog
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationResultRepository;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -76,8 +80,8 @@ class HomeRecommendedCourseServiceTest {
                 new ObjectMapper()
         );
 
-        given(memberRepository.getReferenceById(MEMBER_ID))
-                .willReturn(mock(Member.class));
+        given(memberRepository.findById(MEMBER_ID))
+                .willReturn(Optional.of(mock(Member.class)));
         given(recommendationLogRepository.save(any(RecommendationLog.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
     }
@@ -284,6 +288,68 @@ class HomeRecommendedCourseServiceTest {
 
         verify(courseRepository, never())
                 .findRecommendedCourseCandidates(any(), any(), any());
+        verify(recommendationLogRepository, never())
+                .save(any(RecommendationLog.class));
+    }
+
+    @Test
+    void throwsMemberNotFoundWhenMemberDoesNotExist() {
+        given(memberRepository.findById(MEMBER_ID))
+                .willReturn(Optional.empty());
+        given(courseRepository.findRecommendedCourseCandidates(any(), any(), any()))
+                .willReturn(List.of());
+
+        assertThatThrownBy(() ->
+                service.getHomeRecommendedCourses(MEMBER_ID, null, null)
+        )
+                .isInstanceOfSatisfying(
+                        MemberException.class,
+                        exception -> assertThat(exception.getErrorCode())
+                                .isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND)
+                );
+
+        verify(recommendationLogRepository, never())
+                .save(any(RecommendationLog.class));
+    }
+
+    @Test
+    void throwsRecommendationExceptionWhenRequestContextSerializationFails()
+            throws JsonProcessingException {
+        ObjectMapper failingObjectMapper = mock(ObjectMapper.class);
+        JsonProcessingException serializationFailure =
+                new JsonProcessingException("boom") {
+                };
+        HomeRecommendedCourseService failingService =
+                new HomeRecommendedCourseService(
+                        courseRepository,
+                        coursePlaceRepository,
+                        courseMoodTagRepository,
+                        memberRepository,
+                        recommendationLogRepository,
+                        recommendationResultRepository,
+                        failingObjectMapper
+                );
+
+        given(memberRepository.findById(MEMBER_ID))
+                .willReturn(Optional.of(mock(Member.class)));
+        given(courseRepository.findRecommendedCourseCandidates(any(), any(), any()))
+                .willReturn(List.of());
+        given(failingObjectMapper.writeValueAsString(any()))
+                .willThrow(serializationFailure);
+
+        assertThatThrownBy(() ->
+                failingService.getHomeRecommendedCourses(MEMBER_ID, null, null)
+        )
+                .isInstanceOf(RecommendationException.class)
+                .hasCause(serializationFailure)
+                .extracting(exception ->
+                        ((RecommendationException) exception).getErrorCode()
+                )
+                .isEqualTo(
+                        RecommendationErrorCode
+                                .REQUEST_CONTEXT_SERIALIZATION_FAILED
+                );
+
         verify(recommendationLogRepository, never())
                 .save(any(RecommendationLog.class));
     }

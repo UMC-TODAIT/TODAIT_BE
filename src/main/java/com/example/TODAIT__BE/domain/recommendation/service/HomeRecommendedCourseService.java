@@ -8,7 +8,9 @@ import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
+import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.entity.Member;
+import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendedCourseListResponse;
 import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendedCourseResponse;
@@ -242,7 +244,9 @@ public class HomeRecommendedCourseService {
             long offset,
             int size
     ) {
-        Member member = memberRepository.getReferenceById(memberId);
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() ->
+                        new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         RecommendationLog log = RecommendationLog.builder()
                 .member(member)
@@ -388,8 +392,11 @@ public class HomeRecommendedCourseService {
 
         try {
             return objectMapper.writeValueAsString(context);
-        } catch (JsonProcessingException e) {
-            return null;
+        } catch (JsonProcessingException exception) {
+            throw new RecommendationException(
+                    RecommendationErrorCode.REQUEST_CONTEXT_SERIALIZATION_FAILED,
+                    exception
+            );
         }
     }
 }
