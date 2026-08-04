@@ -38,13 +38,12 @@ public class CourseDraftSavingService {
         validateOrderingStatus(courseDraft);
 
         List<CourseDraftPlace> draftPlaces =
-                courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(courseDraft);
+                courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(courseDraft);
         validatePlaces(draftPlaces);
 
         courseDraft.changeStatus(CourseDraftStatus.SAVING);
 
         List<CourseDraftPlaceResponse> routePreview = draftPlaces.stream()
-                .sorted(Comparator.comparing(CourseDraftPlace::getVisitOrder))
                 .map(CourseDraftPlaceResponse::from)
                 .toList();
 

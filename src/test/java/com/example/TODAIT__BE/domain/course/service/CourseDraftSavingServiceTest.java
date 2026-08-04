@@ -51,7 +51,7 @@ class CourseDraftSavingServiceTest {
         CourseDraftPlace selected = draftPlace(101L, PlaceRole.SELECTED, 2, place(1001L, "selected"));
 
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
-        given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
+        given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base, selected));
 
         CourseDraftSavingEnterResponse response = courseDraftSavingService.enterSaving(10L, 1L);
@@ -98,7 +98,7 @@ class CourseDraftSavingServiceTest {
         CourseDraftPlace selected = draftPlace(101L, PlaceRole.SELECTED, 2, mock(Place.class));
 
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
-        given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
+        given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(selected));
 
         assertThatThrownBy(() -> courseDraftSavingService.enterSaving(10L, 1L))
@@ -113,7 +113,7 @@ class CourseDraftSavingServiceTest {
         CourseDraftPlace base = draftPlace(100L, PlaceRole.BASE, 1, mock(Place.class));
 
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
-        given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
+        given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base));
 
         assertThatThrownBy(() -> courseDraftSavingService.enterSaving(10L, 1L))
@@ -129,7 +129,7 @@ class CourseDraftSavingServiceTest {
         CourseDraftPlace selected = draftPlace(101L, PlaceRole.SELECTED, 3, mock(Place.class));
 
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
-        given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
+        given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base, selected));
 
         assertThatThrownBy(() -> courseDraftSavingService.enterSaving(10L, 1L))
