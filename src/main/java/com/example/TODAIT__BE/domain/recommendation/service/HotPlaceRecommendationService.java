@@ -190,7 +190,7 @@ public class HotPlaceRecommendationService {
         if (courseDraft.getStatus()
                 != CourseDraftStatus.BASE_PLACE_SELECTING) {
             throw new CourseException(
-                    CourseErrorCode.INVALID_COURSE_DRAFT_STATUS
+                    CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT
             );
         }
 
