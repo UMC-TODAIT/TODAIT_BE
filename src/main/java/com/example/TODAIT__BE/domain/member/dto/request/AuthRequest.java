@@ -94,8 +94,9 @@ public final class AuthRequest {
     @Schema(name = "AuthTokenRefreshRequest")
     public record TokenRefresh(
             @Schema(
-                    description = "일반 또는 소셜 로그인 응답에서 발급받은 Refresh Token",
-                    example = "로그인 응답의 refreshToken 값을 입력 eyJhbGciOiJIUzUxMiJ9..."
+                    description = "일반 또는 소셜 로그인 응답에서 발급받은 Refresh Token입니다. "
+                            + "실제 테스트 시 발급받은 refreshToken 값으로 교체해야 합니다.",
+                    example = "eyJhbGciOiJIUzUxMiJ9.eyJ0b2tlblR5cGUiOiJSRUZSRVNIIiwic3ViIjoiMSJ9.signature"
             )
             @NotBlank
             String refreshToken
