@@ -86,10 +86,13 @@ class RecommendedCourseSaveServiceTest {
                         coursePlace(basePlace, PlaceRole.BASE, 1),
                         coursePlace(selectedPlace, PlaceRole.SELECTED, 2)
                 ));
+        List<CourseMoodTag> sourceMoodTags = moodTags(2);
+        List<CourseFoodCategory> sourceFoodCategories =
+                List.of(courseFoodCategory(1L));
         given(courseMoodTagRepository.findAllByCourseIdOrderByIdAsc(10L))
-                .willReturn(moodTags(2));
+                .willReturn(sourceMoodTags);
         given(courseFoodCategoryRepository.findAllByCourseIdOrderByIdAsc(10L))
-                .willReturn(List.of(courseFoodCategory()));
+                .willReturn(sourceFoodCategories);
         given(courseRepository.save(any(Course.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
         given(coursePlaceRepository.saveAll(anyList()))
@@ -221,10 +224,13 @@ class RecommendedCourseSaveServiceTest {
         Course sourceCourse = sourceCourse(basePlace);
 
         givenSavableSourcePlaces(sourceCourse, basePlace);
+        List<CourseMoodTag> sourceMoodTags = List.of(courseMoodTag());
+        List<CourseFoodCategory> sourceFoodCategories =
+                List.of(courseFoodCategory(1L));
         given(courseMoodTagRepository.findAllByCourseIdOrderByIdAsc(10L))
-                .willReturn(List.of(courseMoodTag()));
+                .willReturn(sourceMoodTags);
         given(courseFoodCategoryRepository.findAllByCourseIdOrderByIdAsc(10L))
-                .willReturn(List.of(courseFoodCategory()));
+                .willReturn(sourceFoodCategories);
 
         assertThatThrownBy(() ->
                 recommendedCourseSaveService.saveRecommendedCourse(10L, 1L))
@@ -241,10 +247,62 @@ class RecommendedCourseSaveServiceTest {
         Course sourceCourse = sourceCourse(basePlace);
 
         givenSavableSourcePlaces(sourceCourse, basePlace);
+        List<CourseMoodTag> sourceMoodTags = moodTags(7);
+        List<CourseFoodCategory> sourceFoodCategories =
+                List.of(courseFoodCategory(1L));
         given(courseMoodTagRepository.findAllByCourseIdOrderByIdAsc(10L))
-                .willReturn(moodTags(7));
+                .willReturn(sourceMoodTags);
         given(courseFoodCategoryRepository.findAllByCourseIdOrderByIdAsc(10L))
-                .willReturn(List.of(courseFoodCategory()));
+                .willReturn(sourceFoodCategories);
+
+        assertThatThrownBy(() ->
+                recommendedCourseSaveService.saveRecommendedCourse(10L, 1L))
+                .isInstanceOf(CourseException.class)
+                .extracting("errorCode")
+                .isEqualTo(CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE);
+
+        verify(courseRepository, never()).save(any());
+    }
+
+    @Test
+    void throwsWhenSourceCourseMoodTagsContainDuplicateMoodTagId() {
+        Place basePlace = place(100L);
+        Course sourceCourse = sourceCourse(basePlace);
+
+        givenSavableSourcePlaces(sourceCourse, basePlace);
+        List<CourseMoodTag> sourceMoodTags =
+                List.of(courseMoodTag(1L), courseMoodTag(1L));
+        List<CourseFoodCategory> sourceFoodCategories =
+                List.of(courseFoodCategory(1L));
+        given(courseMoodTagRepository.findAllByCourseIdOrderByIdAsc(10L))
+                .willReturn(sourceMoodTags);
+        given(courseFoodCategoryRepository.findAllByCourseIdOrderByIdAsc(10L))
+                .willReturn(sourceFoodCategories);
+
+        assertThatThrownBy(() ->
+                recommendedCourseSaveService.saveRecommendedCourse(10L, 1L))
+                .isInstanceOf(CourseException.class)
+                .extracting("errorCode")
+                .isEqualTo(CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE);
+
+        verify(courseRepository, never()).save(any());
+    }
+
+    @Test
+    void throwsWhenSourceCourseFoodCategoriesContainDuplicateFoodCategoryId() {
+        Place basePlace = place(100L);
+        Course sourceCourse = sourceCourse(basePlace);
+
+        givenSavableSourcePlaces(sourceCourse, basePlace);
+        List<CourseMoodTag> sourceMoodTags = moodTags(2);
+        List<CourseFoodCategory> sourceFoodCategories = List.of(
+                courseFoodCategory(1L),
+                courseFoodCategory(1L)
+        );
+        given(courseMoodTagRepository.findAllByCourseIdOrderByIdAsc(10L))
+                .willReturn(sourceMoodTags);
+        given(courseFoodCategoryRepository.findAllByCourseIdOrderByIdAsc(10L))
+                .willReturn(sourceFoodCategories);
 
         assertThatThrownBy(() ->
                 recommendedCourseSaveService.saveRecommendedCourse(10L, 1L))
@@ -261,8 +319,9 @@ class RecommendedCourseSaveServiceTest {
         Course sourceCourse = sourceCourse(basePlace);
 
         givenSavableSourcePlaces(sourceCourse, basePlace);
+        List<CourseMoodTag> sourceMoodTags = moodTags(2);
         given(courseMoodTagRepository.findAllByCourseIdOrderByIdAsc(10L))
-                .willReturn(moodTags(2));
+                .willReturn(sourceMoodTags);
         given(courseFoodCategoryRepository.findAllByCourseIdOrderByIdAsc(10L))
                 .willReturn(List.of());
 
@@ -351,20 +410,32 @@ class RecommendedCourseSaveServiceTest {
     }
 
     private CourseMoodTag courseMoodTag() {
+        return courseMoodTag(1L);
+    }
+
+    private CourseMoodTag courseMoodTag(Long moodTagId) {
+        MoodTag moodTag = mock(MoodTag.class);
+        lenient().when(moodTag.getId()).thenReturn(moodTagId);
         return CourseMoodTag.builder()
-                .moodTag(mock(MoodTag.class))
+                .moodTag(moodTag)
                 .build();
     }
 
     private List<CourseMoodTag> moodTags(int count) {
         return IntStream.range(0, count)
-                .mapToObj(index -> courseMoodTag())
+                .mapToObj(index -> courseMoodTag((long) index + 1))
                 .toList();
     }
 
     private CourseFoodCategory courseFoodCategory() {
+        return courseFoodCategory(1L);
+    }
+
+    private CourseFoodCategory courseFoodCategory(Long foodCategoryId) {
+        FoodCategory foodCategory = mock(FoodCategory.class);
+        lenient().when(foodCategory.getId()).thenReturn(foodCategoryId);
         return CourseFoodCategory.builder()
-                .foodCategory(mock(FoodCategory.class))
+                .foodCategory(foodCategory)
                 .build();
     }
 }

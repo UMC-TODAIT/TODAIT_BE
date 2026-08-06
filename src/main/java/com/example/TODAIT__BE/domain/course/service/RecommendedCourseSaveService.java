@@ -200,6 +200,29 @@ public class RecommendedCourseSaveService {
                 || sourceFoodCategories.isEmpty()) {
             throwRecommendedCourseNotSavable();
         }
+
+        Set<Long> moodTagIds = new HashSet<>();
+        for (CourseMoodTag sourceMoodTag : sourceMoodTags) {
+            Long moodTagId = sourceMoodTag.getMoodTag() == null
+                    ? null
+                    : sourceMoodTag.getMoodTag().getId();
+
+            if (moodTagId == null || !moodTagIds.add(moodTagId)) {
+                throwRecommendedCourseNotSavable();
+            }
+        }
+
+        Set<Long> foodCategoryIds = new HashSet<>();
+        for (CourseFoodCategory sourceFoodCategory : sourceFoodCategories) {
+            Long foodCategoryId = sourceFoodCategory.getFoodCategory() == null
+                    ? null
+                    : sourceFoodCategory.getFoodCategory().getId();
+
+            if (foodCategoryId == null
+                    || !foodCategoryIds.add(foodCategoryId)) {
+                throwRecommendedCourseNotSavable();
+            }
+        }
     }
 
     private CourseException recommendedCourseNotSavable() {
