@@ -60,15 +60,11 @@ public class PasswordResetService {
     ) {
         String email = normalizeAndValidateEmail(request.email());
         String resetToken = randomCodeGenerator.generateUrlSafeToken();
-        VerifyCodeResult result = verifyCode(email, request.code().trim(), resetToken);
+        VerifyCodeResult result = verifyCode(email, request.code(), resetToken);
 
-        if (result == VerifyCodeResult.CODE_NOT_FOUND) {
-            throw new MemberException(PasswordResetErrorCode.CODE_NOT_FOUND);
-        }
-        if (result == VerifyCodeResult.CODE_EXPIRED) {
-            throw new MemberException(PasswordResetErrorCode.CODE_EXPIRED);
-        }
-        if (result == VerifyCodeResult.CODE_MISMATCH) {
+        if (result == VerifyCodeResult.CODE_NOT_FOUND
+                || result == VerifyCodeResult.CODE_EXPIRED
+                || result == VerifyCodeResult.CODE_MISMATCH) {
             throw new MemberException(PasswordResetErrorCode.CODE_MISMATCH);
         }
         if (result == VerifyCodeResult.VERIFY_ATTEMPT_EXCEEDED) {
@@ -79,6 +75,10 @@ public class PasswordResetService {
     }
 
     private VerifyCodeResult verifyCode(String email, String code, String resetToken) {
+        if (code == null) {
+            return VerifyCodeResult.CODE_MISMATCH;
+        }
+
         try {
             return passwordResetStore.verifyCodeAndSaveResetToken(email, code, resetToken);
         } catch (RuntimeException e) {
@@ -102,7 +102,7 @@ public class PasswordResetService {
         try {
             return passwordResetStore.saveCodeIfNotCoolingDown(email, code);
         } catch (RuntimeException e) {
-            log.warn("비밀번호 재설정 인증번호 저장에 실패했습니다. email={}", email, e);
+            log.warn("비밀번호 재설정 인증번호 저장에 실패했습니다. email={}", maskEmail(email), e);
             return false;
         }
     }
@@ -111,8 +111,17 @@ public class PasswordResetService {
         try {
             passwordResetSender.sendPasswordResetCode(email, code);
         } catch (RuntimeException e) {
-            log.warn("비밀번호 재설정 인증번호 발송에 실패했습니다. email={}", email, e);
+            log.warn("비밀번호 재설정 인증번호 발송에 실패했습니다. email={}", maskEmail(email), e);
         }
+    }
+
+    private String maskEmail(String email) {
+        int atIndex = email.indexOf('@');
+        if (atIndex <= 1) {
+            return "***";
+        }
+
+        return email.charAt(0) + "***" + email.substring(atIndex);
     }
 
     private String normalizeAndValidateEmail(String email) {

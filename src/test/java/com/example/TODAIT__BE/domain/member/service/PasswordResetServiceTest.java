@@ -161,7 +161,7 @@ class PasswordResetServiceTest {
         ))
                 .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
-                .isEqualTo(PasswordResetErrorCode.CODE_NOT_FOUND);
+                .isEqualTo(PasswordResetErrorCode.CODE_MISMATCH);
     }
 
     @Test
@@ -175,7 +175,19 @@ class PasswordResetServiceTest {
         ))
                 .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
-                .isEqualTo(PasswordResetErrorCode.CODE_EXPIRED);
+                .isEqualTo(PasswordResetErrorCode.CODE_MISMATCH);
+    }
+
+    @Test
+    void verifyPasswordResetCodeFailsWhenCodeIsNull() {
+        assertThatThrownBy(() -> passwordResetService.verifyPasswordResetCode(
+                new PasswordResetRequest.Verify("test@example.com", null)
+        ))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(PasswordResetErrorCode.CODE_MISMATCH);
+
+        verify(passwordResetStore, never()).verifyCodeAndSaveResetToken(anyString(), anyString(), anyString());
     }
 
     @Test

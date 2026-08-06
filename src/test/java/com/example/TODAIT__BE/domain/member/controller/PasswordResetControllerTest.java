@@ -124,31 +124,31 @@ class PasswordResetControllerTest {
     }
 
     @Test
-    void verifyPasswordResetCode_codeNotFound_returns404() throws Exception {
+    void verifyPasswordResetCode_codeNotFound_returns400() throws Exception {
         given(passwordResetService.verifyPasswordResetCode(any()))
-                .willThrow(new MemberException(PasswordResetErrorCode.CODE_NOT_FOUND));
+                .willThrow(new MemberException(PasswordResetErrorCode.CODE_MISMATCH));
 
         mockMvc.perform(post("/api/auth/password-reset/email/verify-code")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
                                 new PasswordResetRequest.Verify("missing@example.com", "123456"))))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("AUTH404_2"))
-                .andExpect(jsonPath("$.message").value("해당 이메일로 발송된 인증번호가 없습니다."));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("AUTH400_4"))
+                .andExpect(jsonPath("$.message").value("인증번호가 일치하지 않습니다."));
     }
 
     @Test
-    void verifyPasswordResetCode_codeExpired_returns410() throws Exception {
+    void verifyPasswordResetCode_codeExpired_returns400() throws Exception {
         given(passwordResetService.verifyPasswordResetCode(any()))
-                .willThrow(new MemberException(PasswordResetErrorCode.CODE_EXPIRED));
+                .willThrow(new MemberException(PasswordResetErrorCode.CODE_MISMATCH));
 
         mockMvc.perform(post("/api/auth/password-reset/email/verify-code")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
                                 new PasswordResetRequest.Verify("test@example.com", "123456"))))
-                .andExpect(status().isGone())
-                .andExpect(jsonPath("$.code").value("AUTH410_2"))
-                .andExpect(jsonPath("$.message").value("인증번호가 만료되었습니다."));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("AUTH400_4"))
+                .andExpect(jsonPath("$.message").value("인증번호가 일치하지 않습니다."));
     }
 
     @Test
