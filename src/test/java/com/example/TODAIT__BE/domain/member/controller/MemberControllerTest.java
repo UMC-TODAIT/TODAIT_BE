@@ -79,6 +79,18 @@ class MemberControllerTest {
     }
 
     @Test
+    void checkNicknameAvailability_blankNickname_returnsNotBlankMessage() throws Exception {
+        mockMvc.perform(get("/api/members/nickname-availability")
+                        .param("nickname", ""))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.isSuccess").value(false))
+                .andExpect(jsonPath("$.code").value("COMMON400_1"))
+                .andExpect(jsonPath("$.message").value("닉네임은 필수입니다."));
+
+        verify(memberService, never()).checkNicknameAvailability("");
+    }
+
+    @Test
     void getMyInfo_success() throws Exception {
         given(memberService.getMyInfo(MEMBER_ID))
                 .willReturn(new MemberResponse.Me(

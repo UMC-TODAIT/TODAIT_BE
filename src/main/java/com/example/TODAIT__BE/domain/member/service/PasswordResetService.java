@@ -66,7 +66,7 @@ public class PasswordResetService {
         try {
             return passwordResetStore.saveCodeIfNotCoolingDown(email, code);
         } catch (RuntimeException e) {
-            log.warn("비밀번호 재설정 인증번호 저장에 실패했습니다. email={}", email, e);
+            log.warn("비밀번호 재설정 인증번호 저장에 실패했습니다. email={}", maskEmail(email), e);
             return false;
         }
     }
@@ -75,8 +75,17 @@ public class PasswordResetService {
         try {
             passwordResetSender.sendPasswordResetCode(email, code);
         } catch (RuntimeException e) {
-            log.warn("비밀번호 재설정 인증번호 발송에 실패했습니다. email={}", email, e);
+            log.warn("비밀번호 재설정 인증번호 발송에 실패했습니다. email={}", maskEmail(email), e);
         }
+    }
+
+    private String maskEmail(String email) {
+        int atIndex = email.indexOf('@');
+        if (atIndex <= 1) {
+            return "***";
+        }
+
+        return email.charAt(0) + "***" + email.substring(atIndex);
     }
 
     private String normalizeAndValidateEmail(String email) {
