@@ -1,9 +1,7 @@
 package com.example.TODAIT__BE.domain.member.controller;
 
-import com.example.TODAIT__BE.domain.member.code.PasswordResetErrorCode;
 import com.example.TODAIT__BE.domain.member.dto.request.PasswordResetRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.PasswordResetResponse;
-import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.service.PasswordResetService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -67,46 +65,20 @@ class PasswordResetControllerTest {
     }
 
     @Test
-    void sendPasswordResetCode_memberNotFound_returns404() throws Exception {
+    void sendPasswordResetCode_unknownEmail_returnsSameSuccessResponse() throws Exception {
         given(passwordResetService.sendPasswordResetCode(any()))
-                .willThrow(new MemberException(PasswordResetErrorCode.EMAIL_NOT_FOUND));
+                .willReturn(new PasswordResetResponse.Send());
 
         mockMvc.perform(post("/api/auth/password-reset/email/send-code")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
                                 new PasswordResetRequest.Send("missing@example.com"))))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.isSuccess").value(false))
-                .andExpect(jsonPath("$.code").value("AUTH404_1"))
-                .andExpect(jsonPath("$.message").value("해당 이메일로 가입된 회원이 없습니다."));
-    }
-
-    @Test
-    void sendPasswordResetCode_socialOnlyMember_returns400() throws Exception {
-        given(passwordResetService.sendPasswordResetCode(any()))
-                .willThrow(new MemberException(PasswordResetErrorCode.EMAIL_MEMBER_ONLY));
-
-        mockMvc.perform(post("/api/auth/password-reset/email/send-code")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(
-                                new PasswordResetRequest.Send("social@example.com"))))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("AUTH400_2"))
-                .andExpect(jsonPath("$.message").value("일반 이메일 회원만 비밀번호 재설정이 가능합니다."));
-    }
-
-    @Test
-    void sendPasswordResetCode_resendCooldown_returns429() throws Exception {
-        given(passwordResetService.sendPasswordResetCode(any()))
-                .willThrow(new MemberException(PasswordResetErrorCode.RESEND_COOLDOWN));
-
-        mockMvc.perform(post("/api/auth/password-reset/email/send-code")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(
-                                new PasswordResetRequest.Send("test@example.com"))))
-                .andExpect(status().isTooManyRequests())
-                .andExpect(jsonPath("$.code").value("AUTH429_1"))
-                .andExpect(jsonPath("$.message").value("인증번호 발송 요청이 너무 많습니다."));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.code").value("AUTH200_4"))
+                .andExpect(jsonPath("$.message").value("비밀번호 재설정 인증번호 발송 성공"))
+                .andExpect(jsonPath("$.result").isMap())
+                .andExpect(jsonPath("$.result").isEmpty());
     }
 
     @Test

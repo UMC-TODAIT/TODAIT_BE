@@ -9,12 +9,15 @@ import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.member.service.port.PasswordResetSender;
 import com.example.TODAIT__BE.domain.member.service.port.PasswordResetStore;
 import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
-import com.example.TODAIT__BE.global.apiPayload.exception.ProjectException;
 import com.example.TODAIT__BE.global.util.RandomCodeGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class PasswordResetService {
+
+    private static final Logger log = LoggerFactory.getLogger(PasswordResetService.class);
 
     private final MemberRepository memberRepository;
     private final PasswordResetStore passwordResetStore;
@@ -37,35 +40,42 @@ public class PasswordResetService {
             PasswordResetRequest.Send request
     ) {
         String email = normalizeAndValidateEmail(request.email());
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new MemberException(PasswordResetErrorCode.EMAIL_NOT_FOUND));
-        validatePasswordResetTarget(member);
+        Member member = memberRepository.findByEmail(email).orElse(null);
+        if (!canSendPasswordResetCode(member)) {
+            return new PasswordResetResponse.Send();
+        }
 
         String code = randomCodeGenerator.generateNumericCode();
-        saveCode(email, code);
-        passwordResetSender.sendPasswordResetCode(email, code);
+        if (saveCode(email, code)) {
+            sendCode(email, code);
+        }
 
         return new PasswordResetResponse.Send();
     }
 
-    private void validatePasswordResetTarget(Member member) {
+    private boolean canSendPasswordResetCode(Member member) {
+        if (member == null) {
+            return false;
+        }
+
         String passwordHash = member.getPasswordHash();
-        if (passwordHash == null || passwordHash.isBlank()) {
-            throw new MemberException(PasswordResetErrorCode.EMAIL_MEMBER_ONLY);
+        return passwordHash != null && !passwordHash.isBlank();
+    }
+
+    private boolean saveCode(String email, String code) {
+        try {
+            return passwordResetStore.saveCodeIfNotCoolingDown(email, code);
+        } catch (RuntimeException e) {
+            log.warn("비밀번호 재설정 인증번호 저장에 실패했습니다. email={}", email, e);
+            return false;
         }
     }
 
-    private void saveCode(String email, String code) {
+    private void sendCode(String email, String code) {
         try {
-            boolean saved = passwordResetStore.saveCodeIfNotCoolingDown(email, code);
-            if (!saved) {
-                throw new MemberException(PasswordResetErrorCode.RESEND_COOLDOWN);
-            }
+            passwordResetSender.sendPasswordResetCode(email, code);
         } catch (RuntimeException e) {
-            if (e instanceof ProjectException) {
-                throw e;
-            }
-            throw new MemberException(PasswordResetErrorCode.STORE_FAILED, e);
+            log.warn("비밀번호 재설정 인증번호 발송에 실패했습니다. email={}", email, e);
         }
     }
 
