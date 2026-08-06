@@ -56,7 +56,8 @@ public class SecurityConfig {
                                 "/api/auth/google/login",
                                 "/api/auth/email/send-code",
                                 "/api/auth/email/verify-code",
-                                "/api/auth/password-reset/email/send-code"
+                                "/api/auth/password-reset/email/send-code",
+                                "/api/auth/password-reset/email/verify-code"
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.GET,

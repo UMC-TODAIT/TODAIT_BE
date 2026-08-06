@@ -118,4 +118,87 @@ class PasswordResetControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("COMMON400_1"));
     }
+
+    @Test
+    void verifyPasswordResetCode_success() throws Exception {
+        given(passwordResetService.verifyPasswordResetCode(any()))
+                .willReturn(new PasswordResetResponse.Verify("reset-token"));
+
+        mockMvc.perform(post("/api/auth/password-reset/email/verify-code")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new PasswordResetRequest.Verify("test@example.com", "123456"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.code").value("AUTH200_5"))
+                .andExpect(jsonPath("$.message").value("비밀번호 재설정 인증번호 확인 성공"))
+                .andExpect(jsonPath("$.result.resetToken").value("reset-token"));
+    }
+
+    @Test
+    void verifyPasswordResetCode_codeMismatch_returns400() throws Exception {
+        given(passwordResetService.verifyPasswordResetCode(any()))
+                .willThrow(new MemberException(PasswordResetErrorCode.CODE_MISMATCH));
+
+        mockMvc.perform(post("/api/auth/password-reset/email/verify-code")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new PasswordResetRequest.Verify("test@example.com", "000000"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("AUTH400_4"))
+                .andExpect(jsonPath("$.message").value("인증번호가 일치하지 않습니다."));
+    }
+
+    @Test
+    void verifyPasswordResetCode_codeNotFound_returns404() throws Exception {
+        given(passwordResetService.verifyPasswordResetCode(any()))
+                .willThrow(new MemberException(PasswordResetErrorCode.CODE_NOT_FOUND));
+
+        mockMvc.perform(post("/api/auth/password-reset/email/verify-code")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new PasswordResetRequest.Verify("missing@example.com", "123456"))))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("AUTH404_2"))
+                .andExpect(jsonPath("$.message").value("해당 이메일로 발송된 인증번호가 없습니다."));
+    }
+
+    @Test
+    void verifyPasswordResetCode_codeExpired_returns410() throws Exception {
+        given(passwordResetService.verifyPasswordResetCode(any()))
+                .willThrow(new MemberException(PasswordResetErrorCode.CODE_EXPIRED));
+
+        mockMvc.perform(post("/api/auth/password-reset/email/verify-code")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new PasswordResetRequest.Verify("test@example.com", "123456"))))
+                .andExpect(status().isGone())
+                .andExpect(jsonPath("$.code").value("AUTH410_2"))
+                .andExpect(jsonPath("$.message").value("인증번호가 만료되었습니다."));
+    }
+
+    @Test
+    void verifyPasswordResetCode_verifyAttemptExceeded_returns429() throws Exception {
+        given(passwordResetService.verifyPasswordResetCode(any()))
+                .willThrow(new MemberException(PasswordResetErrorCode.VERIFY_ATTEMPT_EXCEEDED));
+
+        mockMvc.perform(post("/api/auth/password-reset/email/verify-code")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new PasswordResetRequest.Verify("test@example.com", "123456"))))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code").value("AUTH429_2"))
+                .andExpect(jsonPath("$.message").value("인증번호 확인 요청이 너무 많습니다."));
+    }
+
+    @Test
+    void verifyPasswordResetCode_invalidRequest_returns400() throws Exception {
+        mockMvc.perform(post("/api/auth/password-reset/email/verify-code")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new PasswordResetRequest.Verify("test@example.com", "abc"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("COMMON400_1"))
+                .andExpect(jsonPath("$.message").value("인증번호는 6자리 숫자여야 합니다."));
+    }
 }
