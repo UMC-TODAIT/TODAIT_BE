@@ -96,7 +96,6 @@ public class CourseSaveService {
                 .memo(request.memo())
                 .visibility(CourseVisibility.PRIVATE)
                 .sourceType(CourseSourceType.USER_CREATED)
-                .placeCount(draftPlaces.size())
                 .build());
 
 

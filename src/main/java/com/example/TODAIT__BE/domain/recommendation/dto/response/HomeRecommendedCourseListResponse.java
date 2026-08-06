@@ -4,11 +4,9 @@ import java.util.List;
 
 public record HomeRecommendedCourseListResponse(
         Long recommendationLogId,
-        int page,
         int size,
-        long totalElements,
-        int totalPages,
         boolean hasNext,
+        String nextCursor,
         List<HomeRecommendedCourseResponse> courses
 ) {
 }

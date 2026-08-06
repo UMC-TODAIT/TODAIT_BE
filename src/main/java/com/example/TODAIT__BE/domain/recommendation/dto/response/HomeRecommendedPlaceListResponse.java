@@ -4,9 +4,10 @@ import java.util.List;
 
 public record HomeRecommendedPlaceListResponse(
         Long recommendationLogId,
-        Integer page,
         Integer size,
         Boolean locationAvailable,
+        Boolean hasNext,
+        String nextCursor,
         List<HomeRecommendedPlaceResponse> places
 ) {
 }
