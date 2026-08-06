@@ -66,6 +66,27 @@ class CourseDraftSavingServiceTest {
     }
 
     @Test
+    void enterSavingReturnsRoutePreviewWhenDraftIsAlreadySaving() {
+        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
+        CourseDraftPlace base = draftPlace(100L, PlaceRole.BASE, 1, place(1000L, "base"));
+        CourseDraftPlace selected = draftPlace(101L, PlaceRole.SELECTED, 2, place(1001L, "selected"));
+
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+        given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
+                .willReturn(List.of(base, selected));
+
+        CourseDraftSavingEnterResponse response = courseDraftSavingService.enterSaving(10L, 1L);
+
+        assertThat(draft.getStatus()).isEqualTo(CourseDraftStatus.SAVING);
+        assertThat(response.courseDraftId()).isEqualTo(10L);
+        assertThat(response.draftStatus()).isEqualTo(CourseDraftStatus.SAVING);
+        assertThat(response.totalPlaceCount()).isEqualTo(2);
+        assertThat(response.routePreview()).hasSize(2);
+        assertThat(response.routePreview().get(0).placeRole()).isEqualTo(PlaceRole.BASE);
+        assertThat(response.routePreview().get(1).visitOrder()).isEqualTo(2);
+    }
+
+    @Test
     void throwsWhenRequesterIsNotOwner() {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
@@ -79,10 +100,10 @@ class CourseDraftSavingServiceTest {
     @ParameterizedTest
     @EnumSource(
             value = CourseDraftStatus.class,
-            names = "ORDERING",
+            names = {"ORDERING", "SAVING"},
             mode = EnumSource.Mode.EXCLUDE
     )
-    void throwsConflictWhenDraftStatusIsNotOrdering(CourseDraftStatus status) {
+    void throwsConflictWhenDraftStatusCannotEnterSaving(CourseDraftStatus status) {
         CourseDraft draft = courseDraft(10L, member(1L), status);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 

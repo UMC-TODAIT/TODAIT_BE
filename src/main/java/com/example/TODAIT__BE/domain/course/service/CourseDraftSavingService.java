@@ -35,13 +35,15 @@ public class CourseDraftSavingService {
             throw new CourseException(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
         }
 
-        validateOrderingStatus(courseDraft);
+        validateEnterSavingStatus(courseDraft);
 
         List<CourseDraftPlace> draftPlaces =
                 courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(courseDraft);
         validatePlaces(draftPlaces);
 
-        courseDraft.changeStatus(CourseDraftStatus.SAVING);
+        if (courseDraft.getStatus() == CourseDraftStatus.ORDERING) {
+            courseDraft.changeStatus(CourseDraftStatus.SAVING);
+        }
 
         List<CourseDraftPlaceResponse> routePreview = draftPlaces.stream()
                 .map(CourseDraftPlaceResponse::from)
@@ -54,8 +56,9 @@ public class CourseDraftSavingService {
         );
     }
 
-    private void validateOrderingStatus(CourseDraft courseDraft) {
-        if (courseDraft.getStatus() != CourseDraftStatus.ORDERING) {
+    private void validateEnterSavingStatus(CourseDraft courseDraft) {
+        if (courseDraft.getStatus() != CourseDraftStatus.ORDERING
+                && courseDraft.getStatus() != CourseDraftStatus.SAVING) {
             throw new CourseException(CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
         }
     }
