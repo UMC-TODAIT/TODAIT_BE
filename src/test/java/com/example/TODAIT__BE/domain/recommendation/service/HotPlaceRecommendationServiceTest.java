@@ -426,7 +426,7 @@ class HotPlaceRecommendationServiceTest {
                 .extracting(exception ->
                         ((CourseException) exception).getErrorCode()
                 )
-                .isEqualTo(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
+                .isEqualTo(CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
 
         verify(candidateLoader, never()).load();
     }
