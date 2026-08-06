@@ -1,15 +1,26 @@
 package com.example.TODAIT__BE.domain.place.service.support;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public enum PlaceCategoryDefaultImage {
 
-    CAFE("실제 공개 HTTPS URL"),
-    RESTAURANT("실제 공개 HTTPS URL"),
-    BAR("실제 공개 HTTPS URL"),
-    ACTIVITY("실제 공개 HTTPS URL");
+    CAFE(null),
+    RESTAURANT(null),
+    BAR(null),
+    ACTIVITY(null);
+
+    private static final Logger log =
+            LoggerFactory.getLogger(PlaceCategoryDefaultImage.class);
 
     private final String imageUrl;
 
     PlaceCategoryDefaultImage(String imageUrl) {
+        if (imageUrl != null && !imageUrl.startsWith("https://")) {
+            throw new IllegalArgumentException(
+                    "카테고리 기본 이미지는 공개 HTTPS URL이어야 합니다."
+            );
+        }
         this.imageUrl = imageUrl;
     }
 
@@ -18,6 +29,20 @@ public enum PlaceCategoryDefaultImage {
     }
 
     public static String getImageUrl(String categoryCode) {
-        return valueOf(categoryCode).imageUrl;
+        if (categoryCode == null || categoryCode.isBlank()) {
+            return null;
+        }
+
+        String normalizedCode = categoryCode.trim();
+
+        try {
+            return valueOf(normalizedCode).imageUrl;
+        } catch (IllegalArgumentException exception) {
+            log.warn(
+                    "Unknown place category code for default image: {}",
+                    categoryCode
+            );
+            return null;
+        }
     }
 }

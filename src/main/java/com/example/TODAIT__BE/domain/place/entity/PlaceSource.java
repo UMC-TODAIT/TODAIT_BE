@@ -41,7 +41,7 @@ public class PlaceSource {
     @JoinColumn(name = "data_source_id", nullable = false)
     private PlaceDataSource dataSource;
 
-    @Column(name = "source_place_id", length = 255)
+    @Column(name = "source_place_id", nullable = false, length = 255)
     private String sourcePlaceId;
 
     @Column(name = "source_url", length = 1000)
