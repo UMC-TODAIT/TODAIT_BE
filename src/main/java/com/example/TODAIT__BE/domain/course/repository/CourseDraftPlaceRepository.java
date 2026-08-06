@@ -12,6 +12,17 @@ public interface CourseDraftPlaceRepository extends JpaRepository<CourseDraftPla
 
     List<CourseDraftPlace> findByCourseDraftOrderByVisitOrderAsc(CourseDraft courseDraft);
 
+    @Query("""
+            select cdp
+            from CourseDraftPlace cdp
+            join fetch cdp.place
+            where cdp.courseDraft = :courseDraft
+            order by cdp.visitOrder asc
+            """)
+    List<CourseDraftPlace> findByCourseDraftWithPlaceOrderByVisitOrderAsc(
+            @Param("courseDraft") CourseDraft courseDraft
+    );
+
     List<CourseDraftPlace> findByCourseDraftAndPlaceRole(CourseDraft courseDraft, PlaceRole placeRole);
 
     @Query("""

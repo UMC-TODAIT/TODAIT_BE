@@ -4,6 +4,8 @@ import com.example.TODAIT__BE.domain.member.dto.request.AuthRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +20,46 @@ public interface AuthControllerDocs {
                     이메일 인증을 완료한 사용자의 일반 회원가입을 처리합니다.
                     회원가입이 완료되면 회원과 약관 동의 내역을 저장하고
                     서비스 Access Token과 Refresh Token을 발급합니다.
+                    필수 약관: SERVICE, PRIVACY
+                    선택 약관: LOCATION, MARKETING
                     """
     )
     ResponseEntity<ApiResponse<AuthResponse.Token>> signup(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    description = "일반 회원가입 요청 예시",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(
+                                    implementation = AuthRequest.SignUp.class,
+                                    example = """
+                                        {
+                                          "nickname": "투데잇테스트",
+                                          "email": "user@example.com",
+                                          "password": "Todait1234!",
+                                          "termAgreements": [
+                                            {
+                                              "termType": "SERVICE",
+                                              "agreed": true
+                                            },
+                                            {
+                                              "termType": "PRIVACY",
+                                              "agreed": true
+                                            },
+                                            {
+                                              "termType": "LOCATION",
+                                              "agreed": false
+                                            },
+                                            {
+                                              "termType": "MARKETING",
+                                              "agreed": false
+                                            }
+                                          ]
+                                        }
+                                        """
+                            )
+                    )
+            )
             AuthRequest.SignUp request
     );
 

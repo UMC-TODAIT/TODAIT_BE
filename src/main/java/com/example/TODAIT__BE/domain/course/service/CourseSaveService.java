@@ -130,8 +130,8 @@ public class CourseSaveService {
             throw new CourseException(CourseErrorCode.COURSE_DRAFT_ALREADY_COMPLETED);
         }
 
-        if (courseDraft.getStatus() != CourseDraftStatus.ORDERING) {
-            throw new CourseException(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
+        if (courseDraft.getStatus() != CourseDraftStatus.SAVING) {
+            throw new CourseException(CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
         }
     }
 
