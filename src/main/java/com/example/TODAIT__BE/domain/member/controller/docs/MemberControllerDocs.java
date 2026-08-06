@@ -5,6 +5,9 @@ import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -65,6 +68,9 @@ public interface MemberControllerDocs {
     )
     ResponseEntity<ApiResponse<MemberResponse.NicknameAvailability>> checkNicknameAvailability(
             @RequestParam
+            @NotBlank
+            @Size(min = 2, max = 12)
+            @Pattern(regexp = "^[\\uAC00-\\uD7A3a-zA-Z0-9]+$")
             String nickname
     );
 

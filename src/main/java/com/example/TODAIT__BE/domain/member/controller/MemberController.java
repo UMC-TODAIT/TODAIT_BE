@@ -5,10 +5,9 @@ import com.example.TODAIT__BE.domain.member.controller.docs.MemberControllerDocs
 import com.example.TODAIT__BE.domain.member.dto.response.MemberResponse;
 import com.example.TODAIT__BE.domain.member.service.MemberService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
+import com.example.TODAIT__BE.global.apiPayload.code.GeneralErrorCode;
+import com.example.TODAIT__BE.global.apiPayload.exception.ProjectException;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,9 +29,6 @@ public class MemberController implements MemberControllerDocs {
     @GetMapping("/nickname-availability")
     public ResponseEntity<ApiResponse<MemberResponse.NicknameAvailability>> checkNicknameAvailability(
             @RequestParam
-            @NotBlank
-            @Size(min = 2, max = 12)
-            @Pattern(regexp = "^[\\uAC00-\\uD7A3a-zA-Z0-9]+$")
             String nickname
     ) {
         MemberResponse.NicknameAvailability response =
@@ -50,6 +46,10 @@ public class MemberController implements MemberControllerDocs {
     public ResponseEntity<ApiResponse<MemberResponse.Me>> getMyInfo(
             @AuthenticationPrincipal AuthMember authMember
     ) {
+        if (authMember == null) {
+            throw new ProjectException(GeneralErrorCode.UNAUTHORIZED);
+        }
+
         MemberResponse.Me response = memberService.getMyInfo(authMember.memberId());
         return ResponseEntity
                 .status(MemberSuccessCode.MY_INFO_RETRIEVED.getStatus())
