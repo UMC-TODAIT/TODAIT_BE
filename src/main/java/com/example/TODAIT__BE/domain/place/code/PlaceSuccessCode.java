@@ -12,7 +12,7 @@ public enum PlaceSuccessCode implements BaseSuccessCode {
             "PLACE200",
             "기준 장소 검색 결과 조회 성공"),
     PLACE_DETAIL_OK(HttpStatus.OK,
-            "PLACE200",
+            "PLACE200_1",
             "장소 상세 조회 성공"),
     ;
 
