@@ -67,10 +67,24 @@ public class GeneralExceptionAdvice {
                 .body(ApiResponse.onFailure(code, message, null));
     }
 
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHandlerMethodValidationException(
+            HandlerMethodValidationException e
+    ) {
+        BaseErrorCode code = GeneralErrorCode.BAD_REQUEST;
+        String message = e.getAllErrors().stream()
+                .map(MessageSourceResolvable::getDefaultMessage)
+                .filter(this::hasText)
+                .findFirst()
+                .orElse(code.getMessage());
+
+        return ResponseEntity.status(code.getStatus())
+                .body(ApiResponse.onFailure(code, message, null));
+    }
+
     @ExceptionHandler({
             HttpMessageNotReadableException.class,
-            MissingServletRequestParameterException.class,
-            HandlerMethodValidationException.class
+            MissingServletRequestParameterException.class
     })
     public ResponseEntity<ApiResponse<Void>> handleBadRequestException() {
         BaseErrorCode code = GeneralErrorCode.BAD_REQUEST;

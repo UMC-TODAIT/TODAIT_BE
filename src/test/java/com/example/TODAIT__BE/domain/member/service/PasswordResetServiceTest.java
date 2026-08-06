@@ -80,57 +80,48 @@ class PasswordResetServiceTest {
     }
 
     @Test
-    void sendPasswordResetCodeFailsWhenMemberDoesNotExist() {
+    void sendPasswordResetCodeReturnsSuccessWhenMemberDoesNotExist() {
         given(memberRepository.findByEmail("test@example.com"))
                 .willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> passwordResetService.sendPasswordResetCode(
+        passwordResetService.sendPasswordResetCode(
                 new PasswordResetRequest.Send("test@example.com")
-        ))
-                .isInstanceOf(MemberException.class)
-                .extracting("errorCode")
-                .isEqualTo(PasswordResetErrorCode.EMAIL_NOT_FOUND);
+        );
 
         verify(passwordResetStore, never()).saveCodeIfNotCoolingDown(anyString(), anyString());
         verify(passwordResetSender, never()).sendPasswordResetCode(anyString(), anyString());
     }
 
     @Test
-    void sendPasswordResetCodeRejectsSocialOnlyMember() {
+    void sendPasswordResetCodeReturnsSuccessForSocialOnlyMember() {
         given(memberRepository.findByEmail("social@example.com"))
                 .willReturn(Optional.of(socialOnlyMember()));
 
-        assertThatThrownBy(() -> passwordResetService.sendPasswordResetCode(
+        passwordResetService.sendPasswordResetCode(
                 new PasswordResetRequest.Send("social@example.com")
-        ))
-                .isInstanceOf(MemberException.class)
-                .extracting("errorCode")
-                .isEqualTo(PasswordResetErrorCode.EMAIL_MEMBER_ONLY);
+        );
 
         verify(passwordResetStore, never()).saveCodeIfNotCoolingDown(anyString(), anyString());
         verify(passwordResetSender, never()).sendPasswordResetCode(anyString(), anyString());
     }
 
     @Test
-    void sendPasswordResetCodeFailsWhenResendCooldownIsActive() {
+    void sendPasswordResetCodeReturnsSuccessWhenResendCooldownIsActive() {
         given(memberRepository.findByEmail("test@example.com"))
                 .willReturn(Optional.of(emailMember()));
         given(randomCodeGenerator.generateNumericCode()).willReturn("123456");
         given(passwordResetStore.saveCodeIfNotCoolingDown("test@example.com", "123456"))
                 .willReturn(false);
 
-        assertThatThrownBy(() -> passwordResetService.sendPasswordResetCode(
+        passwordResetService.sendPasswordResetCode(
                 new PasswordResetRequest.Send("test@example.com")
-        ))
-                .isInstanceOf(MemberException.class)
-                .extracting("errorCode")
-                .isEqualTo(PasswordResetErrorCode.RESEND_COOLDOWN);
+        );
 
         verify(passwordResetSender, never()).sendPasswordResetCode(anyString(), anyString());
     }
 
     @Test
-    void sendPasswordResetCodeFailsWhenStoreThrowsUnexpectedException() {
+    void sendPasswordResetCodeReturnsSuccessWhenStoreThrowsUnexpectedException() {
         given(memberRepository.findByEmail("test@example.com"))
                 .willReturn(Optional.of(emailMember()));
         given(randomCodeGenerator.generateNumericCode()).willReturn("123456");
@@ -138,12 +129,9 @@ class PasswordResetServiceTest {
                 .given(passwordResetStore)
                 .saveCodeIfNotCoolingDown("test@example.com", "123456");
 
-        assertThatThrownBy(() -> passwordResetService.sendPasswordResetCode(
+        passwordResetService.sendPasswordResetCode(
                 new PasswordResetRequest.Send("test@example.com")
-        ))
-                .isInstanceOf(MemberException.class)
-                .extracting("errorCode")
-                .isEqualTo(PasswordResetErrorCode.STORE_FAILED);
+        );
 
         verify(passwordResetSender, never()).sendPasswordResetCode(anyString(), anyString());
     }

@@ -69,12 +69,13 @@ class MemberControllerTest {
     @Test
     void checkNicknameAvailability_invalidNickname_returns400() throws Exception {
         mockMvc.perform(get("/api/members/nickname-availability")
-                        .param("nickname", "!"))
+                        .param("nickname", "a"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.isSuccess").value(false))
-                .andExpect(jsonPath("$.code").value("COMMON400_1"));
+                .andExpect(jsonPath("$.code").value("COMMON400_1"))
+                .andExpect(jsonPath("$.message").value("닉네임은 2자 이상 12자 이하여야 합니다."));
 
-        verify(memberService, never()).checkNicknameAvailability("!");
+        verify(memberService, never()).checkNicknameAvailability("a");
     }
 
     @Test
