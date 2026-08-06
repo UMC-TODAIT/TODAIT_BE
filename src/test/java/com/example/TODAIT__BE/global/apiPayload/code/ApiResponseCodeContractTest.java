@@ -13,6 +13,8 @@ import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.code.MemberSuccessCode;
 import com.example.TODAIT__BE.domain.member.code.OAuthErrorCode;
 import com.example.TODAIT__BE.domain.member.code.OAuthSuccessCode;
+import com.example.TODAIT__BE.domain.member.code.PasswordResetErrorCode;
+import com.example.TODAIT__BE.domain.member.code.PasswordResetSuccessCode;
 import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
 import com.example.TODAIT__BE.domain.place.code.PlaceSuccessCode;
 import com.example.TODAIT__BE.domain.recommendation.code.RecommendationErrorCode;
@@ -44,6 +46,8 @@ class ApiResponseCodeContractTest {
             new CodeEnum(OAuthErrorCode.class, Set.of("AUTH")),
             new CodeEnum(EmailVerificationSuccessCode.class, Set.of("EMAIL")),
             new CodeEnum(EmailVerificationErrorCode.class, Set.of("EMAIL")),
+            new CodeEnum(PasswordResetSuccessCode.class, Set.of("AUTH")),
+            new CodeEnum(PasswordResetErrorCode.class, Set.of("AUTH")),
             new CodeEnum(CourseSuccessCode.class, Set.of("COURSE")),
             new CodeEnum(CourseErrorCode.class, Set.of("COURSE")),
             new CodeEnum(PlaceSuccessCode.class, Set.of("PLACE")),
@@ -97,6 +101,13 @@ class ApiResponseCodeContractTest {
             entry("EmailVerificationErrorCode.VERIFY_ATTEMPT_EXCEEDED", "EMAIL429_2"),
             entry("EmailVerificationErrorCode.SEND_FAILED", "EMAIL500_1"),
             entry("EmailVerificationErrorCode.STORE_FAILED", "EMAIL500_2"),
+            entry("PasswordResetSuccessCode.CODE_SENT", "AUTH200_4"),
+            entry("PasswordResetErrorCode.INVALID_EMAIL_FORMAT", "AUTH400_3"),
+            entry("PasswordResetErrorCode.EMAIL_MEMBER_ONLY", "AUTH400_2"),
+            entry("PasswordResetErrorCode.EMAIL_NOT_FOUND", "AUTH404_1"),
+            entry("PasswordResetErrorCode.RESEND_COOLDOWN", "AUTH429_1"),
+            entry("PasswordResetErrorCode.SEND_FAILED", "AUTH500_1"),
+            entry("PasswordResetErrorCode.STORE_FAILED", "AUTH500_2"),
             entry("CourseSuccessCode.COURSE_DRAFT_CREATE_OK", "COURSE201"),
             entry("CourseSuccessCode.MOOD_TAG_SAVE_OK", "COURSE200_1"),
             entry("CourseSuccessCode.FOOD_CATEGORY_SAVE_OK", "COURSE200_2"),
@@ -106,6 +117,7 @@ class ApiResponseCodeContractTest {
             entry("CourseSuccessCode.SAVED_COURSE_OVERVIEW_OK", "COURSE200_4"),
             entry("CourseSuccessCode.SAVED_COURSE_DETAIL_OK", "COURSE200_5"),
             entry("CourseSuccessCode.RECOMMENDED_COURSE_SAVE_OK", "COURSE202"),
+            entry("CourseSuccessCode.COURSE_DRAFT_SAVING_ENTER_OK", "COURSE200_8"),
             entry("CourseErrorCode.COURSE_DRAFT_NOT_FOUND", "COURSE_DRAFT404"),
             entry("CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED", "COURSE403_1"),
             entry("CourseErrorCode.COURSE_DRAFT_ALREADY_COMPLETED", "COURSE_DRAFT409"),
@@ -119,7 +131,9 @@ class ApiResponseCodeContractTest {
             entry("CourseErrorCode.FOOD_CATEGORY_DRAFT_STATUS_CONFLICT", "COURSE_FOOD409"),
             entry("CourseErrorCode.INVALID_BASE_PLACE", "COURSE_BASE400"),
             entry("CourseErrorCode.INVALID_SELECTED_PLACE", "COURSE_PLACE400"),
-            entry("CourseErrorCode.INVALID_COURSE_DRAFT_STATUS", "COURSE_DRAFT400"),
+            entry("CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT", "COURSE_DRAFT409_1"),
+            entry("CourseErrorCode.COURSE_DRAFT_BASE_PLACE_CONFLICT", "COURSE_BASE409"),
+            entry("CourseErrorCode.COURSE_DRAFT_SELECTED_PLACE_CONFLICT", "COURSE_PLACE409"),
             entry("CourseErrorCode.SELECTED_PLACE_NOT_FOUND", "COURSE_PLACE404"),
             entry("CourseErrorCode.BASE_PLACE_NOT_REORDERABLE", "COURSE_BASE_REORDER400"),
             entry("CourseErrorCode.INVALID_VISIT_ORDER", "COURSE_ORDER400"),
@@ -127,7 +141,7 @@ class ApiResponseCodeContractTest {
             entry("CourseErrorCode.RECOMMENDED_COURSE_NOT_FOUND", "COURSE404"),
             entry("CourseErrorCode.SAVED_COURSE_ACCESS_DENIED", "COURSE403_2"),
             entry("CourseErrorCode.SAVED_COURSE_NOT_FOUND", "COURSE404_1"),
-            entry("CourseErrorCode.INVALID_RECOMMENDED_COURSE", "COURSE400_5"),
+            entry("CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE", "COURSE400_5"),
             entry("PlaceSuccessCode.PLACE_SEARCH_OK", "PLACE200"),
             entry("PlaceSuccessCode.PLACE_DETAIL_OK", "PLACE200_1"),
             entry("PlaceErrorCode.INVALID_PLACE_SEARCH_QUERY", "PLACE400_1"),

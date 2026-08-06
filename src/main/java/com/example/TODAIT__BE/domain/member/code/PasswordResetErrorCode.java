@@ -11,7 +11,7 @@ public enum PasswordResetErrorCode implements BaseErrorCode {
 
     INVALID_EMAIL_FORMAT(
             HttpStatus.BAD_REQUEST,
-            "AUTH400_1",
+            "AUTH400_3",
             "올바르지 않은 이메일 형식입니다."
     ),
 
