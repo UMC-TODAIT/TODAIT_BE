@@ -148,6 +148,7 @@ class ApiResponseCodeContractTest {
             entry("RecommendationErrorCode.INVALID_PLACE_SIZE", "RECOMMENDATION400_6"),
             entry("RecommendationErrorCode.INVALID_LOCATION_PAIR", "RECOMMENDATION400_7"),
             entry("RecommendationErrorCode.INVALID_LOCATION_RANGE", "RECOMMENDATION400_8"),
+            entry("RecommendationErrorCode.INVALID_CURSOR", "RECOMMENDATION400_9"),
             entry("RecommendationErrorCode.REQUEST_CONTEXT_SERIALIZATION_FAILED", "RECOMMENDATION500_1"),
             entry("TaxonomySuccessCode.PLACE_CATEGORY_LIST_OK", "TAXONOMY200"),
             entry("TaxonomyErrorCode.MOOD_TAG_NOT_FOUND", "MOOD_TAG404"),
