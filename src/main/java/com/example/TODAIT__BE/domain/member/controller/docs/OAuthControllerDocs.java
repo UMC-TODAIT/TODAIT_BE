@@ -9,14 +9,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 
 @Tag(
-        name = "OAuth",
-        description = "카카오/구글 소셜 로그인 API"
+        name = "MEMBER",
+        description = "회원 도메인 API"
 )
 @SecurityRequirements
 public interface OAuthControllerDocs {
 
     @Operation(
-            summary = "카카오 로그인",
+            summary = "[인증] 카카오 로그인",
             description = """
                     Android에서 발급한 카카오 Access Token을 검증하여 로그인합니다.
                     기존 회원이면 서비스 Access Token과 Refresh Token을 발급합니다.
@@ -28,7 +28,7 @@ public interface OAuthControllerDocs {
     );
 
     @Operation(
-            summary = "구글 로그인",
+            summary = "[인증] 구글 로그인",
             description = """
                     Android에서 발급한 Google ID Token을 검증하여 로그인합니다.
                     기존 회원이면 서비스 Access Token과 Refresh Token을 발급합니다.

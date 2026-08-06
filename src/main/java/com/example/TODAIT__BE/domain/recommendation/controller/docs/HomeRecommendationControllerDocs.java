@@ -9,11 +9,11 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 
-@Tag(name = "Recommendation", description = "추천 관련 API")
+@Tag(name = "RECOMMENDATION", description = "추천 도메인 API")
 public interface HomeRecommendationControllerDocs {
 
     @Operation(
-            summary = "홈 화면 추천 코스 목록 조회",
+            summary = "[홈] 추천 코스 목록 조회",
             description = """
                     홈 화면 '오늘의 추천 코스' 영역에 표시할 서비스 추천 코스 목록을 조회합니다.
                     운영자가 사전 구성한 추천 코스(홍대·연남·성수) 중 현재 날짜의 지역 로테이션과
@@ -32,7 +32,7 @@ public interface HomeRecommendationControllerDocs {
     );
 
     @Operation(
-            summary = "홈 화면 추천 장소 목록 조회",
+            summary = "[홈] 추천 장소 목록 조회",
             description = """
                     홈 화면의 추천 장소 영역에 표시할 운영자 관리 장소 목록을 조회합니다.
 

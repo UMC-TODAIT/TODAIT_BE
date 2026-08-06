@@ -8,13 +8,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 
 @Tag(
-        name = "Course Draft",
-        description = "임시 코스 및 코스 생성 플로우 관련 API"
+        name = "COURSE",
+        description = "코스 도메인 API"
 )
 public interface CourseDraftControllerDocs {
 
     @Operation(
-            summary = "임시 코스 생성",
+            summary = "[임시 코스] 임시 코스 생성",
             description = """
                     코스 생성 플로우를 시작하기 위한 새로운 임시 코스를 생성합니다.
                     기존 미완료 임시 코스가 존재하더라도 매 요청마다 새로운 Draft를 생성합니다.
