@@ -29,7 +29,7 @@ public enum CourseSuccessCode implements BaseSuccessCode {
             "임시 코스 장소 순서 변경 성공"),
 
     ORDERING_ENTRY_OK(HttpStatus.OK,
-            "COURSE200",
+            "COURSE200_9",
             "임시 코스 순서 설정 화면 진입 성공"),
 
     COURSE_DRAFT_SAVING_ENTER_OK(HttpStatus.OK,
