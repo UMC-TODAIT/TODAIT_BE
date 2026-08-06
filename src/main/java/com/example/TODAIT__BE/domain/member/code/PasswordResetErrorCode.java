@@ -21,6 +21,12 @@ public enum PasswordResetErrorCode implements BaseErrorCode {
             "인증번호가 일치하지 않습니다."
     ),
 
+    NEW_PASSWORD_MISMATCH(
+            HttpStatus.BAD_REQUEST,
+            "AUTH400_5",
+            "새 비밀번호와 새 비밀번호 확인이 일치하지 않습니다."
+    ),
+
     EMAIL_MEMBER_ONLY(
             HttpStatus.BAD_REQUEST,
             "AUTH400_2",
@@ -39,10 +45,22 @@ public enum PasswordResetErrorCode implements BaseErrorCode {
             "해당 이메일로 발송된 인증번호가 없습니다."
     ),
 
+    INVALID_RESET_TOKEN(
+            HttpStatus.UNAUTHORIZED,
+            "AUTH401_4",
+            "유효하지 않은 resetToken입니다."
+    ),
+
     CODE_EXPIRED(
             HttpStatus.GONE,
             "AUTH410_2",
             "인증번호가 만료되었습니다."
+    ),
+
+    RESET_TOKEN_EXPIRED(
+            HttpStatus.GONE,
+            "AUTH410_3",
+            "resetToken이 만료되었습니다."
     ),
 
     RESEND_COOLDOWN(

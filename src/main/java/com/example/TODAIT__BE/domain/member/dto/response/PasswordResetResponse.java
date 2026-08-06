@@ -16,4 +16,8 @@ public final class PasswordResetResponse {
             String resetToken
     ) {
     }
+
+    @Schema(name = "PasswordResetNewPasswordResponse")
+    public record SetNewPassword() {
+    }
 }
