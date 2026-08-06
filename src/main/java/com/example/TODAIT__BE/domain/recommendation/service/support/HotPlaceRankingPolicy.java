@@ -125,6 +125,7 @@ public class HotPlaceRankingPolicy {
                 );
     }
 
+    // Haversine 공식을 통해 사용자와 후보 장소 간의 거리를 계산
     private int calculateDistanceMeters(
             double userLatitude,
             double userLongitude,

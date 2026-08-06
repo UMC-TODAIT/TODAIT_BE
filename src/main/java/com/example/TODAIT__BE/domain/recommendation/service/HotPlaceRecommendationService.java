@@ -152,13 +152,17 @@ public class HotPlaceRecommendationService {
             return false;
         }
 
+        boolean invalidNumber =
+                !Double.isFinite(latitude)
+                        || !Double.isFinite(longitude);
+
         boolean invalidLatitude =
                 latitude < -90 || latitude > 90;
 
         boolean invalidLongitude =
                 longitude < -180 || longitude > 180;
 
-        if (invalidLatitude || invalidLongitude) {
+        if (invalidNumber || invalidLatitude || invalidLongitude) {
             throw new RecommendationException(
                     RecommendationErrorCode.INVALID_COORDINATES
             );

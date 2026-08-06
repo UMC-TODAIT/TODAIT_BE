@@ -324,6 +324,64 @@ class HotPlaceRecommendationServiceTest {
     }
 
     @Test
+    void rejectsNonFiniteLatitude() {
+        List<Double> invalidLatitudes = List.of(
+                Double.NaN,
+                Double.POSITIVE_INFINITY,
+                Double.NEGATIVE_INFINITY
+        );
+
+        for (Double invalidLatitude : invalidLatitudes) {
+            assertThatThrownBy(() -> service.getHotPlaces(
+                    MEMBER_ID,
+                    COURSE_DRAFT_ID,
+                    invalidLatitude,
+                    126.9230,
+                    4
+            ))
+                    .isInstanceOf(RecommendationException.class)
+                    .extracting(exception ->
+                            ((RecommendationException) exception)
+                                    .getErrorCode()
+                    )
+                    .isEqualTo(
+                            RecommendationErrorCode.INVALID_COORDINATES
+                    );
+        }
+
+        verify(courseDraftRepository, never()).findById(any());
+    }
+
+    @Test
+    void rejectsNonFiniteLongitude() {
+        List<Double> invalidLongitudes = List.of(
+                Double.NaN,
+                Double.POSITIVE_INFINITY,
+                Double.NEGATIVE_INFINITY
+        );
+
+        for (Double invalidLongitude : invalidLongitudes) {
+            assertThatThrownBy(() -> service.getHotPlaces(
+                    MEMBER_ID,
+                    COURSE_DRAFT_ID,
+                    37.5610,
+                    invalidLongitude,
+                    4
+            ))
+                    .isInstanceOf(RecommendationException.class)
+                    .extracting(exception ->
+                            ((RecommendationException) exception)
+                                    .getErrorCode()
+                    )
+                    .isEqualTo(
+                            RecommendationErrorCode.INVALID_COORDINATES
+                    );
+        }
+
+        verify(courseDraftRepository, never()).findById(any());
+    }
+
+    @Test
     void rejectsCourseDraftOwnedByAnotherMember() {
         CourseDraft courseDraft = courseDraft(
                 999L,
