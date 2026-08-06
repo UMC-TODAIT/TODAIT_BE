@@ -32,6 +32,7 @@ import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -86,7 +87,7 @@ class RecommendedCourseSaveServiceTest {
                         coursePlace(selectedPlace, PlaceRole.SELECTED, 2)
                 ));
         given(courseMoodTagRepository.findAllByCourseIdOrderByIdAsc(10L))
-                .willReturn(List.of(courseMoodTag()));
+                .willReturn(moodTags(2));
         given(courseFoodCategoryRepository.findAllByCourseIdOrderByIdAsc(10L))
                 .willReturn(List.of(courseFoodCategory()));
         given(courseRepository.save(any(Course.class)))
@@ -186,13 +187,62 @@ class RecommendedCourseSaveServiceTest {
     }
 
     @Test
-    void throwsWhenSourceCourseMoodTagsAreEmpty() {
+    void throwsWhenSourceCoursePlaceRolesDoNotMatchVisitOrders() {
+        Place basePlace = place(100L);
+        Place selectedPlace = place(200L);
+        Course sourceCourse = sourceCourse(basePlace);
+
+        assertRecommendedCourseNotSavable(
+                sourceCourse,
+                List.of(
+                        coursePlace(selectedPlace, PlaceRole.SELECTED, 1),
+                        coursePlace(basePlace, PlaceRole.BASE, 2)
+                )
+        );
+    }
+
+    @Test
+    void throwsWhenSourceCoursePlacesContainDuplicatePlaceId() {
+        Place basePlace = place(100L);
+        Course sourceCourse = sourceCourse(basePlace);
+
+        assertRecommendedCourseNotSavable(
+                sourceCourse,
+                List.of(
+                        coursePlace(basePlace, PlaceRole.BASE, 1),
+                        coursePlace(basePlace, PlaceRole.SELECTED, 2)
+                )
+        );
+    }
+
+    @Test
+    void throwsWhenSourceCourseMoodTagCountIsLessThanTwo() {
         Place basePlace = place(100L);
         Course sourceCourse = sourceCourse(basePlace);
 
         givenSavableSourcePlaces(sourceCourse, basePlace);
         given(courseMoodTagRepository.findAllByCourseIdOrderByIdAsc(10L))
-                .willReturn(List.of());
+                .willReturn(List.of(courseMoodTag()));
+        given(courseFoodCategoryRepository.findAllByCourseIdOrderByIdAsc(10L))
+                .willReturn(List.of(courseFoodCategory()));
+
+        assertThatThrownBy(() ->
+                recommendedCourseSaveService.saveRecommendedCourse(10L, 1L))
+                .isInstanceOf(CourseException.class)
+                .extracting("errorCode")
+                .isEqualTo(CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE);
+
+        verify(courseRepository, never()).save(any());
+    }
+
+    @Test
+    void throwsWhenSourceCourseMoodTagCountIsGreaterThanSix() {
+        Place basePlace = place(100L);
+        Course sourceCourse = sourceCourse(basePlace);
+
+        givenSavableSourcePlaces(sourceCourse, basePlace);
+        given(courseMoodTagRepository.findAllByCourseIdOrderByIdAsc(10L))
+                .willReturn(moodTags(7));
         given(courseFoodCategoryRepository.findAllByCourseIdOrderByIdAsc(10L))
                 .willReturn(List.of(courseFoodCategory()));
 
@@ -212,7 +262,7 @@ class RecommendedCourseSaveServiceTest {
 
         givenSavableSourcePlaces(sourceCourse, basePlace);
         given(courseMoodTagRepository.findAllByCourseIdOrderByIdAsc(10L))
-                .willReturn(List.of(courseMoodTag()));
+                .willReturn(moodTags(2));
         given(courseFoodCategoryRepository.findAllByCourseIdOrderByIdAsc(10L))
                 .willReturn(List.of());
 
@@ -304,6 +354,12 @@ class RecommendedCourseSaveServiceTest {
         return CourseMoodTag.builder()
                 .moodTag(mock(MoodTag.class))
                 .build();
+    }
+
+    private List<CourseMoodTag> moodTags(int count) {
+        return IntStream.range(0, count)
+                .mapToObj(index -> courseMoodTag())
+                .toList();
     }
 
     private CourseFoodCategory courseFoodCategory() {
