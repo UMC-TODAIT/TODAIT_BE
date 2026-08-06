@@ -8,7 +8,9 @@ import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
+import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.entity.Member;
+import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendedCourseListResponse;
 import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendedCourseResponse;
@@ -21,25 +23,27 @@ import com.example.TODAIT__BE.domain.recommendation.exception.RecommendationExce
 import com.example.TODAIT__BE.domain.recommendation.code.RecommendationErrorCode;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationLogRepository;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationResultRepository;
+import com.example.TODAIT__BE.domain.recommendation.service.support.HomeRecommendationCursor;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class HomeRecommendedCourseService {
 
-    private static final int DEFAULT_PAGE = 0;
     private static final int DEFAULT_SIZE = 3;
     private static final int MIN_SIZE = 1;
     private static final int MAX_SIZE = 18;
+    private static final ZoneId SERVICE_ZONE_ID = ZoneId.of("Asia/Seoul");
 
     // MVP 지원 지역 및 기본 노출 순서
     private static final List<String> AREA_CODES =
@@ -52,6 +56,9 @@ public class HomeRecommendedCourseService {
     private final RecommendationLogRepository recommendationLogRepository;
     private final RecommendationResultRepository recommendationResultRepository;
     private final ObjectMapper objectMapper;
+
+    @Value("${recommendation.cursor-secret:${jwt.secret:test-home-recommendation-cursor-secret}}")
+    private String cursorSecret = "test-home-recommendation-cursor-secret";
 
     public HomeRecommendedCourseService(
             CourseRepository courseRepository,
@@ -74,55 +81,52 @@ public class HomeRecommendedCourseService {
     @Transactional
     public HomeRecommendedCourseListResponse getHomeRecommendedCourses(
             Long memberId,
-            Integer pageParam,
+            String cursorParam,
             Integer sizeParam
     ) {
-        int page = resolvePage(pageParam);
         int size = resolveSize(sizeParam);
 
-        LocalDate today = LocalDate.now();
-        long epochDay = today.toEpochDay();
+        LocalDate today = LocalDate.now(SERVICE_ZONE_ID);
+        HomeRecommendationCursor cursor =
+                HomeRecommendationCursor.decodeOrFirst(
+                        cursorParam,
+                        today,
+                        cursorSecret
+                );
+        LocalDate rotationDate = cursor.rotationDate();
+        long from = cursor.offset();
+        long epochDay = rotationDate.toEpochDay();
 
         // 1. 추천 후보 조회 및 지역별 그룹화 → 전체 추천 순서 확정
         List<Course> fullOrder = buildFullRecommendedOrder(epochDay);
 
         long totalElements = fullOrder.size();
-        int totalPages = (int) Math.ceil((double) totalElements / size);
-        long from = (long) page * size;
         boolean hasNext = from + size < totalElements;
+        String nextCursor = hasNext
+                ? new HomeRecommendationCursor(
+                        rotationDate,
+                        from + size
+                ).encode(cursorSecret)
+                : null;
 
         List<Course> pageCourses = slice(fullOrder, from, size);
 
         // 2. 추천 요청 기록 저장 (log 1건)
         RecommendationLog log = saveRecommendationLog(
-                memberId, today, page, size
+                memberId, rotationDate, from, size
         );
 
         // 3. 응답 코스 상세 구성 + 추천 결과 저장 (result N건)
         List<HomeRecommendedCourseResponse> courses =
-                buildCourseResponses(pageCourses, log);
+                buildCourseResponses(pageCourses, log, from);
 
         return new HomeRecommendedCourseListResponse(
                 log.getId(),
-                page,
                 size,
-                totalElements,
-                totalPages,
                 hasNext,
+                nextCursor,
                 courses
         );
-    }
-
-    private int resolvePage(Integer pageParam) {
-        if (pageParam == null) {
-            return DEFAULT_PAGE;
-        }
-        if (pageParam < 0) {
-            throw new RecommendationException(
-                    RecommendationErrorCode.INVALID_PAGE
-            );
-        }
-        return pageParam;
     }
 
     private int resolveSize(Integer sizeParam) {
@@ -156,7 +160,7 @@ public class HomeRecommendedCourseService {
         Map<Long, List<CoursePlace>> coursePlacesByCourseId =
                 loadCoursePlaces(candidates);
 
-        // 지역별 그룹화 (지역 내부 정렬: operatorPriority ASC, createdAt ASC, id ASC)
+        // 지역별 그룹화: 지역 내부 순서는 Repository 정렬 결과를 유지한다.
         Map<String, List<Course>> groupByArea = new LinkedHashMap<>();
         for (String areaCode : AREA_CODES) {
             groupByArea.put(areaCode, new ArrayList<>());
@@ -172,15 +176,6 @@ public class HomeRecommendedCourseService {
                 group.add(course);
             }
         }
-
-        Comparator<Course> areaInternalOrder = Comparator
-                .comparing(Course::getOperatorPriority)
-                .thenComparing(
-                        Course::getCreatedAt,
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                )
-                .thenComparing(Course::getId);
-        groupByArea.values().forEach(group -> group.sort(areaInternalOrder));
 
         // 지역 응답 순서 로테이션
         List<String> areaOrder = rotatedAreaOrder(epochDay);
@@ -244,15 +239,17 @@ public class HomeRecommendedCourseService {
     private RecommendationLog saveRecommendationLog(
             Long memberId,
             LocalDate rotationDate,
-            int page,
+            long offset,
             int size
     ) {
-        Member member = memberRepository.getReferenceById(memberId);
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() ->
+                        new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         RecommendationLog log = RecommendationLog.builder()
                 .member(member)
                 .recommendationType(RecommendationType.HOME_POPULAR_COURSE)
-                .requestContext(buildRequestContext(rotationDate, page, size))
+                .requestContext(buildRequestContext(rotationDate, offset, size))
                 .build();
 
         return recommendationLogRepository.save(log);
@@ -260,7 +257,8 @@ public class HomeRecommendedCourseService {
 
     private List<HomeRecommendedCourseResponse> buildCourseResponses(
             List<Course> pageCourses,
-            RecommendationLog log
+            RecommendationLog log,
+            long offset
     ) {
         if (pageCourses.isEmpty()) {
             return List.of();
@@ -280,8 +278,9 @@ public class HomeRecommendedCourseService {
         List<RecommendationResult> results =
                 new ArrayList<>(pageCourses.size());
 
-        int rank = 1;
-        for (Course course : pageCourses) {
+        for (int index = 0; index < pageCourses.size(); index++) {
+            Course course = pageCourses.get(index);
+            int rank = Math.toIntExact(offset + index + 1);
             List<CoursePlace> coursePlaces =
                     coursePlacesByCourseId.getOrDefault(
                             course.getId(), List.of()
@@ -304,7 +303,6 @@ public class HomeRecommendedCourseService {
             ));
 
             results.add(RecommendationResult.forCourse(log, course, rank, null));
-            rank++;
         }
 
         recommendationResultRepository.saveAll(results);
@@ -371,7 +369,7 @@ public class HomeRecommendedCourseService {
         return tags;
     }
 
-    private String buildRequestContext(LocalDate rotationDate, int page, int size) {
+    private String buildRequestContext(LocalDate rotationDate, long offset, int size) {
         Map<String, Object> context = new LinkedHashMap<>();
         context.put("sourcePolicy", "RESEARCH_DOCUMENT");
         context.put("candidatePolicy", "OPERATOR_RECOMMENDED_18_COURSES");
@@ -386,14 +384,17 @@ public class HomeRecommendedCourseService {
                 "CREATED_AT_ASC",
                 "COURSE_ID_ASC"
         ));
-        context.put("page", page);
+        context.put("offset", offset);
         context.put("limit", size);
         context.put("policyVersion", "HOME_COURSE_V1");
 
         try {
             return objectMapper.writeValueAsString(context);
-        } catch (JsonProcessingException e) {
-            return null;
+        } catch (JsonProcessingException exception) {
+            throw new RecommendationException(
+                    RecommendationErrorCode.REQUEST_CONTEXT_SERIALIZATION_FAILED,
+                    exception
+            );
         }
     }
 }

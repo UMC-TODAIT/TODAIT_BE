@@ -8,7 +8,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.entity.Member;
+import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
@@ -24,9 +26,13 @@ import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationLog
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationResultRepository;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -73,8 +79,8 @@ class HomeRecommendedPlaceServiceTest {
                 new ObjectMapper()
         );
 
-        given(memberRepository.getReferenceById(MEMBER_ID))
-                .willReturn(mock(Member.class));
+        given(memberRepository.findById(MEMBER_ID))
+                .willReturn(Optional.of(mock(Member.class)));
 
         given(recommendationLogRepository.save(any(RecommendationLog.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
@@ -115,7 +121,7 @@ class HomeRecommendedPlaceServiceTest {
         HomeRecommendedPlaceListResponse response =
                 service.getHomeRecommendedPlaces(
                         MEMBER_ID,
-                        0,
+                        null,
                         3,
                         USER_LATITUDE,
                         USER_LONGITUDE
@@ -167,7 +173,7 @@ class HomeRecommendedPlaceServiceTest {
         HomeRecommendedPlaceListResponse response =
                 service.getHomeRecommendedPlaces(
                         MEMBER_ID,
-                        0,
+                        null,
                         1,
                         USER_LATITUDE,
                         USER_LONGITUDE
@@ -205,7 +211,7 @@ class HomeRecommendedPlaceServiceTest {
         HomeRecommendedPlaceListResponse response =
                 service.getHomeRecommendedPlaces(
                         MEMBER_ID,
-                        0,
+                        null,
                         6,
                         null,
                         null
@@ -232,7 +238,7 @@ class HomeRecommendedPlaceServiceTest {
     }
 
     @Test
-    void appliesPaginationAfterFullRecommendationOrderIsCreated() {
+    void appliesCursorAfterFullRecommendationOrderIsCreated() {
         List<Place> candidates = List.of(
                 place(1L, "HONGDAE", 1, 37.1, 127.1),
                 place(2L, "HONGDAE", 2, 37.2, 127.2),
@@ -244,10 +250,18 @@ class HomeRecommendedPlaceServiceTest {
 
         givenCandidates(candidates);
 
-        HomeRecommendedPlaceListResponse response =
+        HomeRecommendedPlaceListResponse firstResponse =
                 service.getHomeRecommendedPlaces(
                         MEMBER_ID,
-                        1,
+                        null,
+                        2,
+                        null,
+                        null
+                );
+        HomeRecommendedPlaceListResponse secondResponse =
+                service.getHomeRecommendedPlaces(
+                        MEMBER_ID,
+                        firstResponse.nextCursor(),
                         2,
                         null,
                         null
@@ -257,22 +271,20 @@ class HomeRecommendedPlaceServiceTest {
          * 전체 순서:
          * 홍대1 → 성수1 → 연남1 → 홍대2 → 성수2 → 연남2
          *
-         * page=1, size=2:
+         * 첫 응답의 nextCursor, size=2:
          * 연남1 → 홍대2
          */
-        assertThat(response.page()).isEqualTo(1);
-        assertThat(response.size()).isEqualTo(2);
+        assertThat(firstResponse.hasNext()).isTrue();
+        assertThat(firstResponse.nextCursor()).isNotBlank();
+        assertThat(secondResponse.size()).isEqualTo(2);
 
-        assertThat(response.places())
+        assertThat(secondResponse.places())
                 .extracting(HomeRecommendedPlaceResponse::placeId)
                 .containsExactly(5L, 2L);
 
-        /*
-         * rank는 현재 응답 배열 기준으로 다시 1부터 부여된다.
-         */
-        assertThat(response.places())
+        assertThat(secondResponse.places())
                 .extracting(HomeRecommendedPlaceResponse::rank)
-                .containsExactly(1, 2);
+                .containsExactly(3, 4);
     }
 
     @Test
@@ -290,6 +302,8 @@ class HomeRecommendedPlaceServiceTest {
 
         assertThat(response.places()).isEmpty();
         assertThat(response.locationAvailable()).isFalse();
+        assertThat(response.hasNext()).isFalse();
+        assertThat(response.nextCursor()).isNull();
 
         verify(recommendationLogRepository)
                 .save(any(RecommendationLog.class));
@@ -303,7 +317,7 @@ class HomeRecommendedPlaceServiceTest {
         assertThatThrownBy(() ->
                 service.getHomeRecommendedPlaces(
                         MEMBER_ID,
-                        0,
+                        null,
                         2,
                         Double.NaN,
                         USER_LONGITUDE
@@ -334,7 +348,7 @@ class HomeRecommendedPlaceServiceTest {
         assertThatThrownBy(() ->
                 service.getHomeRecommendedPlaces(
                         MEMBER_ID,
-                        0,
+                        null,
                         2,
                         Double.POSITIVE_INFINITY,
                         USER_LONGITUDE
@@ -352,7 +366,7 @@ class HomeRecommendedPlaceServiceTest {
         assertThatThrownBy(() ->
                 service.getHomeRecommendedPlaces(
                         MEMBER_ID,
-                        0,
+                        null,
                         2,
                         USER_LATITUDE,
                         Double.NEGATIVE_INFINITY
@@ -365,6 +379,134 @@ class HomeRecommendedPlaceServiceTest {
                                         RecommendationErrorCode
                                                 .INVALID_LOCATION_RANGE
                                 )
+                );
+    }
+
+    @Test
+    void throwsMemberNotFoundWhenMemberDoesNotExist() {
+        given(memberRepository.findById(MEMBER_ID))
+                .willReturn(Optional.empty());
+        givenCandidates(List.of());
+
+        assertThatThrownBy(() ->
+                service.getHomeRecommendedPlaces(
+                        MEMBER_ID,
+                        null,
+                        null,
+                        null,
+                        null
+                )
+        )
+                .isInstanceOfSatisfying(
+                        MemberException.class,
+                        exception -> assertThat(exception.getErrorCode())
+                                .isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND)
+                );
+
+        verify(recommendationLogRepository, never())
+                .save(any(RecommendationLog.class));
+    }
+
+    @Test
+    void throwsRecommendationExceptionWhenRequestContextSerializationFails()
+            throws JsonProcessingException {
+        ObjectMapper failingObjectMapper = mock(ObjectMapper.class);
+        JsonProcessingException serializationFailure =
+                new JsonProcessingException("boom") {
+                };
+        HomeRecommendedPlaceService failingService =
+                new HomeRecommendedPlaceService(
+                        placeRepository,
+                        memberRepository,
+                        recommendationLogRepository,
+                        recommendationResultRepository,
+                        failingObjectMapper
+                );
+
+        given(memberRepository.findById(MEMBER_ID))
+                .willReturn(Optional.of(mock(Member.class)));
+        givenCandidates(List.of());
+        given(failingObjectMapper.writeValueAsString(any()))
+                .willThrow(serializationFailure);
+
+        assertThatThrownBy(() ->
+                failingService.getHomeRecommendedPlaces(
+                        MEMBER_ID,
+                        null,
+                        null,
+                        null,
+                        null
+                )
+        )
+                .isInstanceOf(RecommendationException.class)
+                .hasCause(serializationFailure)
+                .extracting(exception ->
+                        ((RecommendationException) exception).getErrorCode()
+                )
+                .isEqualTo(
+                        RecommendationErrorCode
+                                .REQUEST_CONTEXT_SERIALIZATION_FAILED
+                );
+
+        verify(recommendationLogRepository, never())
+                .save(any(RecommendationLog.class));
+    }
+
+    @Test
+    void throwsInvalidCursorWhenCursorIsMalformed() {
+        assertThatThrownBy(() ->
+                service.getHomeRecommendedPlaces(
+                        MEMBER_ID,
+                        "invalid-cursor",
+                        2,
+                        null,
+                        null
+                )
+        )
+                .isInstanceOfSatisfying(
+                        RecommendationException.class,
+                        exception -> assertThat(exception.getErrorCode())
+                                .isEqualTo(
+                                        RecommendationErrorCode.INVALID_CURSOR
+                                )
+                )
+                .hasCauseInstanceOf(IllegalArgumentException.class);
+
+        verify(placeRepository, never())
+                .findHomeRecommendedPlaceCandidates(
+                        any(),
+                        any(),
+                        any()
+                );
+    }
+
+    @Test
+    void throwsInvalidCursorWhenCursorSignatureIsTampered() {
+        String tamperedCursor = unsignedCursor("2099-01-01:2:bad-signature");
+
+        assertThatThrownBy(() ->
+                service.getHomeRecommendedPlaces(
+                        MEMBER_ID,
+                        tamperedCursor,
+                        2,
+                        null,
+                        null
+                )
+        )
+                .isInstanceOfSatisfying(
+                        RecommendationException.class,
+                        exception -> assertThat(exception.getErrorCode())
+                                .isEqualTo(
+                                        RecommendationErrorCode.INVALID_CURSOR
+                                )
+                )
+                .hasCauseInstanceOf(IllegalArgumentException.class);
+
+        verify(placeRepository, never())
+                .findHomeRecommendedPlaceCandidates(
+                        any(),
+                        any(),
+                        any()
                 );
     }
 
@@ -428,5 +570,11 @@ class HomeRecommendedPlaceServiceTest {
 
         return USER_LATITUDE
                 + Math.toDegrees(latitudeDeltaRadians);
+    }
+
+    private String unsignedCursor(String raw) {
+        return Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(raw.getBytes(StandardCharsets.UTF_8));
     }
 }
