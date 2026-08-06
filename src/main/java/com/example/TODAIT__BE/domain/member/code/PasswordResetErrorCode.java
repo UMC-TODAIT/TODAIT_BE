@@ -33,9 +33,15 @@ public enum PasswordResetErrorCode implements BaseErrorCode {
             "인증번호 발송 요청이 너무 많습니다."
     ),
 
-    STORE_FAILED(
+    SEND_FAILED(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "AUTH500_1",
+            "비밀번호 재설정 인증번호 이메일 발송에 실패했습니다."
+    ),
+
+    STORE_FAILED(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "AUTH500_2",
             "비밀번호 재설정 인증번호 저장에 실패했습니다."
     );
 
