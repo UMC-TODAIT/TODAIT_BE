@@ -39,7 +39,7 @@ public class PasswordResetService {
         String email = normalizeAndValidateEmail(request.email());
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new MemberException(PasswordResetErrorCode.EMAIL_NOT_FOUND));
-        validateEmailMember(member);
+        validatePasswordResetTarget(member);
 
         String code = randomCodeGenerator.generateNumericCode();
         saveCode(email, code);
@@ -48,7 +48,7 @@ public class PasswordResetService {
         return new PasswordResetResponse.Send();
     }
 
-    private void validateEmailMember(Member member) {
+    private void validatePasswordResetTarget(Member member) {
         String passwordHash = member.getPasswordHash();
         if (passwordHash == null || passwordHash.isBlank()) {
             throw new MemberException(PasswordResetErrorCode.EMAIL_MEMBER_ONLY);
