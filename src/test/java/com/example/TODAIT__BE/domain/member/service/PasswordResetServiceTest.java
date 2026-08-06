@@ -7,6 +7,7 @@ import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.member.service.port.PasswordResetSender;
 import com.example.TODAIT__BE.domain.member.service.port.PasswordResetStore;
+import com.example.TODAIT__BE.domain.member.service.port.PasswordResetStore.VerifyCodeResult;
 import com.example.TODAIT__BE.global.util.RandomCodeGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -144,6 +146,91 @@ class PasswordResetServiceTest {
                 .isEqualTo(PasswordResetErrorCode.STORE_FAILED);
 
         verify(passwordResetSender, never()).sendPasswordResetCode(anyString(), anyString());
+    }
+
+    @Test
+    void verifyPasswordResetCodeSavesResetToken() {
+        given(randomCodeGenerator.generateUrlSafeToken()).willReturn("reset-token");
+        given(passwordResetStore.verifyCodeAndSaveResetToken("test@example.com", "123456", "reset-token"))
+                .willReturn(VerifyCodeResult.VERIFIED);
+
+        var response = passwordResetService.verifyPasswordResetCode(
+                new PasswordResetRequest.Verify(" Test@Example.com ", " 123456 ")
+        );
+
+        assertThat(response.resetToken()).isEqualTo("reset-token");
+        verify(passwordResetStore).verifyCodeAndSaveResetToken("test@example.com", "123456", "reset-token");
+    }
+
+    @Test
+    void verifyPasswordResetCodeFailsWhenCodeDoesNotExist() {
+        given(randomCodeGenerator.generateUrlSafeToken()).willReturn("reset-token");
+        given(passwordResetStore.verifyCodeAndSaveResetToken("test@example.com", "123456", "reset-token"))
+                .willReturn(VerifyCodeResult.CODE_NOT_FOUND);
+
+        assertThatThrownBy(() -> passwordResetService.verifyPasswordResetCode(
+                new PasswordResetRequest.Verify("test@example.com", "123456")
+        ))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(PasswordResetErrorCode.CODE_NOT_FOUND);
+    }
+
+    @Test
+    void verifyPasswordResetCodeFailsWhenCodeExpired() {
+        given(randomCodeGenerator.generateUrlSafeToken()).willReturn("reset-token");
+        given(passwordResetStore.verifyCodeAndSaveResetToken("test@example.com", "123456", "reset-token"))
+                .willReturn(VerifyCodeResult.CODE_EXPIRED);
+
+        assertThatThrownBy(() -> passwordResetService.verifyPasswordResetCode(
+                new PasswordResetRequest.Verify("test@example.com", "123456")
+        ))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(PasswordResetErrorCode.CODE_EXPIRED);
+    }
+
+    @Test
+    void verifyPasswordResetCodeFailsWhenCodeMismatches() {
+        given(randomCodeGenerator.generateUrlSafeToken()).willReturn("reset-token");
+        given(passwordResetStore.verifyCodeAndSaveResetToken("test@example.com", "000000", "reset-token"))
+                .willReturn(VerifyCodeResult.CODE_MISMATCH);
+
+        assertThatThrownBy(() -> passwordResetService.verifyPasswordResetCode(
+                new PasswordResetRequest.Verify("test@example.com", "000000")
+        ))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(PasswordResetErrorCode.CODE_MISMATCH);
+    }
+
+    @Test
+    void verifyPasswordResetCodeFailsWhenVerifyAttemptExceeded() {
+        given(randomCodeGenerator.generateUrlSafeToken()).willReturn("reset-token");
+        given(passwordResetStore.verifyCodeAndSaveResetToken("test@example.com", "123456", "reset-token"))
+                .willReturn(VerifyCodeResult.VERIFY_ATTEMPT_EXCEEDED);
+
+        assertThatThrownBy(() -> passwordResetService.verifyPasswordResetCode(
+                new PasswordResetRequest.Verify("test@example.com", "123456")
+        ))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(PasswordResetErrorCode.VERIFY_ATTEMPT_EXCEEDED);
+    }
+
+    @Test
+    void verifyPasswordResetCodeFailsWhenStoreThrowsUnexpectedException() {
+        given(randomCodeGenerator.generateUrlSafeToken()).willReturn("reset-token");
+        willThrow(new IllegalStateException("redis down"))
+                .given(passwordResetStore)
+                .verifyCodeAndSaveResetToken("test@example.com", "123456", "reset-token");
+
+        assertThatThrownBy(() -> passwordResetService.verifyPasswordResetCode(
+                new PasswordResetRequest.Verify("test@example.com", "123456")
+        ))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(PasswordResetErrorCode.STORE_FAILED);
     }
 
     private Member emailMember() {

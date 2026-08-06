@@ -3,11 +3,13 @@ package com.example.TODAIT__BE.global.util;
 import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;
+import java.util.Base64;
 
 @Component
 public class RandomCodeGenerator {
 
     private static final int DEFAULT_CODE_LENGTH = 6;
+    private static final int DEFAULT_TOKEN_BYTE_LENGTH = 32;
     private static final int NUMBER_BOUND = 10;
 
     private final SecureRandom secureRandom = new SecureRandom();
@@ -27,5 +29,14 @@ public class RandomCodeGenerator {
         }
 
         return code.toString();
+    }
+
+    public String generateUrlSafeToken() {
+        byte[] bytes = new byte[DEFAULT_TOKEN_BYTE_LENGTH];
+        secureRandom.nextBytes(bytes);
+
+        return Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(bytes);
     }
 }
