@@ -24,6 +24,13 @@ public class GeneralExceptionAdvice {
             ProjectException e
     ) {
         BaseErrorCode errorCode = e.getErrorCode();
+        if (e.getCause() != null) {
+            log.warn(
+                    "프로젝트 예외가 원인 예외와 함께 발생했습니다. code={}",
+                    errorCode.getCode(),
+                    e
+            );
+        }
         return ResponseEntity.status(errorCode.getStatus())
                 .body(ApiResponse.onFailure(errorCode, null));
     }

@@ -3,10 +3,11 @@ package com.example.TODAIT__BE.domain.course.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 
 import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseSaveResponse;
@@ -32,6 +33,7 @@ import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -66,11 +68,15 @@ class RecommendedCourseSaveServiceTest {
     }
 
     @Test
+    @DisplayName("recommended course save response placeCount is calculated from source course places")
     void savesRecommendedCourseWhenSourceCourseIsSavable() {
         Place basePlace = place(100L);
         Place selectedPlace = place(200L);
         Course sourceCourse = sourceCourse(basePlace);
-        Member member = Member.builder().id(1L).build();
+        Member member = Member.builder()
+                .id(1L)
+                .nickname("member")
+                .build();
 
         givenSourceCourse(sourceCourse);
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
@@ -85,6 +91,12 @@ class RecommendedCourseSaveServiceTest {
                 .willReturn(List.of(courseFoodCategory()));
         given(courseRepository.save(any(Course.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
+        given(coursePlaceRepository.saveAll(anyList()))
+                .willAnswer(invocation -> invocation.getArgument(0));
+        given(courseMoodTagRepository.saveAll(anyList()))
+                .willAnswer(invocation -> invocation.getArgument(0));
+        given(courseFoodCategoryRepository.saveAll(anyList()))
+                .willAnswer(invocation -> invocation.getArgument(0));
 
         RecommendedCourseSaveResponse response =
                 recommendedCourseSaveService.saveRecommendedCourse(10L, 1L);
@@ -92,7 +104,8 @@ class RecommendedCourseSaveServiceTest {
         assertThat(response.sourceCourseId()).isEqualTo(10L);
         assertThat(response.title()).isEqualTo("recommended");
         assertThat(response.visibility()).isEqualTo(CourseVisibility.PRIVATE);
-        assertThat(response.sourceType()).isEqualTo(CourseSourceType.USER_CREATED);
+        assertThat(response.sourceType())
+                .isEqualTo(CourseSourceType.USER_CREATED);
         assertThat(response.placeCount()).isEqualTo(2);
 
         ArgumentCaptor<Course> courseCaptor =
@@ -101,12 +114,15 @@ class RecommendedCourseSaveServiceTest {
         Course savedCourse = courseCaptor.getValue();
         assertThat(savedCourse.getMember()).isEqualTo(member);
         assertThat(savedCourse.getBasePlace()).isEqualTo(basePlace);
-        assertThat(savedCourse.getVisibility()).isEqualTo(CourseVisibility.PRIVATE);
-        assertThat(savedCourse.getSourceType()).isEqualTo(CourseSourceType.USER_CREATED);
+        assertThat(savedCourse.getArea()).isEqualTo(sourceCourse.getArea());
+        assertThat(savedCourse.getVisibility())
+                .isEqualTo(CourseVisibility.PRIVATE);
+        assertThat(savedCourse.getSourceType())
+                .isEqualTo(CourseSourceType.USER_CREATED);
 
-        verify(coursePlaceRepository).saveAll(any());
-        verify(courseMoodTagRepository).saveAll(any());
-        verify(courseFoodCategoryRepository).saveAll(any());
+        verify(coursePlaceRepository).saveAll(anyList());
+        verify(courseMoodTagRepository).saveAll(anyList());
+        verify(courseFoodCategoryRepository).saveAll(anyList());
     }
 
     @Test

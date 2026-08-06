@@ -53,6 +53,10 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
               and c.deletedAt is null
               and a.isActive = true
               and a.code in :areaCodes
+            order by a.code asc,
+                     c.operatorPriority asc,
+                     c.createdAt asc,
+                     c.id asc
             """)
     List<Course> findRecommendedCourseCandidates(
             @Param("visibility") CourseVisibility visibility,

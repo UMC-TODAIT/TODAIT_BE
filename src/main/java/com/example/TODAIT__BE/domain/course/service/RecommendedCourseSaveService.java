@@ -62,8 +62,7 @@ public class RecommendedCourseSaveService {
 
         Course savedCourse = createSavedCourse(
                 sourceCourse,
-                member,
-                sourcePlaces.size()
+                member
         );
 
         copyCoursePlaces(sourcePlaces, savedCourse);
@@ -192,8 +191,7 @@ public class RecommendedCourseSaveService {
 
     private Course createSavedCourse(
             Course sourceCourse,
-            Member member,
-            int placeCount
+            Member member
     ) {
         Course savedCourse = Course.builder()
                 .member(member)
@@ -203,7 +201,6 @@ public class RecommendedCourseSaveService {
                 .memo(sourceCourse.getMemo())
                 .visibility(CourseVisibility.PRIVATE)
                 .sourceType(CourseSourceType.USER_CREATED)
-                .placeCount(placeCount)
                 .build();
 
         return courseRepository.save(savedCourse);
