@@ -74,6 +74,14 @@ public class CategoryRecommendedPlaceService {
     private final NearBasePlaceReasonResolver reasonResolver;
     private final NearBasePlaceResponseAssembler responseAssembler;
 
+    private static final Set<String> SUPPORTED_PLACE_CATEGORY_CODES =
+            Set.of(
+                    "CAFE",
+                    "ACTIVITY",
+                    "RESTAURANT",
+                    "BAR"
+            );
+
     @Transactional
     public CategoryRecommendedPlaceResponse getRecommendedPlaces(
             Long memberId,
@@ -246,7 +254,11 @@ public class CategoryRecommendedPlaceService {
             String placeCategoryCode
     ) {
         if (placeCategoryCode == null
-                || placeCategoryCode.isBlank()) {
+                || placeCategoryCode.isBlank()
+                || !SUPPORTED_PLACE_CATEGORY_CODES.contains(
+                placeCategoryCode
+        )) {
+
             throw new TaxonomyException(
                     TaxonomyErrorCode.PLACE_CATEGORY_NOT_SUPPORTED
             );
@@ -284,7 +296,9 @@ public class CategoryRecommendedPlaceService {
                     List.of("SEONGSU");
 
             default ->
-                    List.of();
+                    throw new TaxonomyException(
+                            TaxonomyErrorCode.AREA_NOT_SUPPORTED
+                    );
         };
     }
 

@@ -53,11 +53,13 @@ public interface PlaceSourceRepository extends JpaRepository<PlaceSource, Long> 
     );
 
     @Query("""
-        select distinct ps.place.id
-        from PlaceSource ps
-        where ps.place.id in :placeIds
-        """)
-    Set<Long> findPlaceIdsHavingAnySource(
+    select distinct ps.place.id
+    from PlaceSource ps
+    join ps.dataSource ds
+    where ps.place.id in :placeIds
+      and ds.isActive = true
+    """)
+    Set<Long> findPlaceIdsHavingActiveSource(
             @Param("placeIds") Collection<Long> placeIds
     );
 }

@@ -49,7 +49,7 @@ public class NearBasePlaceCandidateLoader {
                 .toList();
 
         Set<Long> sourcedPlaceIds =
-                placeSourceRepository.findPlaceIdsHavingAnySource(
+                placeSourceRepository.findPlaceIdsHavingActiveSource(
                         rawCandidateIds
                 );
 
