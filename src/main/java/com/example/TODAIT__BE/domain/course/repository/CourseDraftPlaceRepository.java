@@ -15,7 +15,9 @@ public interface CourseDraftPlaceRepository extends JpaRepository<CourseDraftPla
     @Query("""
             select cdp
             from CourseDraftPlace cdp
-            join fetch cdp.place
+            join fetch cdp.place p
+            join fetch p.placeCategory
+            join fetch p.area
             where cdp.courseDraft = :courseDraft
             order by cdp.visitOrder asc
             """)

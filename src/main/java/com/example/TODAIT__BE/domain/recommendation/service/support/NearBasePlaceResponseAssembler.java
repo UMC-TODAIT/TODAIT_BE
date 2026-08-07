@@ -167,8 +167,8 @@ public class NearBasePlaceResponseAssembler {
 
         for (MoodTag moodTag :
                 moodTagRepository
-                        .findAllByIdInAndIsActiveTrue(
-                                moodTagIds
+                        .findByIdInAndIsActiveTrue(
+                                List.copyOf(moodTagIds)
                         )) {
 
             result.put(

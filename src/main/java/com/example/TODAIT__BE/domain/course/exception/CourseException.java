@@ -8,4 +8,8 @@ public class CourseException extends ProjectException {
     public CourseException(CourseErrorCode errorCode) {
         super(errorCode);
     }
+
+    public CourseException(CourseErrorCode errorCode, Object result) {
+        super(errorCode, result);
+    }
 }

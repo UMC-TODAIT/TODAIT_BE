@@ -62,6 +62,12 @@ public enum CourseSuccessCode implements BaseSuccessCode {
             HttpStatus.CREATED,
             "COURSE202",
             "추천 코스 저장 성공"
+    ),
+
+    PLACE_ADD_OK(
+            HttpStatus.CREATED,
+            "COURSE201_1",
+            "선택 장소 추가 성공"
     );
 
     private final HttpStatus status;

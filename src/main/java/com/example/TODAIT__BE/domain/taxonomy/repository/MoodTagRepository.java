@@ -4,7 +4,6 @@ import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
-import java.util.Collection;
 
 public interface MoodTagRepository extends JpaRepository<MoodTag, Long> {
 
@@ -14,5 +13,5 @@ public interface MoodTagRepository extends JpaRepository<MoodTag, Long> {
 
     List<MoodTag> findAllByIsActiveTrueOrderBySortOrderAsc();
 
-    List<MoodTag> findAllByIdInAndIsActiveTrue(Collection<Long> ids);
+    List<MoodTag> findByIdInAndIsActiveTrue(List<Long> ids);
 }
