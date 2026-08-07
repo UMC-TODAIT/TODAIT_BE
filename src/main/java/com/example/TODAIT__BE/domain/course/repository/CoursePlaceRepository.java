@@ -53,7 +53,6 @@ public interface CoursePlaceRepository extends JpaRepository<CoursePlace, Long> 
           and c.sourceType = :courseSourceType
           and c.deletedAt is null
           and p.isActive = true
-          and p.isReviewed = true
           and p.reviewStatus = :reviewStatus
           and p.exposureStatus = :exposureStatus
           and p.deletedAt is null
@@ -61,7 +60,7 @@ public interface CoursePlaceRepository extends JpaRepository<CoursePlace, Long> 
           and p.longitude is not null
           and a.isActive = true
           and pc.isActive = true
-        order by p.operatorPriority desc,
+        order by p.operatorPriority asc,
                  p.popularityScore desc,
                  p.selectedCount desc,
                  p.id asc

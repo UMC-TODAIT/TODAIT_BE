@@ -66,10 +66,6 @@ public class Course extends BaseEntity {
     private Integer viewCount = 0;
 
     @Builder.Default
-    @Column(name = "place_count", nullable = false)
-    private Integer placeCount = 0;
-
-    @Builder.Default
     @Column(name = "operator_priority", nullable = false)
     private Integer operatorPriority = 0;
 

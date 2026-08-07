@@ -7,6 +7,7 @@ import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
 import com.example.TODAIT__BE.domain.course.entity.CoursePlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
+import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseFoodCategoryRepository;
@@ -15,20 +16,22 @@ import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.entity.Member;
+import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
-import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
-import java.util.HashSet;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class RecommendedCourseSaveService {
+
+    private static final int MIN_MOOD_TAG_COUNT = 2;
+    private static final int MAX_MOOD_TAG_COUNT = 6;
 
     private final CourseRepository courseRepository;
     private final CoursePlaceRepository coursePlaceRepository;
@@ -58,10 +61,11 @@ public class RecommendedCourseSaveService {
                 courseFoodCategoryRepository
                         .findAllByCourseIdOrderByIdAsc(sourceCourseId);
 
+        validateSourceCategories(sourceMoodTags, sourceFoodCategories);
+
         Course savedCourse = createSavedCourse(
                 sourceCourse,
-                member,
-                sourcePlaces.size()
+                member
         );
 
         copyCoursePlaces(sourcePlaces, savedCourse);
@@ -114,9 +118,7 @@ public class RecommendedCourseSaveService {
         if (sourceCourse.getBasePlace() == null
                 || sourceCourse.getArea() == null
                 || sourcePlaces.isEmpty()) {
-            throw new CourseException(
-                    CourseErrorCode.INVALID_RECOMMENDED_COURSE
-            );
+            throwRecommendedCourseNotSavable();
         }
 
         long basePlaceCount = sourcePlaces.stream()
@@ -126,9 +128,17 @@ public class RecommendedCourseSaveService {
                 .count();
 
         if (basePlaceCount != 1) {
-            throw new CourseException(
-                    CourseErrorCode.INVALID_RECOMMENDED_COURSE
-            );
+            throwRecommendedCourseNotSavable();
+        }
+
+        long selectedPlaceCount = sourcePlaces.stream()
+                .filter(coursePlace ->
+                        coursePlace.getPlaceRole() == PlaceRole.SELECTED
+                )
+                .count();
+
+        if (selectedPlaceCount < 1) {
+            throwRecommendedCourseNotSavable();
         }
 
         CoursePlace baseCoursePlace = sourcePlaces.stream()
@@ -136,39 +146,98 @@ public class RecommendedCourseSaveService {
                         coursePlace.getPlaceRole() == PlaceRole.BASE
                 )
                 .findFirst()
-                .orElseThrow(() ->
-                        new CourseException(
-                                CourseErrorCode.INVALID_RECOMMENDED_COURSE
-                        )
-                );
+                .orElseThrow(this::recommendedCourseNotSavable);
 
-        if (!sourceCourse.getBasePlace().getId()
+        if (sourceCourse.getBasePlace().getId() == null
+                || baseCoursePlace.getPlace() == null
+                || baseCoursePlace.getPlace().getId() == null
+                || !sourceCourse.getBasePlace().getId()
                 .equals(baseCoursePlace.getPlace().getId())) {
-            throw new CourseException(
-                    CourseErrorCode.INVALID_RECOMMENDED_COURSE
-            );
+            throwRecommendedCourseNotSavable();
         }
 
         Set<Integer> visitOrders = new HashSet<>();
+        Set<Long> placeIds = new HashSet<>();
 
         for (int index = 0; index < sourcePlaces.size(); index++) {
             CoursePlace coursePlace = sourcePlaces.get(index);
             Integer visitOrder = coursePlace.getVisitOrder();
 
+            if (coursePlace.getPlaceRole() == null) {
+                throwRecommendedCourseNotSavable();
+            }
+
             if (visitOrder == null
                     || !visitOrders.add(visitOrder)
                     || visitOrder != index + 1) {
-                throw new CourseException(
-                        CourseErrorCode.INVALID_RECOMMENDED_COURSE
-                );
+                throwRecommendedCourseNotSavable();
+            }
+
+            if (coursePlace.getPlaceRole() == PlaceRole.BASE
+                    && visitOrder != 1) {
+                throwRecommendedCourseNotSavable();
+            }
+
+            if (coursePlace.getPlaceRole() == PlaceRole.SELECTED
+                    && visitOrder < 2) {
+                throwRecommendedCourseNotSavable();
+            }
+
+            if (coursePlace.getPlace() == null
+                    || coursePlace.getPlace().getId() == null
+                    || !placeIds.add(coursePlace.getPlace().getId())) {
+                throwRecommendedCourseNotSavable();
             }
         }
     }
 
+    private void validateSourceCategories(
+            List<CourseMoodTag> sourceMoodTags,
+            List<CourseFoodCategory> sourceFoodCategories
+    ) {
+        if (sourceMoodTags.size() < MIN_MOOD_TAG_COUNT
+                || sourceMoodTags.size() > MAX_MOOD_TAG_COUNT
+                || sourceFoodCategories.isEmpty()) {
+            throwRecommendedCourseNotSavable();
+        }
+
+        Set<Long> moodTagIds = new HashSet<>();
+        for (CourseMoodTag sourceMoodTag : sourceMoodTags) {
+            Long moodTagId = sourceMoodTag.getMoodTag() == null
+                    ? null
+                    : sourceMoodTag.getMoodTag().getId();
+
+            if (moodTagId == null || !moodTagIds.add(moodTagId)) {
+                throwRecommendedCourseNotSavable();
+            }
+        }
+
+        Set<Long> foodCategoryIds = new HashSet<>();
+        for (CourseFoodCategory sourceFoodCategory : sourceFoodCategories) {
+            Long foodCategoryId = sourceFoodCategory.getFoodCategory() == null
+                    ? null
+                    : sourceFoodCategory.getFoodCategory().getId();
+
+            if (foodCategoryId == null
+                    || !foodCategoryIds.add(foodCategoryId)) {
+                throwRecommendedCourseNotSavable();
+            }
+        }
+    }
+
+    private CourseException recommendedCourseNotSavable() {
+        return new CourseException(
+                CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE
+        );
+    }
+
+    private void throwRecommendedCourseNotSavable() {
+        throw recommendedCourseNotSavable();
+    }
+
     private Course createSavedCourse(
             Course sourceCourse,
-            Member member,
-            int placeCount
+            Member member
     ) {
         Course savedCourse = Course.builder()
                 .member(member)
@@ -178,7 +247,6 @@ public class RecommendedCourseSaveService {
                 .memo(sourceCourse.getMemo())
                 .visibility(CourseVisibility.PRIVATE)
                 .sourceType(CourseSourceType.USER_CREATED)
-                .placeCount(placeCount)
                 .build();
 
         return courseRepository.save(savedCourse);

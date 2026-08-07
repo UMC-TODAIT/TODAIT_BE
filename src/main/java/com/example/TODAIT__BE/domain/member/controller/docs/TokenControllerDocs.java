@@ -9,18 +9,18 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 
 @Tag(
-        name = "TokenRefresh",
-        description = "토큰 재발급 API"
+        name = "MEMBER",
+        description = "로그인, 회원가입, 이메일 인증, 온보딩, 회원 정보 API"
 )
 @SecurityRequirements
 public interface TokenControllerDocs {
     @Operation(
-            summary = "Access Token 재발급",
+            summary = "[토큰] Access Token 재발급",
             description = """
                     Refresh Token을 검증하여 새로운 Access Token을 발급합니다.
-                   
-                    만료되거나 폐기된 Refresh Token은 사용할 수 없으며,
-                    이 경우 사용자는 다시 로그인해야 합니다.
+
+                    - 만료된 Refresh Token: 재로그인 필요
+                    - 폐기된 Refresh Token: 재로그인 필요
                     """
     )
     ResponseEntity<ApiResponse<AuthResponse.AccessToken>> refresh(

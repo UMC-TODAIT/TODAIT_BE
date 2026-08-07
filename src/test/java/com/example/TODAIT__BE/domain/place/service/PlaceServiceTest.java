@@ -19,12 +19,14 @@ import com.example.TODAIT__BE.domain.place.entity.PlaceMoodTag;
 import com.example.TODAIT__BE.domain.place.enums.BusinessStatus;
 import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
 import com.example.TODAIT__BE.domain.place.enums.PlaceImageType;
+import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
 import com.example.TODAIT__BE.domain.place.exception.PlaceException;
 import com.example.TODAIT__BE.domain.place.repository.PlaceFoodCategoryRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceImageRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceMenuRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceMoodTagRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceRepository;
+import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
@@ -125,16 +127,48 @@ class PlaceServiceTest {
 
     @Test
     void throwsNotExposedWhenPlaceIsNotActive() {
-        Place place = mock(Place.class);
+        Place place = exposablePlace(2L);
         given(place.getExposureStatus()).willReturn(PlaceExposureStatus.INACTIVE);
-        given(place.getIsActive()).willReturn(true);
-        given(placeRepository.findDetailById(2L)).willReturn(Optional.of(place));
 
-        assertThatThrownBy(() -> placeService.getPlaceDetail(2L))
-                .isInstanceOfSatisfying(PlaceException.class, e ->
-                        assertThat(e.getErrorCode()).isEqualTo(PlaceErrorCode.PLACE_NOT_EXPOSED));
+        assertNotExposed(place, 2L);
+    }
 
-        verify(placeMoodTagRepository, never()).findAllByPlaceIdOrderByIdAsc(any());
+    @Test
+    void throwsNotExposedWhenPlaceIsNotApproved() {
+        Place place = exposablePlace(3L);
+        given(place.getReviewStatus()).willReturn(PlaceReviewStatus.BEFORE_REVIEW);
+
+        assertNotExposed(place, 3L);
+    }
+
+    @Test
+    void throwsNotExposedWhenCoordinatesAreMissing() {
+        Place placeWithoutLatitude = exposablePlace(4L);
+        given(placeWithoutLatitude.getLatitude()).willReturn(null);
+        assertNotExposed(placeWithoutLatitude, 4L);
+
+        Place placeWithoutLongitude = exposablePlace(5L);
+        given(placeWithoutLongitude.getLongitude()).willReturn(null);
+        assertNotExposed(placeWithoutLongitude, 5L);
+    }
+
+    @Test
+    void throwsNotExposedWhenAreaIsInactive() {
+        Place place = exposablePlace(6L);
+        Area inactiveArea = area(false);
+        given(place.getArea()).willReturn(inactiveArea);
+
+        assertNotExposed(place, 6L);
+    }
+
+    @Test
+    void throwsNotExposedWhenPlaceCategoryIsInactive() {
+        Place place = exposablePlace(7L);
+        PlaceCategory inactivePlaceCategory =
+                placeCategory(1L, "CAFE", "카페", false);
+        given(place.getPlaceCategory()).willReturn(inactivePlaceCategory);
+
+        assertNotExposed(place, 7L);
     }
 
     private Place exposablePlace(Long id) {
@@ -151,22 +185,56 @@ class PlaceServiceTest {
         given(place.getBusinessHours()).willReturn("00:00-00:00"); // 24시간 → OPEN
         given(place.getLastOrderTime()).willReturn(LocalTime.of(20, 30));
         given(place.getDefaultRecommendReason()).willReturn("감성적인 분위기");
+        given(place.getReviewStatus()).willReturn(PlaceReviewStatus.APPROVED);
         given(place.getExposureStatus()).willReturn(PlaceExposureStatus.ACTIVE);
         given(place.getIsActive()).willReturn(true);
         // 중첩 given() 방지: 연관 mock을 먼저 만든 뒤 스텁에 전달
+        Area area = area(true);
         PlaceCategory placeCategory = placeCategory(1L, "CAFE", "카페");
         FoodCategory primaryFoodCategory = foodCategory(6L, "DESSERT", "디저트");
+        given(place.getArea()).willReturn(area);
         given(place.getPlaceCategory()).willReturn(placeCategory);
         given(place.getPrimaryFoodCategory()).willReturn(primaryFoodCategory);
         return place;
     }
 
     private PlaceCategory placeCategory(Long id, String code, String name) {
+        return placeCategory(id, code, name, true);
+    }
+
+    private PlaceCategory placeCategory(
+            Long id,
+            String code,
+            String name,
+            boolean isActive
+    ) {
         PlaceCategory category = mock(PlaceCategory.class);
         given(category.getId()).willReturn(id);
         given(category.getCode()).willReturn(code);
         given(category.getName()).willReturn(name);
+        given(category.getIsActive()).willReturn(isActive);
         return category;
+    }
+
+    private Area area(boolean isActive) {
+        Area area = mock(Area.class);
+        given(area.getIsActive()).willReturn(isActive);
+        return area;
+    }
+
+    private void assertNotExposed(Place place, Long placeId) {
+        given(placeRepository.findDetailById(placeId)).willReturn(Optional.of(place));
+
+        assertThatThrownBy(() -> placeService.getPlaceDetail(placeId))
+                .isInstanceOfSatisfying(PlaceException.class, e ->
+                        assertThat(e.getErrorCode()).isEqualTo(PlaceErrorCode.PLACE_NOT_EXPOSED));
+
+        verifyNoInteractions(
+                placeFoodCategoryRepository,
+                placeMoodTagRepository,
+                placeImageRepository,
+                placeMenuRepository
+        );
     }
 
     private FoodCategory foodCategory(Long id, String code, String name) {

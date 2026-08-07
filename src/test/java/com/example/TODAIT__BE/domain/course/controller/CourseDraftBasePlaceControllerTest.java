@@ -265,7 +265,7 @@ class CourseDraftBasePlaceControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 new CourseDraftBasePlaceSaveRequest(null, externalPlace))))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value("DATA_SOURCE404"));
+                .andExpect(jsonPath("$.code").value("PLACE404_1"));
     }
 
     private UsernamePasswordAuthenticationToken authMemberToken() {

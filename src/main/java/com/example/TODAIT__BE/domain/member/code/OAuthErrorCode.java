@@ -10,7 +10,7 @@ import org.springframework.http.HttpStatus;
 public enum OAuthErrorCode implements BaseErrorCode {
     INVALID_KAKAO_ACCESS_TOKEN(
             HttpStatus.UNAUTHORIZED,
-            "AUTH401_1",
+            "AUTH401_3",
             "유효하지 않은 카카오 액세스 토큰입니다."
     ),
 

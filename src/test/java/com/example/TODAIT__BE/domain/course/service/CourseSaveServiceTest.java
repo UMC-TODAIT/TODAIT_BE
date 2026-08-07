@@ -39,13 +39,16 @@ import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import java.util.List;
 import java.util.Optional;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 
 @ExtendWith(MockitoExtension.class)
 class CourseSaveServiceTest {
@@ -129,9 +132,14 @@ class CourseSaveServiceTest {
         verify(courseRepository, never()).save(any());
     }
 
-    @Test
-    void throwsWhenCourseDraftAbandoned() {
-        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ABANDONED);
+    @ParameterizedTest
+    @EnumSource(
+            value = CourseDraftStatus.class,
+            names = {"COMPLETED", "SAVING"},
+            mode = EnumSource.Mode.EXCLUDE
+    )
+    void throwsConflictWhenCourseDraftIsNotSavable(CourseDraftStatus status) {
+        CourseDraft draft = courseDraft(10L, member(1L), status);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         CourseSaveRequest request = new CourseSaveRequest("제목", "메모");
@@ -139,29 +147,17 @@ class CourseSaveServiceTest {
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
-
-        verify(courseRepository, never()).save(any());
-    }
-
-    @Test
-    void throwsWhenCourseDraftIsNotOrdering() {
-        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.FOOD_SELECTING);
-        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
-
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모");
-
-        assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
-                .isInstanceOf(CourseException.class)
-                .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_COURSE_DRAFT_STATUS);
+                .satisfies(errorCode -> {
+                    assertThat(errorCode).isEqualTo(CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
+                    assertThat(((CourseErrorCode) errorCode).getStatus()).isEqualTo(HttpStatus.CONFLICT);
+                });
 
         verify(courseRepository, never()).save(any());
     }
 
     @Test
     void throwsWhenCourseTitleBlank() {
-        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING);
+        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         CourseSaveRequest request = new CourseSaveRequest(" ", "메모");
@@ -176,7 +172,7 @@ class CourseSaveServiceTest {
 
     @Test
     void throwsWhenMoodTagCountIsLessThanMin() {
-        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING);
+        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         CourseSaveRequest request = new CourseSaveRequest("제목", "메모");
@@ -193,7 +189,7 @@ class CourseSaveServiceTest {
 
     @Test
     void throwsWhenMoodTagCountExceedsMax() {
-        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING);
+        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         CourseSaveRequest request = new CourseSaveRequest("제목", "메모");
@@ -218,7 +214,7 @@ class CourseSaveServiceTest {
 
     @Test
     void throwsWhenFoodCategoryNotSelected() {
-        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING);
+        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         given(courseDraftMoodTagRepository.findByCourseDraft(draft))
@@ -240,7 +236,7 @@ class CourseSaveServiceTest {
 
     @Test
     void throwsWhenBasePlaceMissing() {
-        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING);
+        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         given(courseDraftMoodTagRepository.findByCourseDraft(draft))
@@ -275,7 +271,7 @@ class CourseSaveServiceTest {
         Place basePlace = mock(Place.class);
         given(basePlace.getId()).willReturn(100L);
 
-        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING);
+        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         given(courseDraftMoodTagRepository.findByCourseDraft(draft))
@@ -331,7 +327,7 @@ class CourseSaveServiceTest {
         given(selectedPlace.getLongitude()).willReturn(127.2);
         given(selectedPlace.getPlaceCategory()).willReturn(placeCategory);
 
-        CourseDraft draft = courseDraft(10L, owner, CourseDraftStatus.ORDERING);
+        CourseDraft draft = courseDraft(10L, owner, CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         MoodTag moodTag = mock(MoodTag.class);

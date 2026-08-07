@@ -17,6 +17,10 @@ public final class OAuthRequest {
 
     @Schema(name = "OAuthKakaoAccessTokenRequest")
     public record KakaoAccessToken(
+            @Schema(
+                    description = "Android 카카오 SDK에서 발급받은 카카오 액세스 토큰",
+                    example = "kakao_access_token"
+            )
             @NotBlank
             String accessToken
     ) {
@@ -24,6 +28,10 @@ public final class OAuthRequest {
 
     @Schema(name = "OAuthGoogleIdTokenRequest")
     public record GoogleIdToken(
+            @Schema(
+                    description = "Android 구글 로그인에서 발급받은 ID 토큰",
+                    example = "google_id_token"
+            )
             @NotBlank
             String idToken
     ) {
@@ -31,6 +39,10 @@ public final class OAuthRequest {
 
     @Schema(name = "OAuthOnboardingRequest")
     public record Onboarding(
+            @Schema(
+                    description = "서비스에서 사용할 닉네임, 2~12자의 한글·영문·숫자",
+                    example = "투데잇"
+            )
             @NotBlank
             @Size(min = 2, max = 12)
             @Pattern(
@@ -39,6 +51,9 @@ public final class OAuthRequest {
             )
             String nickname,
 
+            @Schema(
+                    description = "약관 유형별 동의 정보. SERVICE와 PRIVACY는 필수 동의"
+            )
             @NotEmpty
             List<@Valid TermAgreementRequest> termAgreements
     ) {
