@@ -129,7 +129,7 @@ public class CourseSaveService {
             throw new CourseException(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
         }
 
-        List<MoodTag> foundMoodTags = moodTagRepository.findAllById(moodTagIds);
+        List<MoodTag> foundMoodTags = moodTagRepository.findByIdInAndIsActiveTrue(moodTagIds);
         if (foundMoodTags.size() != moodTagIds.size()) {
             throw new CourseException(CourseErrorCode.COURSE_MOOD_TAG_NOT_FOUND);
         }

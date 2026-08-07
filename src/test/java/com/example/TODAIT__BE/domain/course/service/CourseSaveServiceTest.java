@@ -288,7 +288,25 @@ class CourseSaveServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
         MoodTag hip = moodTag(1L, "HIP", "힙한");
-        given(moodTagRepository.findAllById(List.of(1L, 2L))).willReturn(List.of(hip));
+        given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L))).willReturn(List.of(hip));
+
+        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
+
+        assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
+                .isInstanceOf(CourseException.class)
+                .extracting("errorCode")
+                .isEqualTo(CourseErrorCode.COURSE_MOOD_TAG_NOT_FOUND);
+
+        verify(courseRepository, never()).save(any());
+    }
+
+    @Test
+    void throwsWhenMoodTagIsInactive() {
+        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+        MoodTag hip = moodTag(1L, "HIP", "힙한");
+        // id 2 exists but is inactive, so the active-only query excludes it from the result
+        given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L))).willReturn(List.of(hip));
 
         CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
 
@@ -306,7 +324,7 @@ class CourseSaveServiceTest {
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
         MoodTag hip = moodTag(1L, "HIP", "힙한");
         MoodTag calm = moodTag(2L, "CALM", "차분한");
-        given(moodTagRepository.findAllById(List.of(1L, 2L))).willReturn(List.of(hip, calm));
+        given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L))).willReturn(List.of(hip, calm));
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft)).willReturn(List.of());
 
         CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
@@ -325,7 +343,7 @@ class CourseSaveServiceTest {
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
         MoodTag hip = moodTag(1L, "HIP", "힙한");
         MoodTag calm = moodTag(2L, "CALM", "차분한");
-        given(moodTagRepository.findAllById(List.of(1L, 2L))).willReturn(List.of(hip, calm));
+        given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L))).willReturn(List.of(hip, calm));
 
         CourseDraftFoodCategory draftFoodCategory = CourseDraftFoodCategory.builder().build();
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft)).willReturn(List.of(draftFoodCategory));
@@ -357,7 +375,7 @@ class CourseSaveServiceTest {
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
         MoodTag hip = moodTag(1L, "HIP", "힙한");
         MoodTag calm = moodTag(2L, "CALM", "차분한");
-        given(moodTagRepository.findAllById(List.of(1L, 2L))).willReturn(List.of(hip, calm));
+        given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L))).willReturn(List.of(hip, calm));
 
         CourseDraftFoodCategory draftFoodCategory = CourseDraftFoodCategory.builder().build();
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft)).willReturn(List.of(draftFoodCategory));
@@ -412,7 +430,7 @@ class CourseSaveServiceTest {
         MoodTag romantic = moodTag(4L, "ROMANTIC", "로맨틱");
         MoodTag hip = moodTag(1L, "HIP", "힙한");
         // request order is [4, 1] — response must preserve this order, not natural id order
-        given(moodTagRepository.findAllById(List.of(4L, 1L))).willReturn(List.of(hip, romantic));
+        given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(4L, 1L))).willReturn(List.of(hip, romantic));
 
         FoodCategory foodCategory = mock(FoodCategory.class);
         given(foodCategory.getId()).willReturn(5L);
