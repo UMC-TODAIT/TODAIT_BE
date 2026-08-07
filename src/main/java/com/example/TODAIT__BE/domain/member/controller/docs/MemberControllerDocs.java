@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface MemberControllerDocs {
 
     @Operation(
-            summary = "[회원] 닉네임 중복 확인",
+            summary = "[회원 정보] 닉네임 사용 가능 확인",
             description = """
                     입력한 닉네임의 사용 가능 여부를 확인합니다.
 
@@ -69,8 +69,13 @@ public interface MemberControllerDocs {
     );
 
     @Operation(
-            summary = "[회원] 내 회원 정보 조회",
-            description = "현재 로그인한 사용자의 기본 정보와 마이페이지 요약 정보를 조회합니다."
+            summary = "[회원 정보] 내 정보 조회",
+            description = """
+                    현재 로그인한 사용자의 기본 정보와 마이페이지 요약 정보를 조회합니다.
+
+                    - 기본 정보: 회원 ID, 이메일, 닉네임, 프로필 이미지
+                    - 요약 정보: 저장 코스 개수
+                    """
     )
     ResponseEntity<ApiResponse<MemberResponse.Me>> getMyInfo(
             @AuthenticationPrincipal AuthMember authMember

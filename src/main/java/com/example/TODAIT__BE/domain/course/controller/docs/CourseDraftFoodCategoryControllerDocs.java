@@ -14,10 +14,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface CourseDraftFoodCategoryControllerDocs {
 
     @Operation(
-            summary = "[임시 코스] 음식 카테고리 선택 저장",
-            description = "임시 코스에 음식 카테고리 선택값 전체를 PUT 방식으로 교체 저장합니다. "
-                    + "FOOD_SELECTING 상태에서 최초 저장 시 BASE_PLACE_SELECTING으로 전이하며, "
-                    + "BASE_PLACE_SELECTING 상태에서는 재호출 시 카테고리만 교체하고 상태는 유지합니다."
+            summary = "[음식 선택] 음식 카테고리 저장",
+            description = """
+                    임시 코스에 음식 카테고리 선택값 전체를 PUT 방식으로 교체 저장합니다.
+
+                    - 선택 개수: 1개 이상
+                    - FOOD_SELECTING 상태: 저장 후 BASE_PLACE_SELECTING으로 전이
+                    - BASE_PLACE_SELECTING 상태: 카테고리만 교체하고 상태 유지
+                    """
     )
     @SecurityRequirement(name = "JWT TOKEN")
     ResponseEntity<ApiResponse<CourseDraftFoodCategorySaveResponse>> saveFoodCategories(

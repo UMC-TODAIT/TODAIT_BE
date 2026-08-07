@@ -15,13 +15,15 @@ import org.springframework.http.ResponseEntity;
 public interface AuthControllerDocs {
 
     @Operation(
-            summary = "[인증] 일반 회원가입",
+            summary = "[일반 회원가입] 일반 이메일 회원가입",
             description = """
                     이메일 인증을 완료한 사용자의 일반 회원가입을 처리합니다.
+
                     회원가입이 완료되면 회원과 약관 동의 내역을 저장하고
                     서비스 Access Token과 Refresh Token을 발급합니다.
-                    필수 약관: SERVICE, PRIVACY
-                    선택 약관: LOCATION, MARKETING
+
+                    - 필수 약관: SERVICE, PRIVACY
+                    - 선택 약관: LOCATION, MARKETING
                     """
     )
     ResponseEntity<ApiResponse<AuthResponse.Token>> signup(
@@ -64,20 +66,22 @@ public interface AuthControllerDocs {
     );
 
     @Operation(
-            summary = "[인증] 이메일 로그인",
+            summary = "[일반 로그인] 이메일 로그인",
             description = """
-                이메일과 비밀번호를 검증하여 로그인합니다.
-                로그인에 성공하면 서비스 Access Token과 Refresh Token을 발급합니다.
-                """
+                    이메일과 비밀번호를 검증하여 로그인합니다.
+
+                    로그인에 성공하면 서비스 Access Token과 Refresh Token을 발급합니다.
+                    """
     )
     ResponseEntity<ApiResponse<AuthResponse.Token>> login(
             AuthRequest.Login request
     );
 
     @Operation(
-            summary = "[인증] 로그아웃",
+            summary = "[로그아웃] Refresh Token 로그아웃",
             description = """
                     Refresh Token을 폐기하여 로그아웃합니다.
+
                     폐기된 Refresh Token은 Access Token 재발급에 사용할 수 없습니다.
                     """
     )
