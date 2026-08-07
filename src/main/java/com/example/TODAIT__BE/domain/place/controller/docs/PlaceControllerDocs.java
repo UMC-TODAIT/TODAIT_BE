@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 
-@Tag(name = "PLACE", description = "장소 도메인 API")
+@Tag(name = "PLACE", description = "장소 검색 및 상세 조회 API")
 public interface PlaceControllerDocs {
 
     @Operation(

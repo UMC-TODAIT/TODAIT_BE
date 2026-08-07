@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/course-drafts")
-@Tag(name = "COURSE", description = "코스 도메인 API")
+@Tag(name = "COURSE", description = "임시 코스 및 저장 코스 API")
 public class CourseSaveController {
 
     private final CourseSaveService courseSaveService;

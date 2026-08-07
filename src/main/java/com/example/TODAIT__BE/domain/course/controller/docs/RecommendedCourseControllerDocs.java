@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 
 @Tag(
         name = "COURSE",
-        description = "코스 도메인 API"
+        description = "임시 코스 및 저장 코스 API"
 )
 public interface RecommendedCourseControllerDocs {
 

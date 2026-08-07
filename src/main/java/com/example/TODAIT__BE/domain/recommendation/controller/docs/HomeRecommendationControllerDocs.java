@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 
-@Tag(name = "RECOMMENDATION", description = "추천 도메인 API")
+@Tag(name = "RECOMMENDATION", description = "홈 추천 및 주변 핫플 추천 API")
 public interface HomeRecommendationControllerDocs {
 
     @Operation(

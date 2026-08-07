@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseDetailResponse;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@Tag(name = "COURSE", description = "코스 도메인 API")
+@Tag(name = "COURSE", description = "임시 코스 및 저장 코스 API")
 public interface SavedCourseControllerDocs {
 
     @Operation(

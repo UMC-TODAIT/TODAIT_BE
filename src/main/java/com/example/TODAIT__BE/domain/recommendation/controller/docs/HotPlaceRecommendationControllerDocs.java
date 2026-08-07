@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 
 @Tag(
         name = "RECOMMENDATION",
-        description = "추천 도메인 API"
+        description = "홈 추천 및 주변 핫플 추천 API"
 )
 public interface HotPlaceRecommendationControllerDocs {
 

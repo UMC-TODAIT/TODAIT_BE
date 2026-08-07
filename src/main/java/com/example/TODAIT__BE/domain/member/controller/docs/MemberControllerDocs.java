@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(
         name = "MEMBER",
-        description = "회원 도메인 API"
+        description = "로그인, 회원가입, 이메일 인증, 온보딩, 회원 정보 API"
 )
 public interface MemberControllerDocs {
 
