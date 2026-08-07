@@ -13,7 +13,7 @@ public enum RecommendationErrorCode implements BaseErrorCode {
             "RECOMMENDATION400_1",
             "페이지 번호는 0 이상이어야 합니다."),
     INVALID_CURSOR(HttpStatus.BAD_REQUEST,
-            "RECOMMENDATION400_5",
+            "RECOMMENDATION400_9",
             "유효하지 않은 추천 커서입니다."),
     INVALID_SIZE(HttpStatus.BAD_REQUEST,
             "RECOMMENDATION400_2",

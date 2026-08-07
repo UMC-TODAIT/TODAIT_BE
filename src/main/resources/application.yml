@@ -70,6 +70,10 @@ app:
     resend-cooldown-seconds: ${EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS:60}
     verify-failure-ttl-minutes: ${EMAIL_VERIFICATION_VERIFY_FAILURE_TTL_MINUTES:5}
     max-verify-failures: ${EMAIL_VERIFICATION_MAX_VERIFY_FAILURES:5}
+  password-reset:
+    code-ttl-minutes: ${PASSWORD_RESET_CODE_TTL_MINUTES:5}
+    session-ttl-minutes: ${PASSWORD_RESET_SESSION_TTL_MINUTES:10}
+    resend-cooldown-seconds: ${PASSWORD_RESET_RESEND_COOLDOWN_SECONDS:60}
   oauth:
     google:
       web-client-id: ${GOOGLE_WEB_CLIENT_ID}

@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -46,9 +47,26 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/**",
-                                "/api/members/nickname-availability",
-                                "/api/members/me/onboarding",
+                                HttpMethod.POST,
+                                "/api/auth/signup",
+                                "/api/auth/login",
+                                "/api/auth/logout",
+                                "/api/auth/token/refresh",
+                                "/api/auth/kakao/login",
+                                "/api/auth/google/login",
+                                "/api/auth/email/send-code",
+                                "/api/auth/email/verify-code",
+                                "/api/auth/password-reset/email/send-code"
+                        ).permitAll()
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/members/nickname-availability"
+                        ).permitAll()
+                        .requestMatchers(
+                                HttpMethod.PATCH,
+                                "/api/members/me/onboarding"
+                        ).permitAll()
+                        .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**"
