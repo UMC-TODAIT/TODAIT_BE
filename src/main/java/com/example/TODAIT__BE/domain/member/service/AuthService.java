@@ -155,12 +155,14 @@ public class AuthService {
     public String issueOAuthOnboardingToken(
             OAuthProvider provider,
             String providerUserId,
-            String email
+            String email,
+            String profileImageUrl
     ) {
         return jwtTokenProvider.createOAuthOnboardingToken(
                 provider,
                 providerUserId,
-                email
+                email,
+                profileImageUrl
         );
     }
 
@@ -173,14 +175,16 @@ public class AuthService {
         return new OAuthOnboardingTokenClaims(
                 jwtTokenProvider.getOAuthProvider(onboardingToken),
                 jwtTokenProvider.getSubject(onboardingToken),
-                jwtTokenProvider.getEmail(onboardingToken)
+                jwtTokenProvider.getEmail(onboardingToken),
+                jwtTokenProvider.getProfileImageUrl(onboardingToken)
         );
     }
 
     public record OAuthOnboardingTokenClaims(
             OAuthProvider provider,
             String providerUserId,
-            String email
+            String email,
+            String profileImageUrl
     ) {
     }
 

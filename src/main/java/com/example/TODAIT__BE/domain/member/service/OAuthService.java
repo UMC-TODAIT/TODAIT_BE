@@ -61,7 +61,8 @@ public class OAuthService {
         return loginWithOAuth(
                 OAuthProvider.KAKAO,
                 userInfo.providerUserId(),
-                userInfo.email()
+                userInfo.email(),
+                userInfo.profileImageUrl()
         );
     }
 
@@ -72,7 +73,8 @@ public class OAuthService {
         return loginWithOAuth(
                 OAuthProvider.GOOGLE,
                 userInfo.providerUserId(),
-                userInfo.email()
+                userInfo.email(),
+                userInfo.profileImageUrl()
         );
     }
 
@@ -105,6 +107,7 @@ public class OAuthService {
                 Member.builder()
                         .email(email)
                         .nickname(nickname)
+                        .profileImageUrl(claims.profileImageUrl())
                         .build()
         );
 
@@ -124,7 +127,8 @@ public class OAuthService {
     private OAuthResponse.Login loginWithOAuth(
             OAuthProvider provider,
             String providerUserId,
-            String email
+            String email,
+            String profileImageUrl
     ){
         String normalizedEmail = MemberInputPolicy.normalizeEmail(email);
         Optional<MemberOAuthAccount> result = memberOAuthAccountRepository.findByProviderAndProviderUserId(
@@ -142,7 +146,8 @@ public class OAuthService {
         return requireOnboarding(
                 provider,
                 providerUserId,
-                normalizedEmail
+                normalizedEmail,
+                profileImageUrl
         );
     }
 
@@ -201,12 +206,14 @@ public class OAuthService {
     private OAuthResponse.Login requireOnboarding(
             OAuthProvider provider,
             String providerUserId,
-            String email
+            String email,
+            String profileImageUrl
     ) {
         String onboardingToken = authService.issueOAuthOnboardingToken(
                 provider,
                 providerUserId,
-                email
+                email,
+                profileImageUrl
         );
 
         return OAuthResponse.Login.builder()

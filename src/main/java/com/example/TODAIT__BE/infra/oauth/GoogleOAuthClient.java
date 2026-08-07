@@ -69,8 +69,13 @@ public class GoogleOAuthClient {
                         OAuthErrorCode.INVALID_GOOGLE_ID_TOKEN
                 );
             }
-
-            return new GoogleUserInfo(providerUserId, email);
+            Object pictureClaim = payload.get("picture");
+            String profileImageUrl =
+                    pictureClaim instanceof String picture
+                            && StringUtils.hasText(picture)
+                            ? picture
+                            : null;
+            return new GoogleUserInfo(providerUserId, email,profileImageUrl);
         //가져오는 과정에서 네트워크 문제
         }catch (IOException e){
             throw new MemberException(

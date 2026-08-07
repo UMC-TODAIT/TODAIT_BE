@@ -30,6 +30,17 @@ public class KakaoOAuthClient {
         return requestUserInfo(accessToken);
     }
 
+    private String resolveProfileImageUrl(
+            KakaoUserResponse.Profile profile
+    ) {
+        if (profile == null
+                || Boolean.TRUE.equals(profile.isDefaultImage())
+                || !StringUtils.hasText(profile.profileImageUrl())) {
+            return null;
+        }
+
+        return profile.profileImageUrl();
+    }
 
     @Value("${spring.security.oauth2.client.provider.kakao.user-info-uri}")
     private String userInfoUri;
@@ -57,12 +68,16 @@ public class KakaoOAuthClient {
             String providerUserId = String.valueOf(response.id());
 
             String email = null;
+            String profileImageUrl = null;
 
             if (response.kakaoAccount() != null) {
                 email = response.kakaoAccount().email();
+                profileImageUrl = resolveProfileImageUrl(
+                        response.kakaoAccount().profile()
+                );
             }
 
-            return new KakaoUserInfo(providerUserId, email);
+            return new KakaoUserInfo(providerUserId, email,profileImageUrl);
         }catch (HttpClientErrorException e){
             int statusCode = e.getStatusCode().value();
 

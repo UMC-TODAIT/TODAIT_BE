@@ -71,12 +71,17 @@ public class JwtTokenProvider {
     public String createOAuthOnboardingToken(
             OAuthProvider provider,
             String providerUserId,
-            String email
+            String email,
+            String profileImageUrl
     ) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("tokenType", TokenType.OAUTH_ONBOARDING.name());
         claims.put("provider", provider.name());
         claims.put("email", email);
+
+        if (profileImageUrl != null && !profileImageUrl.isBlank()) {
+            claims.put("profileImageUrl", profileImageUrl);
+        }
 
         return createToken(
                providerUserId,
@@ -162,6 +167,9 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
-
+    public String getProfileImageUrl(String token) {
+        return parseClaims(token)
+                .get("profileImageUrl", String.class);
+    }
 }
 

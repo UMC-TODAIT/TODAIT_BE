@@ -80,7 +80,11 @@ class OAuthServiceTest {
     @Test
     void loginWithKakaoRequiresOnboardingWithNormalizedEmail() {
         given(kakaoOAuthUserClient.getUserInfo("kakao-token"))
-                .willReturn(new OAuthUserInfo("provider-user-id", " User@Example.com "));
+                .willReturn(new OAuthUserInfo(
+                        "provider-user-id",
+                        " User@Example.com ",
+                        "https://example.com/profile.jpg"
+                ));
         given(memberOAuthAccountRepository.findByProviderAndProviderUserId(
                 OAuthProvider.KAKAO,
                 "provider-user-id"
@@ -88,7 +92,8 @@ class OAuthServiceTest {
         given(authService.issueOAuthOnboardingToken(
                 OAuthProvider.KAKAO,
                 "provider-user-id",
-                "user@example.com"
+                "user@example.com",
+                "https://example.com/profile.jpg"
         )).willReturn("onboarding-token");
 
         OAuthResponse.Login response = oAuthService.loginWithKakao("kakao-token");
@@ -115,7 +120,7 @@ class OAuthServiceTest {
         AuthResponse.Token token = new AuthResponse.Token("access", "refresh");
 
         given(kakaoOAuthUserClient.getUserInfo("kakao-token"))
-                .willReturn(new OAuthUserInfo("provider-user-id", "member@example.com"));
+                .willReturn(new OAuthUserInfo("provider-user-id", "member@example.com", null));
         given(memberOAuthAccountRepository.findByProviderAndProviderUserId(
                 OAuthProvider.KAKAO,
                 "provider-user-id"
@@ -144,7 +149,7 @@ class OAuthServiceTest {
                 .build();
 
         given(kakaoOAuthUserClient.getUserInfo("kakao-token"))
-                .willReturn(new OAuthUserInfo("provider-user-id", "member@example.com"));
+                .willReturn(new OAuthUserInfo("provider-user-id", "member@example.com",null));
         given(memberOAuthAccountRepository.findByProviderAndProviderUserId(
                 OAuthProvider.KAKAO,
                 "provider-user-id"
@@ -162,7 +167,7 @@ class OAuthServiceTest {
     @Test
     void loginWithKakaoRejectsEmailAlreadyRegisteredByEmailSignup() {
         given(kakaoOAuthUserClient.getUserInfo("kakao-token"))
-                .willReturn(new OAuthUserInfo("provider-user-id", "User@Example.com"));
+                .willReturn(new OAuthUserInfo("provider-user-id", "User@Example.com",null));
         given(memberOAuthAccountRepository.findByProviderAndProviderUserId(
                 OAuthProvider.KAKAO,
                 "provider-user-id"
@@ -251,6 +256,8 @@ class OAuthServiceTest {
         verify(memberRegistrationService).saveMember(memberCaptor.capture());
         assertThat(memberCaptor.getValue().getEmail()).isEqualTo("user@example.com");
         assertThat(memberCaptor.getValue().getNickname()).isEqualTo("tester");
+        assertThat(memberCaptor.getValue().getProfileImageUrl())
+                .isEqualTo("https://example.com/profile.jpg");
 
         verify(memberRegistrationService).saveOAuthAccount(
                 eq(savedMember),
@@ -320,7 +327,8 @@ class OAuthServiceTest {
                 .willReturn(new AuthService.OAuthOnboardingTokenClaims(
                         OAuthProvider.GOOGLE,
                         "provider-user-id",
-                        " User@Example.com "
+                        " User@Example.com ",
+                        "https://example.com/profile.jpg"
                 ));
     }
 
