@@ -90,6 +90,9 @@ public class OAuthService {
         String email = MemberInputPolicy.normalizeEmail(
                 claims.email()
         );
+        String profileImageUrl = MemberInputPolicy.normalizeProfileImageUrl(
+                claims.profileImageUrl()
+        );
         String nickname = request.nickname();
 
         memberDuplicateValidator.validateNicknameAvailable(nickname);
@@ -107,7 +110,7 @@ public class OAuthService {
                 Member.builder()
                         .email(email)
                         .nickname(nickname)
-                        .profileImageUrl(claims.profileImageUrl())
+                        .profileImageUrl(profileImageUrl)
                         .build()
         );
 
@@ -131,6 +134,8 @@ public class OAuthService {
             String profileImageUrl
     ){
         String normalizedEmail = MemberInputPolicy.normalizeEmail(email);
+        String normalizedProfileImageUrl =
+                MemberInputPolicy.normalizeProfileImageUrl(profileImageUrl);
         Optional<MemberOAuthAccount> result = memberOAuthAccountRepository.findByProviderAndProviderUserId(
                 provider,
                 providerUserId
@@ -147,7 +152,7 @@ public class OAuthService {
                 provider,
                 providerUserId,
                 normalizedEmail,
-                profileImageUrl
+                normalizedProfileImageUrl
         );
     }
 
@@ -199,6 +204,7 @@ public class OAuthService {
                 .onboardingToken(null)
                 .email(member.getEmail())
                 .provider(provider)
+                .profileImageUrl(member.getProfileImageUrl())
                 .build();
     }
 
@@ -223,6 +229,7 @@ public class OAuthService {
                 .onboardingToken(onboardingToken)
                 .email(email)
                 .provider(provider)
+                .profileImageUrl(profileImageUrl)
                 .build();
     }
 

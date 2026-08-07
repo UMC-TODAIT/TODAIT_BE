@@ -2,6 +2,7 @@ package com.example.TODAIT__BE.global.security.token;
 
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
+import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -79,8 +80,11 @@ public class JwtTokenProvider {
         claims.put("provider", provider.name());
         claims.put("email", email);
 
-        if (profileImageUrl != null && !profileImageUrl.isBlank()) {
-            claims.put("profileImageUrl", profileImageUrl);
+        String normalizedProfileImageUrl =
+                MemberInputPolicy.normalizeProfileImageUrl(profileImageUrl);
+
+        if (normalizedProfileImageUrl != null) {
+            claims.put("profileImageUrl", normalizedProfileImageUrl);
         }
 
         return createToken(

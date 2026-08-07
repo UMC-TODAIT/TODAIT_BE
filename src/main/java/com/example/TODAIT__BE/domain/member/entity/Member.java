@@ -2,6 +2,7 @@ package com.example.TODAIT__BE.domain.member.entity;
 
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
+import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
 import com.example.TODAIT__BE.global.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -52,7 +53,10 @@ public class Member extends BaseEntity {
     @Column(name = "nickname", nullable = false)
     private String nickname;
 
-    @Column(name = "profile_image_url")
+    @Column(
+            name = "profile_image_url",
+            length = MemberInputPolicy.PROFILE_IMAGE_URL_MAX_LENGTH
+    )
     private String profileImageUrl;
 
     @Column(name = "role",nullable = false)

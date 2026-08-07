@@ -5,6 +5,8 @@ import java.util.regex.Pattern;
 
 public final class MemberInputPolicy {
 
+    public static final int PROFILE_IMAGE_URL_MAX_LENGTH = 2048;
+
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
             "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$",
             Pattern.CASE_INSENSITIVE
@@ -23,6 +25,21 @@ public final class MemberInputPolicy {
         return nickname == null
                 ? null
                 : nickname.trim();
+    }
+
+    public static String normalizeProfileImageUrl(String profileImageUrl) {
+        if (profileImageUrl == null) {
+            return null;
+        }
+
+        String normalizedProfileImageUrl = profileImageUrl.trim();
+
+        if (normalizedProfileImageUrl.isEmpty()
+                || normalizedProfileImageUrl.length() > PROFILE_IMAGE_URL_MAX_LENGTH) {
+            return null;
+        }
+
+        return normalizedProfileImageUrl;
     }
 
     public static boolean isValidEmail(String email) {

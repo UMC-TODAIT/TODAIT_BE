@@ -101,6 +101,8 @@ class OAuthServiceTest {
         assertThat(response.loginStatus()).isEqualTo("ONBOARDING_REQUIRED");
         assertThat(response.onboardingToken()).isEqualTo("onboarding-token");
         assertThat(response.email()).isEqualTo("user@example.com");
+        assertThat(response.profileImageUrl())
+                .isEqualTo("https://example.com/profile.jpg");
         verify(memberDuplicateValidator).validateEmailAvailable("user@example.com");
     }
 
@@ -110,6 +112,7 @@ class OAuthServiceTest {
                 .id(1L)
                 .email("member@example.com")
                 .nickname("member")
+                .profileImageUrl("https://example.com/saved-profile.jpg")
                 .status(MemberStatus.ACTIVE)
                 .build();
         MemberOAuthAccount account = MemberOAuthAccount.builder()
@@ -133,6 +136,33 @@ class OAuthServiceTest {
         assertThat(response.accessToken()).isEqualTo("access");
         assertThat(response.refreshToken()).isEqualTo("refresh");
         assertThat(response.email()).isEqualTo("member@example.com");
+        assertThat(response.profileImageUrl())
+                .isEqualTo("https://example.com/saved-profile.jpg");
+    }
+
+    @Test
+    void loginWithKakaoReturnsNullProfileImageWhenNotProvided() {
+        given(kakaoOAuthUserClient.getUserInfo("kakao-token"))
+                .willReturn(new OAuthUserInfo(
+                        "provider-user-id",
+                        "user@example.com",
+                        null
+                ));
+        given(memberOAuthAccountRepository.findByProviderAndProviderUserId(
+                OAuthProvider.KAKAO,
+                "provider-user-id"
+        )).willReturn(Optional.empty());
+        given(authService.issueOAuthOnboardingToken(
+                OAuthProvider.KAKAO,
+                "provider-user-id",
+                "user@example.com",
+                null
+        )).willReturn("onboarding-token");
+
+        OAuthResponse.Login response = oAuthService.loginWithKakao("kakao-token");
+
+        assertThat(response.loginStatus()).isEqualTo("ONBOARDING_REQUIRED");
+        assertThat(response.profileImageUrl()).isNull();
     }
 
     @Test
