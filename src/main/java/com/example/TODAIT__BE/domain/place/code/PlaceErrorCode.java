@@ -29,7 +29,7 @@ public enum PlaceErrorCode implements BaseErrorCode {
 
     PLACE_NOT_EXPOSED(
             HttpStatus.BAD_REQUEST,
-            "PLACE400",
+            "PLACE400_4",
             "노출 대상이 아닌 장소입니다."
     ),
 
@@ -49,7 +49,11 @@ public enum PlaceErrorCode implements BaseErrorCode {
             HttpStatus.BAD_GATEWAY,
             "PLACE502_1",
             "카카오 장소 검색에 실패했습니다."
-    );
+    ),
+
+    PLACE_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "PLACE400", "현재 사용할 수 없는 장소입니다."),
+    INVALID_PLACE_COORDINATE(HttpStatus.BAD_REQUEST, "PLACE400_5", "유효하지 않은 장소 좌표입니다."),
+    DATA_SOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "PLACE404_1", "외부 장소 데이터 출처를 찾을 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;

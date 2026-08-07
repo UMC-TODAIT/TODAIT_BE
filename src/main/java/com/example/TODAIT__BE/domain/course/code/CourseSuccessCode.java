@@ -52,6 +52,12 @@ public enum CourseSuccessCode implements BaseSuccessCode {
             "저장 코스 상세 조회 성공"
     ),
 
+    BASE_PLACE_SAVE_OK(
+            HttpStatus.OK,
+            "COURSE200_6",
+            "임시 코스 기준 장소 설정 성공"
+    ),
+
     RECOMMENDED_COURSE_SAVE_OK(
             HttpStatus.CREATED,
             "COURSE202",

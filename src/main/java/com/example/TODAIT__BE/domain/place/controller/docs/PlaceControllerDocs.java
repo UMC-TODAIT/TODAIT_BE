@@ -37,7 +37,7 @@ public interface PlaceControllerDocs {
 
                     - 기본 정보, 이미지, 카테고리
                     - 분위기 태그, 음식 카테고리, 메뉴
-                    - 노출 대상이 아닌 장소: PLACE400
+                    - 노출 대상이 아닌 장소: PLACE400_4
                     - 존재하지 않는 장소: PLACE404
                     """
     )

@@ -55,7 +55,7 @@ class ApiResponseCodeContractTest {
             new CodeEnum(RecommendationSuccessCode.class, Set.of("RECOMMENDATION")),
             new CodeEnum(RecommendationErrorCode.class, Set.of("RECOMMENDATION")),
             new CodeEnum(TaxonomySuccessCode.class, Set.of("TAXONOMY")),
-            new CodeEnum(TaxonomyErrorCode.class, Set.of("TAXONOMY", "MOOD_TAG", "FOOD_CATEGORY"))
+            new CodeEnum(TaxonomyErrorCode.class, Set.of("TAXONOMY", "MOOD_TAG", "FOOD_CATEGORY", "AREA", "PLACE_CATEGORY"))
     );
 
     private static final Map<String, String> EXPECTED_CODES = Map.ofEntries(
@@ -156,15 +156,22 @@ class ApiResponseCodeContractTest {
             entry("CourseErrorCode.SAVED_COURSE_ACCESS_DENIED", "COURSE403_2"),
             entry("CourseErrorCode.SAVED_COURSE_NOT_FOUND", "COURSE404_1"),
             entry("CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE", "COURSE400_5"),
+            entry("CourseErrorCode.BASE_PLACE_DRAFT_STATUS_CONFLICT", "COURSE_BASE409_2"),
+            entry("CourseErrorCode.BASE_PLACE_SOURCE_CONFLICT", "COURSE400_6"),
+            entry("CourseErrorCode.BASE_PLACE_SOURCE_MISSING", "COURSE400_7"),
+            entry("CourseSuccessCode.BASE_PLACE_SAVE_OK", "COURSE200_6"),
             entry("PlaceSuccessCode.PLACE_SEARCH_OK", "PLACE200"),
             entry("PlaceSuccessCode.PLACE_DETAIL_OK", "PLACE200_1"),
             entry("PlaceErrorCode.INVALID_PLACE_SEARCH_QUERY", "PLACE400_1"),
             entry("PlaceErrorCode.PLACE_SEARCH_QUERY_TOO_SHORT", "PLACE400_2"),
             entry("PlaceErrorCode.PLACE_SEARCH_QUERY_TOO_LONG", "PLACE400_3"),
-            entry("PlaceErrorCode.PLACE_NOT_EXPOSED", "PLACE400"),
+            entry("PlaceErrorCode.PLACE_NOT_EXPOSED", "PLACE400_4"),
             entry("PlaceErrorCode.PLACE_NOT_FOUND", "PLACE404"),
             entry("PlaceErrorCode.KAKAO_LOCAL_API_RATE_LIMIT_EXCEEDED", "PLACE429_1"),
             entry("PlaceErrorCode.KAKAO_LOCAL_API_REQUEST_FAILED", "PLACE502_1"),
+            entry("PlaceErrorCode.PLACE_NOT_AVAILABLE", "PLACE400"),
+            entry("PlaceErrorCode.INVALID_PLACE_COORDINATE", "PLACE400_5"),
+            entry("PlaceErrorCode.DATA_SOURCE_NOT_FOUND", "PLACE404_1"),
             entry("RecommendationSuccessCode.HOME_RECOMMENDED_COURSE_LIST_OK", "RECOMMENDATION200"),
             entry("RecommendationSuccessCode.HOT_PLACE_LIST_OK", "RECOMMENDATION200_2"),
             entry("RecommendationSuccessCode.HOME_RECOMMENDED_PLACE_LIST_OK", "RECOMMENDATION201"),
@@ -180,7 +187,9 @@ class ApiResponseCodeContractTest {
             entry("RecommendationErrorCode.REQUEST_CONTEXT_SERIALIZATION_FAILED", "RECOMMENDATION500_1"),
             entry("TaxonomySuccessCode.PLACE_CATEGORY_LIST_OK", "TAXONOMY200"),
             entry("TaxonomyErrorCode.MOOD_TAG_NOT_FOUND", "MOOD_TAG404"),
-            entry("TaxonomyErrorCode.FOOD_CATEGORY_NOT_FOUND", "FOOD_CATEGORY404")
+            entry("TaxonomyErrorCode.FOOD_CATEGORY_NOT_FOUND", "FOOD_CATEGORY404"),
+            entry("TaxonomyErrorCode.AREA_NOT_SUPPORTED", "AREA400"),
+            entry("TaxonomyErrorCode.PLACE_CATEGORY_NOT_SUPPORTED", "PLACE_CATEGORY400")
     );
 
     @Test

@@ -36,6 +36,9 @@ public enum CourseErrorCode implements BaseErrorCode {
     RECOMMENDED_COURSE_NOT_FOUND(HttpStatus.NOT_FOUND, "COURSE404", "추천 코스를 찾을 수 없습니다."),
     SAVED_COURSE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "COURSE403_2", "해당 저장 코스에 접근할 권한이 없습니다."),
     SAVED_COURSE_NOT_FOUND(HttpStatus.NOT_FOUND, "COURSE404_1", "저장 코스를 찾을 수 없습니다."),
+    BASE_PLACE_DRAFT_STATUS_CONFLICT(HttpStatus.CONFLICT, "COURSE_BASE409_2", "현재 임시 코스 상태에서는 기준 장소를 설정할 수 없습니다."),
+    BASE_PLACE_SOURCE_CONFLICT(HttpStatus.BAD_REQUEST, "COURSE400_6", "내부 장소와 외부 장소 정보 중 하나만 전달해야 합니다."),
+    BASE_PLACE_SOURCE_MISSING(HttpStatus.BAD_REQUEST, "COURSE400_7", "기준 장소 정보가 필요합니다."),
     RECOMMENDED_COURSE_NOT_SAVABLE(HttpStatus.BAD_REQUEST, "COURSE400_5", "저장할 수 없는 추천 코스입니다.");
 
     private final HttpStatus status;

@@ -1,5 +1,6 @@
 package com.example.TODAIT__BE.domain.place.entity;
 
+import com.example.TODAIT__BE.global.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -10,24 +11,24 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
         name = "place_source",
         uniqueConstraints = @UniqueConstraint(
-                name = "uk_place_source_data_source_external",
-                columnNames = {
-                        "data_source_id",
-                        "source_place_id"
-                }
+                name = "uk_place_source_data_source_source_place_id",
+                columnNames = {"data_source_id", "source_place_id"}
         )
 )
-public class PlaceSource {
+@Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class PlaceSource extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,12 +42,13 @@ public class PlaceSource {
     @JoinColumn(name = "data_source_id", nullable = false)
     private PlaceDataSource dataSource;
 
-    @Column(name = "source_place_id", nullable = false, length = 255)
+    @Column(name = "source_place_id", nullable = false, comment = "외부 데이터 출처의 장소 고유 ID")
     private String sourcePlaceId;
 
-    @Column(name = "source_url", length = 1000)
+    @Column(name = "source_url", comment = "외부 장소 상세 페이지 URL")
     private String sourceUrl;
 
-    @Column(name = "is_primary", nullable = false)
-    private boolean isPrimary;
+    @Builder.Default
+    @Column(name = "is_primary", nullable = false, comment = "대표 데이터 출처 여부")
+    private Boolean isPrimary = false;
 }

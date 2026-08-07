@@ -20,6 +20,18 @@ public enum TaxonomyErrorCode implements BaseErrorCode {
             "FOOD_CATEGORY404",
             "존재하지 않는 음식 카테고리가 포함되어 있습니다."
     ),
+
+    AREA_NOT_SUPPORTED(
+            HttpStatus.BAD_REQUEST,
+            "AREA400",
+            "지원하지 않는 지역입니다."
+    ),
+
+    PLACE_CATEGORY_NOT_SUPPORTED(
+            HttpStatus.BAD_REQUEST,
+            "PLACE_CATEGORY400",
+            "지원하지 않는 장소 카테고리입니다."
+    ),
     ;
 
     private final HttpStatus status;
