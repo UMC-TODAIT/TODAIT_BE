@@ -49,6 +49,10 @@ public class CourseDraft extends BaseEntity {
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id")
+    private Course course;
+
     public static CourseDraft create(Member member) {
         return CourseDraft.builder()
                 .member(member)
@@ -60,7 +64,8 @@ public class CourseDraft extends BaseEntity {
         this.status = status;
     }
 
-    public void complete() {
+    public void completeWithCourse(Course course) {
         this.status = CourseDraftStatus.COMPLETED;
+        this.course = course;
     }
 }

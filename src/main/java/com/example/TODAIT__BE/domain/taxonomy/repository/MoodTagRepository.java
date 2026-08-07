@@ -12,4 +12,6 @@ public interface MoodTagRepository extends JpaRepository<MoodTag, Long> {
     boolean existsByCode(String code);
 
     List<MoodTag> findAllByIsActiveTrueOrderBySortOrderAsc();
+
+    List<MoodTag> findByIdInAndIsActiveTrue(List<Long> ids);
 }

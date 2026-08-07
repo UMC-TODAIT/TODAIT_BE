@@ -24,7 +24,7 @@ public class GeneralExceptionAdvice {
 
     // 프로젝트에서 발생한 예외 처리
     @ExceptionHandler(ProjectException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMemberException(
+    public ResponseEntity<ApiResponse<Object>> handleMemberException(
             ProjectException e
     ) {
         BaseErrorCode errorCode = e.getErrorCode();
@@ -36,7 +36,7 @@ public class GeneralExceptionAdvice {
             );
         }
         return ResponseEntity.status(errorCode.getStatus())
-                .body(ApiResponse.onFailure(errorCode, null));
+                .body(ApiResponse.onFailure(errorCode, e.getResult()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
