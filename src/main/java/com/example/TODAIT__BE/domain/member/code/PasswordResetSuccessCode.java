@@ -13,6 +13,12 @@ public enum PasswordResetSuccessCode implements BaseSuccessCode {
             HttpStatus.OK,
             "AUTH200_4",
             "비밀번호 재설정 인증번호 발송 성공"
+    ),
+
+    CODE_VERIFIED(
+            HttpStatus.OK,
+            "AUTH200_5",
+            "비밀번호 재설정 인증번호 확인 성공"
     );
 
     private final HttpStatus status;

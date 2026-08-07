@@ -10,4 +10,10 @@ public final class PasswordResetResponse {
     @Schema(name = "PasswordResetEmailSendResponse")
     public record Send() {
     }
+
+    @Schema(name = "PasswordResetEmailVerifyResponse")
+    public record Verify(
+            String resetToken
+    ) {
+    }
 }

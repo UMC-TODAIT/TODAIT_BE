@@ -33,4 +33,15 @@ public class PasswordResetController implements PasswordResetControllerDocs {
                 .status(PasswordResetSuccessCode.CODE_SENT.getStatus())
                 .body(ApiResponse.onSuccess(PasswordResetSuccessCode.CODE_SENT, response));
     }
+
+    @PostMapping("/email/verify-code")
+    @Override
+    public ResponseEntity<ApiResponse<PasswordResetResponse.Verify>> verifyPasswordResetCode(
+            @Valid @RequestBody PasswordResetRequest.Verify request
+    ) {
+        PasswordResetResponse.Verify response = passwordResetService.verifyPasswordResetCode(request);
+        return ResponseEntity
+                .status(PasswordResetSuccessCode.CODE_VERIFIED.getStatus())
+                .body(ApiResponse.onSuccess(PasswordResetSuccessCode.CODE_VERIFIED, response));
+    }
 }

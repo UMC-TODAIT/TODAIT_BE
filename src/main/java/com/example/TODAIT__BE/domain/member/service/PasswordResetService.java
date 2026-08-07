@@ -8,7 +8,9 @@ import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.member.service.port.PasswordResetSender;
 import com.example.TODAIT__BE.domain.member.service.port.PasswordResetStore;
+import com.example.TODAIT__BE.domain.member.service.port.PasswordResetStore.VerifyCodeResult;
 import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
+import com.example.TODAIT__BE.global.apiPayload.exception.ProjectException;
 import com.example.TODAIT__BE.global.util.RandomCodeGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +53,40 @@ public class PasswordResetService {
         }
 
         return new PasswordResetResponse.Send();
+    }
+
+    public PasswordResetResponse.Verify verifyPasswordResetCode(
+            PasswordResetRequest.Verify request
+    ) {
+        String email = normalizeAndValidateEmail(request.email());
+        String resetToken = randomCodeGenerator.generateUrlSafeToken();
+        VerifyCodeResult result = verifyCode(email, request.code(), resetToken);
+
+        if (result == VerifyCodeResult.CODE_NOT_FOUND
+                || result == VerifyCodeResult.CODE_EXPIRED
+                || result == VerifyCodeResult.CODE_MISMATCH) {
+            throw new MemberException(PasswordResetErrorCode.CODE_MISMATCH);
+        }
+        if (result == VerifyCodeResult.VERIFY_ATTEMPT_EXCEEDED) {
+            throw new MemberException(PasswordResetErrorCode.VERIFY_ATTEMPT_EXCEEDED);
+        }
+
+        return new PasswordResetResponse.Verify(resetToken);
+    }
+
+    private VerifyCodeResult verifyCode(String email, String code, String resetToken) {
+        if (code == null) {
+            return VerifyCodeResult.CODE_MISMATCH;
+        }
+
+        try {
+            return passwordResetStore.verifyCodeAndSaveResetToken(email, code, resetToken);
+        } catch (RuntimeException e) {
+            if (e instanceof ProjectException) {
+                throw e;
+            }
+            throw new MemberException(PasswordResetErrorCode.STORE_FAILED, e);
+        }
     }
 
     private boolean canSendPasswordResetCode(Member member) {
