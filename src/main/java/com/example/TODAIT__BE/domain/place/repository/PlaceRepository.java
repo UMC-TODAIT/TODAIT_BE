@@ -76,4 +76,37 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
             @Param("exposureStatus") PlaceExposureStatus exposureStatus,
             @Param("areaCodes") List<String> areaCodes
     );
+
+    @EntityGraph(attributePaths = {
+            "area",
+            "placeCategory",
+            "primaryFoodCategory"
+    })
+    @Query("""
+        select distinct p
+        from Place p
+        join p.area a
+        join p.placeCategory pc
+        where p.isActive = true
+          and p.reviewStatus = :reviewStatus
+          and p.exposureStatus = :exposureStatus
+          and p.deletedAt is null
+          and p.name is not null
+          and p.name <> ''
+          and p.address is not null
+          and p.address <> ''
+          and p.latitude is not null
+          and p.longitude is not null
+          and a.isActive = true
+          and pc.isActive = true
+          and a.code in :areaCodes
+          and pc.code = :placeCategoryCode
+        """)
+    List<Place> findNearBasePlaceRecommendationCandidates(
+            @Param("reviewStatus") PlaceReviewStatus reviewStatus,
+            @Param("exposureStatus") PlaceExposureStatus exposureStatus,
+            @Param("areaCodes") List<String> areaCodes,
+            @Param("placeCategoryCode") String placeCategoryCode
+    );
+
 }

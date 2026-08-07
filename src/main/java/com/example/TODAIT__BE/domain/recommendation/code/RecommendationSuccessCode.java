@@ -23,6 +23,12 @@ public enum RecommendationSuccessCode implements BaseSuccessCode {
             HttpStatus.OK,
             "RECOMMENDATION201",
             "홈 화면 추천 장소 목록 조회 성공"
+    ),
+
+    CATEGORY_RECOMMENDED_PLACE_LIST_OK(
+            HttpStatus.OK,
+            "RECOMMENDATION202",
+            "카테고리별 추천 장소 조회 성공"
     );
 
     private final HttpStatus status;

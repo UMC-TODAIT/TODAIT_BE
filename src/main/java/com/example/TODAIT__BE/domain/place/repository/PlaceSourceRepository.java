@@ -51,4 +51,15 @@ public interface PlaceSourceRepository extends JpaRepository<PlaceSource, Long> 
             @Param("dataSourceCode")
             String dataSourceCode
     );
+
+    @Query("""
+    select distinct ps.place.id
+    from PlaceSource ps
+    join ps.dataSource ds
+    where ps.place.id in :placeIds
+      and ds.isActive = true
+    """)
+    Set<Long> findPlaceIdsHavingActiveSource(
+            @Param("placeIds") Collection<Long> placeIds
+    );
 }
