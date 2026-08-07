@@ -173,6 +173,7 @@ class ApiResponseCodeContractTest {
             entry("PlaceErrorCode.INVALID_PLACE_COORDINATE", "PLACE400_5"),
             entry("PlaceErrorCode.DATA_SOURCE_NOT_FOUND", "PLACE404_1"),
             entry("RecommendationSuccessCode.HOME_RECOMMENDED_COURSE_LIST_OK", "RECOMMENDATION200"),
+            entry("RecommendationSuccessCode.CATEGORY_RECOMMENDED_PLACE_LIST_OK", "RECOMMENDATION202"),
             entry("RecommendationSuccessCode.HOT_PLACE_LIST_OK", "RECOMMENDATION200_2"),
             entry("RecommendationSuccessCode.HOME_RECOMMENDED_PLACE_LIST_OK", "RECOMMENDATION201"),
             entry("RecommendationErrorCode.INVALID_PAGE", "RECOMMENDATION400_1"),
