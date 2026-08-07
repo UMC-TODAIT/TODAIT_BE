@@ -18,19 +18,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/course-drafts")
-@Tag(name = "Course Draft Ordering", description = "임시 코스 순서 설정 화면 진입 API")
+@Tag(name = "COURSE", description = "임시 코스 및 저장 코스 API")
 public class CourseDraftOrderingController {
 
     private final CourseDraftOrderingService courseDraftOrderingService;
 
     @PatchMapping("/{courseDraftId}/ordering")
     @Operation(
-            summary = "임시 코스 순서 설정 화면 진입",
+            summary = "[순서 설정] 순서 설정 화면 진입",
             description = """
                     장소 선택을 완료하고 드래그 순서 설정 화면에 진입할 때 호출합니다.
+
                     장소 구성 무결성을 검증한 뒤 상태가 PLACE_SELECTING 이면 ORDERING 으로 전환하고,
                     이미 ORDERING 이면 상태 변경 없이 동일한 성공 응답을 반환합니다(멱등).
-                    실제 순서 변경은 별도의 순서 변경 API를 사용합니다.
+
+                    - 상태 전이: PLACE_SELECTING -> ORDERING
+                    - 멱등 처리: ORDERING 상태 재호출 가능
+                    - 실제 순서 변경: 선택 장소 순서 변경 API 사용
                     """
     )
     public ResponseEntity<ApiResponse<OrderingEntryResponse>> enterOrdering(

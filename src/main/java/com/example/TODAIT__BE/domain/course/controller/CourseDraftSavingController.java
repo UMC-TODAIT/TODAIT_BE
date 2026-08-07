@@ -18,13 +18,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/course-drafts")
-@Tag(name = "Course Draft", description = "임시 코스 단계 전환 API")
+@Tag(name = "COURSE", description = "임시 코스 및 저장 코스 API")
 public class CourseDraftSavingController {
 
     private final CourseDraftSavingService courseDraftSavingService;
 
     @PatchMapping("/{courseDraftId}/saving")
-    @Operation(summary = "저장 화면 진입", description = "임시 코스를 ORDERING에서 SAVING 상태로 전환합니다.")
+    @Operation(
+            summary = "[저장 준비] 저장 화면 진입",
+            description = """
+                    임시 코스를 ORDERING에서 SAVING 상태로 전환합니다.
+
+                    저장 전 기준 장소와 선택 장소 구성이 유효한지 확인합니다.
+                    """
+    )
     public ResponseEntity<ApiResponse<CourseDraftSavingEnterResponse>> enterSaving(
             @PathVariable Long courseDraftId,
             @AuthenticationPrincipal AuthMember authMember
