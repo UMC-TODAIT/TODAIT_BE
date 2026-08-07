@@ -65,7 +65,8 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.PATCH,
-                                "/api/members/me/onboarding"
+                                "/api/members/me/onboarding",
+                                "/api/auth/password-reset"
                         ).permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",

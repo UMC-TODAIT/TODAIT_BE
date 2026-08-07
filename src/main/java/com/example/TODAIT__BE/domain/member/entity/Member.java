@@ -72,6 +72,10 @@ public class Member extends BaseEntity {
         this.lastLoginAt = loginAt;
     }
 
+    public void updatePasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 

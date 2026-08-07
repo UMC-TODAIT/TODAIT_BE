@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -174,5 +175,96 @@ class PasswordResetControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("COMMON400_1"))
                 .andExpect(jsonPath("$.message").value("인증번호는 6자리 숫자여야 합니다."));
+    }
+
+    @Test
+    void setNewPassword_success() throws Exception {
+        given(passwordResetService.setNewPassword(any()))
+                .willReturn(new PasswordResetResponse.SetNewPassword());
+
+        mockMvc.perform(patch("/api/auth/password-reset")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new PasswordResetRequest.SetNewPassword(
+                                        "reset-token",
+                                        "NewTodait1234!",
+                                        "NewTodait1234!"
+                                ))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.code").value("AUTH200_6"))
+                .andExpect(jsonPath("$.message").value("새 비밀번호 설정 성공"))
+                .andExpect(jsonPath("$.result").isMap())
+                .andExpect(jsonPath("$.result").isEmpty());
+    }
+
+    @Test
+    void setNewPassword_passwordMismatch_returns400() throws Exception {
+        given(passwordResetService.setNewPassword(any()))
+                .willThrow(new MemberException(PasswordResetErrorCode.NEW_PASSWORD_MISMATCH));
+
+        mockMvc.perform(patch("/api/auth/password-reset")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new PasswordResetRequest.SetNewPassword(
+                                        "reset-token",
+                                        "NewTodait1234!",
+                                        "OtherTodait1234!"
+                                ))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("AUTH400_5"))
+                .andExpect(jsonPath("$.message").value("새 비밀번호와 새 비밀번호 확인이 일치하지 않습니다."));
+    }
+
+    @Test
+    void setNewPassword_invalidResetToken_returns401() throws Exception {
+        given(passwordResetService.setNewPassword(any()))
+                .willThrow(new MemberException(PasswordResetErrorCode.INVALID_RESET_TOKEN));
+
+        mockMvc.perform(patch("/api/auth/password-reset")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new PasswordResetRequest.SetNewPassword(
+                                        "reset-token",
+                                        "NewTodait1234!",
+                                        "NewTodait1234!"
+                                ))))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("AUTH401_4"))
+                .andExpect(jsonPath("$.message").value("유효하지 않은 resetToken입니다."));
+    }
+
+    @Test
+    void setNewPassword_expiredResetToken_returns410() throws Exception {
+        given(passwordResetService.setNewPassword(any()))
+                .willThrow(new MemberException(PasswordResetErrorCode.RESET_TOKEN_EXPIRED));
+
+        mockMvc.perform(patch("/api/auth/password-reset")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new PasswordResetRequest.SetNewPassword(
+                                        "reset-token",
+                                        "NewTodait1234!",
+                                        "NewTodait1234!"
+                                ))))
+                .andExpect(status().isGone())
+                .andExpect(jsonPath("$.code").value("AUTH410_3"))
+                .andExpect(jsonPath("$.message").value("resetToken이 만료되었습니다."));
+    }
+
+    @Test
+    void setNewPassword_invalidPassword_returns400() throws Exception {
+        mockMvc.perform(patch("/api/auth/password-reset")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(
+                                new PasswordResetRequest.SetNewPassword(
+                                        "reset-token",
+                                        "password",
+                                        "password"
+                                ))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("COMMON400_1"))
+                .andExpect(jsonPath("$.message")
+                        .value("비밀번호는 영문, 숫자, 특수문자를 포함한 8자 이상이어야 합니다."));
     }
 }

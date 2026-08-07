@@ -8,6 +8,7 @@ import com.example.TODAIT__BE.domain.member.service.PasswordResetService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,5 +44,16 @@ public class PasswordResetController implements PasswordResetControllerDocs {
         return ResponseEntity
                 .status(PasswordResetSuccessCode.CODE_VERIFIED.getStatus())
                 .body(ApiResponse.onSuccess(PasswordResetSuccessCode.CODE_VERIFIED, response));
+    }
+
+    @PatchMapping
+    @Override
+    public ResponseEntity<ApiResponse<PasswordResetResponse.SetNewPassword>> setNewPassword(
+            @Valid @RequestBody PasswordResetRequest.SetNewPassword request
+    ) {
+        PasswordResetResponse.SetNewPassword response = passwordResetService.setNewPassword(request);
+        return ResponseEntity
+                .status(PasswordResetSuccessCode.PASSWORD_UPDATED.getStatus())
+                .body(ApiResponse.onSuccess(PasswordResetSuccessCode.PASSWORD_UPDATED, response));
     }
 }

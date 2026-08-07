@@ -21,4 +21,12 @@ public interface PasswordResetControllerDocs {
             description = "이메일로 발송된 비밀번호 재설정 인증번호를 확인하고 새 비밀번호 설정용 resetToken을 발급합니다."
     )
     ResponseEntity<ApiResponse<PasswordResetResponse.Verify>> verifyPasswordResetCode(PasswordResetRequest.Verify request);
+
+    @Operation(
+            summary = "새 비밀번호 설정",
+            description = "비밀번호 재설정 인증번호 확인 후 발급받은 resetToken으로 새 비밀번호를 설정합니다. MVP 제외 후속 기능입니다."
+    )
+    ResponseEntity<ApiResponse<PasswordResetResponse.SetNewPassword>> setNewPassword(
+            PasswordResetRequest.SetNewPassword request
+    );
 }

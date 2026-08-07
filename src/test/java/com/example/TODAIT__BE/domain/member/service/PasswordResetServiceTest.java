@@ -3,10 +3,14 @@ package com.example.TODAIT__BE.domain.member.service;
 import com.example.TODAIT__BE.domain.member.code.PasswordResetErrorCode;
 import com.example.TODAIT__BE.domain.member.dto.request.PasswordResetRequest;
 import com.example.TODAIT__BE.domain.member.entity.Member;
+import com.example.TODAIT__BE.domain.member.entity.RefreshToken;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
+import com.example.TODAIT__BE.domain.member.repository.RefreshTokenRepository;
 import com.example.TODAIT__BE.domain.member.service.port.PasswordResetSender;
 import com.example.TODAIT__BE.domain.member.service.port.PasswordResetStore;
+import com.example.TODAIT__BE.domain.member.service.port.PasswordResetStore.ConsumeResetTokenResult;
+import com.example.TODAIT__BE.domain.member.service.port.PasswordResetStore.ConsumeResetTokenStatus;
 import com.example.TODAIT__BE.domain.member.service.port.PasswordResetStore.VerifyCodeResult;
 import com.example.TODAIT__BE.global.util.RandomCodeGenerator;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,7 +18,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,11 +40,15 @@ class PasswordResetServiceTest {
     @Mock
     private MemberRepository memberRepository;
     @Mock
+    private RefreshTokenRepository refreshTokenRepository;
+    @Mock
     private PasswordResetStore passwordResetStore;
     @Mock
     private PasswordResetSender passwordResetSender;
     @Mock
     private RandomCodeGenerator randomCodeGenerator;
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     private PasswordResetService passwordResetService;
 
@@ -43,9 +56,11 @@ class PasswordResetServiceTest {
     void setUp() {
         passwordResetService = new PasswordResetService(
                 memberRepository,
+                refreshTokenRepository,
                 passwordResetStore,
                 passwordResetSender,
-                randomCodeGenerator
+                randomCodeGenerator,
+                passwordEncoder
         );
     }
 
@@ -233,12 +248,168 @@ class PasswordResetServiceTest {
                 .isEqualTo(PasswordResetErrorCode.STORE_FAILED);
     }
 
+    @Test
+    void setNewPasswordUpdatesPasswordAndRevokesRefreshTokens() {
+        Member member = emailMember();
+        RefreshToken refreshToken = refreshToken(member);
+        given(passwordResetStore.claimResetToken("reset-token"))
+                .willReturn(new ConsumeResetTokenResult(ConsumeResetTokenStatus.VALID, "test@example.com"));
+        given(memberRepository.findByEmail("test@example.com")).willReturn(Optional.of(member));
+        given(passwordEncoder.encode("NewTodait1234!")).willReturn("encoded-new-password");
+        given(refreshTokenRepository.findAllByMemberAndRevokedAtIsNull(member))
+                .willReturn(List.of(refreshToken));
+
+        passwordResetService.setNewPassword(
+                new PasswordResetRequest.SetNewPassword(
+                        "reset-token",
+                        "NewTodait1234!",
+                        "NewTodait1234!"
+                )
+        );
+
+        assertThat(member.getPasswordHash()).isEqualTo("encoded-new-password");
+        assertThat(refreshToken.isRevoked()).isTrue();
+        verify(passwordResetStore).claimResetToken("reset-token");
+        verify(passwordResetStore).consumeResetToken("reset-token");
+    }
+
+    @Test
+    void setNewPasswordConsumesResetTokenAfterCommitWhenTransactionIsActive() {
+        Member member = emailMember();
+        given(passwordResetStore.claimResetToken("reset-token"))
+                .willReturn(new ConsumeResetTokenResult(ConsumeResetTokenStatus.VALID, "test@example.com"));
+        given(memberRepository.findByEmail("test@example.com")).willReturn(Optional.of(member));
+        given(passwordEncoder.encode("NewTodait1234!")).willReturn("encoded-new-password");
+        given(refreshTokenRepository.findAllByMemberAndRevokedAtIsNull(member))
+                .willReturn(List.of());
+
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            passwordResetService.setNewPassword(
+                    new PasswordResetRequest.SetNewPassword(
+                            "reset-token",
+                            "NewTodait1234!",
+                            "NewTodait1234!"
+                    )
+            );
+
+            verify(passwordResetStore, never()).consumeResetToken(anyString());
+            TransactionSynchronizationManager.getSynchronizations()
+                    .forEach(TransactionSynchronization::afterCommit);
+            verify(passwordResetStore).consumeResetToken("reset-token");
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    void setNewPasswordFailsWhenPasswordCheckMismatches() {
+        assertThatThrownBy(() -> passwordResetService.setNewPassword(
+                new PasswordResetRequest.SetNewPassword(
+                        "reset-token",
+                        "NewTodait1234!",
+                        "OtherTodait1234!"
+                )
+        ))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(PasswordResetErrorCode.NEW_PASSWORD_MISMATCH);
+
+        verify(passwordResetStore, never()).claimResetToken(anyString());
+        verify(passwordResetStore, never()).consumeResetToken(anyString());
+    }
+
+    @Test
+    void setNewPasswordFailsWhenResetTokenIsInvalid() {
+        given(passwordResetStore.claimResetToken("reset-token"))
+                .willReturn(new ConsumeResetTokenResult(ConsumeResetTokenStatus.INVALID, null));
+
+        assertThatThrownBy(() -> passwordResetService.setNewPassword(
+                new PasswordResetRequest.SetNewPassword(
+                        "reset-token",
+                        "NewTodait1234!",
+                        "NewTodait1234!"
+                )
+        ))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(PasswordResetErrorCode.INVALID_RESET_TOKEN);
+
+        verify(memberRepository, never()).findByEmail(anyString());
+        verify(passwordResetStore, never()).consumeResetToken(anyString());
+    }
+
+    @Test
+    void setNewPasswordFailsWhenResetTokenExpired() {
+        given(passwordResetStore.claimResetToken("reset-token"))
+                .willReturn(new ConsumeResetTokenResult(ConsumeResetTokenStatus.EXPIRED, null));
+
+        assertThatThrownBy(() -> passwordResetService.setNewPassword(
+                new PasswordResetRequest.SetNewPassword(
+                        "reset-token",
+                        "NewTodait1234!",
+                        "NewTodait1234!"
+                )
+        ))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(PasswordResetErrorCode.RESET_TOKEN_EXPIRED);
+
+        verify(passwordResetStore, never()).consumeResetToken(anyString());
+    }
+
+    @Test
+    void setNewPasswordDoesNotConsumeResetTokenWhenMemberLookupFails() {
+        given(passwordResetStore.claimResetToken("reset-token"))
+                .willReturn(new ConsumeResetTokenResult(ConsumeResetTokenStatus.VALID, "test@example.com"));
+        given(memberRepository.findByEmail("test@example.com")).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> passwordResetService.setNewPassword(
+                new PasswordResetRequest.SetNewPassword(
+                        "reset-token",
+                        "NewTodait1234!",
+                        "NewTodait1234!"
+                )
+        ))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(PasswordResetErrorCode.INVALID_RESET_TOKEN);
+
+        verify(passwordResetStore, never()).consumeResetToken(anyString());
+    }
+
+    @Test
+    void setNewPasswordFailsWhenStoreThrowsUnexpectedException() {
+        willThrow(new IllegalStateException("redis down"))
+                .given(passwordResetStore)
+                .claimResetToken("reset-token");
+
+        assertThatThrownBy(() -> passwordResetService.setNewPassword(
+                new PasswordResetRequest.SetNewPassword(
+                        "reset-token",
+                        "NewTodait1234!",
+                        "NewTodait1234!"
+                )
+        ))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(PasswordResetErrorCode.STORE_FAILED);
+    }
+
     private Member emailMember() {
         return Member.builder()
                 .id(1L)
                 .email("test@example.com")
                 .nickname("tester")
                 .passwordHash("encoded-password")
+                .build();
+    }
+
+    private RefreshToken refreshToken(Member member) {
+        return RefreshToken.builder()
+                .member(member)
+                .tokenHash("refresh-token-hash")
+                .expiresAt(LocalDateTime.now().plusHours(1))
                 .build();
     }
 
