@@ -18,16 +18,17 @@ import org.springframework.http.ResponseEntity;
 public interface OnboardingControllerDocs {
 
     @Operation(
-            summary = "[온보딩] 소셜 회원가입 완료",
+            summary = "[소셜 회원가입] 소셜 온보딩 완료",
             description = """
-                신규 소셜 로그인 사용자의 닉네임과 약관 동의 정보를 검증합니다.
-                온보딩이 완료되면 회원, 소셜 계정 연결 정보, 약관 동의 내역을 저장하고
-                Access Token과 Refresh Token을 발급합니다.
-                필수 약관: SERVICE, PRIVACY
-                선택 약관: LOCATION, MARKETING
-                Authorization에는 카카오 또는 구글 로그인 API에서 발급받은
-                onboardingToken을 Bearer 방식으로 입력해야 합니다.
-                """
+                    신규 소셜 로그인 사용자의 닉네임과 약관 동의 정보를 검증합니다.
+
+                    온보딩이 완료되면 회원, 소셜 계정 연결 정보, 약관 동의 내역을 저장하고
+                    Access Token과 Refresh Token을 발급합니다.
+
+                    - 인증: 카카오/구글 로그인 API에서 발급받은 Onboarding Token 사용
+                    - 필수 약관: SERVICE, PRIVACY
+                    - 선택 약관: LOCATION, MARKETING
+                    """
     )
     @SecurityRequirement(name = "JWT TOKEN")
     ResponseEntity<ApiResponse<AuthResponse.Token>> completeOnboarding(

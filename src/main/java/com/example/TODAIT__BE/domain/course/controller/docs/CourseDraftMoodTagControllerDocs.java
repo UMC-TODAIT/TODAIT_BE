@@ -14,10 +14,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface CourseDraftMoodTagControllerDocs {
 
     @Operation(
-            summary = "[임시 코스] 분위기 태그 선택 저장",
-            description = "임시 코스에 분위기 태그 2개 이상 6개 이하의 선택값 전체를 PUT 방식으로 교체 저장합니다. "
-                    + "MOOD_SELECTING 상태에서 최초 저장 시 FOOD_SELECTING으로 전이하며, "
-                    + "FOOD_SELECTING 상태에서는 재호출 시 태그만 교체하고 상태는 유지합니다."
+            summary = "[분위기 선택] 분위기 태그 저장",
+            description = """
+                    임시 코스에 분위기 태그 선택값 전체를 PUT 방식으로 교체 저장합니다.
+
+                    - 선택 개수: 2개 이상 6개 이하
+                    - MOOD_SELECTING 상태: 저장 후 FOOD_SELECTING으로 전이
+                    - FOOD_SELECTING 상태: 태그만 교체하고 상태 유지
+                    """
     )
     @SecurityRequirement(name = "JWT TOKEN")
     ResponseEntity<ApiResponse<CourseDraftMoodTagSaveResponse>> saveMoodTags(

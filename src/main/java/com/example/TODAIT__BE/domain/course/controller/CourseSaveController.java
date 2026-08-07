@@ -26,7 +26,15 @@ public class CourseSaveController {
     private final CourseSaveService courseSaveService;
 
     @PostMapping("/{courseDraftId}/courses")
-    @Operation(summary = "[저장 코스] 코스 저장", description = "임시 코스를 최종 코스로 확정하여 저장합니다.")
+    @Operation(
+            summary = "[코스 저장] 임시 코스 최종 저장",
+            description = """
+                    임시 코스를 최종 코스로 확정하여 저장합니다.
+
+                    - 저장 가능 상태: SAVING
+                    - 저장 결과: 사용자 개인 저장 코스
+                    """
+    )
     public ResponseEntity<ApiResponse<CourseSaveResponse>> saveCourse(
             @PathVariable Long courseDraftId,
             @AuthenticationPrincipal AuthMember authMember,

@@ -15,12 +15,12 @@ import org.springframework.http.ResponseEntity;
 @SecurityRequirements
 public interface TokenControllerDocs {
     @Operation(
-            summary = "[인증] Access Token 재발급",
+            summary = "[토큰] Access Token 재발급",
             description = """
                     Refresh Token을 검증하여 새로운 Access Token을 발급합니다.
-                   
-                    만료되거나 폐기된 Refresh Token은 사용할 수 없으며,
-                    이 경우 사용자는 다시 로그인해야 합니다.
+
+                    - 만료된 Refresh Token: 재로그인 필요
+                    - 폐기된 Refresh Token: 재로그인 필요
                     """
     )
     ResponseEntity<ApiResponse<AuthResponse.AccessToken>> refresh(

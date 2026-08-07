@@ -16,11 +16,12 @@ import org.springframework.http.ResponseEntity;
 public interface OAuthControllerDocs {
 
     @Operation(
-            summary = "[인증] 카카오 로그인",
+            summary = "[소셜 로그인] 카카오 로그인",
             description = """
                     Android에서 발급한 카카오 Access Token을 검증하여 로그인합니다.
-                    기존 회원이면 서비스 Access Token과 Refresh Token을 발급합니다.
-                    신규 회원이면 소셜 회원가입 완료에 사용할 온보딩 토큰을 발급합니다.
+
+                    - 기존 회원: 서비스 Access Token과 Refresh Token 발급
+                    - 신규 회원: 소셜 회원가입 완료에 사용할 Onboarding Token 발급
                     """
     )
     ResponseEntity<ApiResponse<OAuthResponse.Login>> kakaoLogin(
@@ -28,11 +29,12 @@ public interface OAuthControllerDocs {
     );
 
     @Operation(
-            summary = "[인증] 구글 로그인",
+            summary = "[소셜 로그인] 구글 로그인",
             description = """
                     Android에서 발급한 Google ID Token을 검증하여 로그인합니다.
-                    기존 회원이면 서비스 Access Token과 Refresh Token을 발급합니다.
-                    신규 회원이면 소셜 회원가입 완료에 사용할 온보딩 토큰을 발급합니다.
+
+                    - 기존 회원: 서비스 Access Token과 Refresh Token 발급
+                    - 신규 회원: 소셜 회원가입 완료에 사용할 Onboarding Token 발급
                     """
     )
     ResponseEntity<ApiResponse<OAuthResponse.Login>> googleLogin(
