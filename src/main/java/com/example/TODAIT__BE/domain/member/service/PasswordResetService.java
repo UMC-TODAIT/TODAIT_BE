@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 public class PasswordResetService {
@@ -98,7 +100,7 @@ public class PasswordResetService {
             throw new MemberException(PasswordResetErrorCode.NEW_PASSWORD_MISMATCH);
         }
 
-        ConsumeResetTokenResult result = consumeResetToken(request.resetToken());
+        ConsumeResetTokenResult result = claimResetToken(request.resetToken());
         if (result.status() == ConsumeResetTokenStatus.INVALID) {
             throw new MemberException(PasswordResetErrorCode.INVALID_RESET_TOKEN);
         }
@@ -115,18 +117,41 @@ public class PasswordResetService {
         member.updatePasswordHash(passwordEncoder.encode(request.newPassword()));
         refreshTokenRepository.findAllByMemberAndRevokedAtIsNull(member)
                 .forEach(RefreshToken::revoke);
+        consumeResetTokenAfterCommit(request.resetToken());
 
         return new PasswordResetResponse.SetNewPassword();
     }
 
-    private ConsumeResetTokenResult consumeResetToken(String resetToken) {
+    private ConsumeResetTokenResult claimResetToken(String resetToken) {
         try {
-            return passwordResetStore.consumeResetToken(resetToken);
+            return passwordResetStore.claimResetToken(resetToken);
         } catch (RuntimeException e) {
             if (e instanceof ProjectException) {
                 throw e;
             }
             throw new MemberException(PasswordResetErrorCode.STORE_FAILED, e);
+        }
+    }
+
+    private void consumeResetTokenAfterCommit(String resetToken) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            consumeResetToken(resetToken);
+            return;
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                consumeResetToken(resetToken);
+            }
+        });
+    }
+
+    private void consumeResetToken(String resetToken) {
+        try {
+            passwordResetStore.consumeResetToken(resetToken);
+        } catch (RuntimeException e) {
+            log.warn("resetToken 소비에 실패했습니다.", e);
         }
     }
 

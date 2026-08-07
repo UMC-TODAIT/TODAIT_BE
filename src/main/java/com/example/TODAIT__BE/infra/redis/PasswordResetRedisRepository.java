@@ -17,10 +17,12 @@ public class PasswordResetRedisRepository implements PasswordResetStore {
     private static final String SESSION_KEY_PREFIX = "password-reset:session:";
     private static final String RESET_TOKEN_KEY_PREFIX = "password-reset:reset-token:";
     private static final String RESET_TOKEN_SESSION_KEY_PREFIX = "password-reset:reset-token-session:";
+    private static final String RESET_TOKEN_INFLIGHT_KEY_PREFIX = "password-reset:reset-token-inflight:";
     private static final String RESEND_COOLDOWN_KEY_PREFIX = "password-reset:resend-cooldown:";
     private static final String VERIFY_FAILURE_KEY_PREFIX = "password-reset:verify-failure:";
     private static final String SESSION_VALUE = "requested";
     private static final String COOLDOWN_VALUE = "1";
+    private static final Duration RESET_TOKEN_INFLIGHT_TTL = Duration.ofSeconds(30);
 
     private static final DefaultRedisScript<Long> SAVE_CODE_IF_NOT_COOLING_DOWN_SCRIPT =
             new DefaultRedisScript<>("""
@@ -84,13 +86,15 @@ public class PasswordResetRedisRepository implements PasswordResetStore {
                     return 2
                     """, Long.class);
 
-    private static final DefaultRedisScript<String> CONSUME_RESET_TOKEN_SCRIPT =
+    private static final DefaultRedisScript<String> CLAIM_RESET_TOKEN_SCRIPT =
             new DefaultRedisScript<>("""
                     local email = redis.call('get', KEYS[1])
                     if email then
-                        redis.call('del', KEYS[1])
-                        redis.call('del', KEYS[2])
-                        return 'VALID:' .. email
+                        local claimed = redis.call('set', KEYS[3], ARGV[1], 'PX', ARGV[2], 'NX')
+                        if claimed then
+                            return 'VALID:' .. email
+                        end
+                        return 'INVALID'
                     end
 
                     if redis.call('exists', KEYS[2]) == 1 then
@@ -100,6 +104,14 @@ public class PasswordResetRedisRepository implements PasswordResetStore {
 
                     return 'INVALID'
                     """, String.class);
+
+    private static final DefaultRedisScript<Long> CONSUME_RESET_TOKEN_SCRIPT =
+            new DefaultRedisScript<>("""
+                    redis.call('del', KEYS[1])
+                    redis.call('del', KEYS[2])
+                    redis.call('del', KEYS[3])
+                    return 1
+                    """, Long.class);
 
     private final RedisTemplate<String, String> redisTemplate;
     private final Duration codeTtl;
@@ -185,13 +197,31 @@ public class PasswordResetRedisRepository implements PasswordResetStore {
     }
 
     @Override
-    public ConsumeResetTokenResult consumeResetToken(String resetToken) {
+    public ConsumeResetTokenResult claimResetToken(String resetToken) {
         String result = redisTemplate.execute(
-                CONSUME_RESET_TOKEN_SCRIPT,
-                List.of(resetTokenKey(resetToken), resetTokenSessionKey(resetToken))
+                CLAIM_RESET_TOKEN_SCRIPT,
+                List.of(
+                        resetTokenKey(resetToken),
+                        resetTokenSessionKey(resetToken),
+                        resetTokenInflightKey(resetToken)
+                ),
+                COOLDOWN_VALUE,
+                String.valueOf(RESET_TOKEN_INFLIGHT_TTL.toMillis())
         );
 
         return toConsumeResetTokenResult(result);
+    }
+
+    @Override
+    public void consumeResetToken(String resetToken) {
+        redisTemplate.execute(
+                CONSUME_RESET_TOKEN_SCRIPT,
+                List.of(
+                        resetTokenKey(resetToken),
+                        resetTokenSessionKey(resetToken),
+                        resetTokenInflightKey(resetToken)
+                )
+        );
     }
 
     private String codeKey(String email) {
@@ -208,6 +238,10 @@ public class PasswordResetRedisRepository implements PasswordResetStore {
 
     private String resetTokenSessionKey(String resetToken) {
         return RESET_TOKEN_SESSION_KEY_PREFIX + resetToken;
+    }
+
+    private String resetTokenInflightKey(String resetToken) {
+        return RESET_TOKEN_INFLIGHT_KEY_PREFIX + resetToken;
     }
 
     private String resendCooldownKey(String email) {

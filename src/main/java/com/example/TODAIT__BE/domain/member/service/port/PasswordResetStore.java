@@ -8,7 +8,9 @@ public interface PasswordResetStore {
 
     VerifyCodeResult verifyCodeAndSaveResetToken(String email, String code, String resetToken);
 
-    ConsumeResetTokenResult consumeResetToken(String resetToken);
+    ConsumeResetTokenResult claimResetToken(String resetToken);
+
+    void consumeResetToken(String resetToken);
 
     enum VerifyCodeResult {
         CODE_NOT_FOUND,
