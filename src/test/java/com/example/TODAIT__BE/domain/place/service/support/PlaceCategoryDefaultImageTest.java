@@ -31,4 +31,13 @@ class PlaceCategoryDefaultImageTest {
         assertThat(PlaceCategoryDefaultImage.getImageUrl(" CAFE "))
                 .isEqualTo(PlaceCategoryDefaultImage.CAFE.getImageUrl());
     }
+
+    @Test
+    void isSupportedReturnsTrueOnlyForKnownCategoryCodes() {
+        assertThat(PlaceCategoryDefaultImage.isSupported("CAFE")).isTrue();
+        assertThat(PlaceCategoryDefaultImage.isSupported(" BAR ")).isTrue();
+        assertThat(PlaceCategoryDefaultImage.isSupported("DESSERT")).isFalse();
+        assertThat(PlaceCategoryDefaultImage.isSupported(null)).isFalse();
+        assertThat(PlaceCategoryDefaultImage.isSupported(" ")).isFalse();
+    }
 }
