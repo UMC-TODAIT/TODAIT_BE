@@ -28,6 +28,19 @@ public enum PlaceCategoryDefaultImage {
         return imageUrl;
     }
 
+    public static boolean isSupported(String categoryCode) {
+        if (categoryCode == null || categoryCode.isBlank()) {
+            return false;
+        }
+
+        try {
+            valueOf(categoryCode.trim());
+            return true;
+        } catch (IllegalArgumentException exception) {
+            return false;
+        }
+    }
+
     public static String getImageUrl(String categoryCode) {
         if (categoryCode == null || categoryCode.isBlank()) {
             return null;

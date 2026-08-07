@@ -93,9 +93,14 @@ class CourseDraftPlaceServiceTest {
     }
 
     private PlaceCategory placeCategory(Long id, boolean active) {
+        return placeCategory(id, active, "CAFE");
+    }
+
+    private PlaceCategory placeCategory(Long id, boolean active, String code) {
         PlaceCategory placeCategory = mock(PlaceCategory.class);
         lenient().when(placeCategory.getId()).thenReturn(id);
         lenient().when(placeCategory.getIsActive()).thenReturn(active);
+        lenient().when(placeCategory.getCode()).thenReturn(code);
         return placeCategory;
     }
 
@@ -382,6 +387,24 @@ class CourseDraftPlaceServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base));
         given(placeRepository.findById(32L)).willReturn(Optional.of(inactivePlace));
+
+        assertThatThrownBy(() -> courseDraftPlaceService.addPlace(10L, 1L, new CourseDraftPlaceAddRequest(32L)))
+                .isInstanceOf(PlaceException.class)
+                .extracting("errorCode")
+                .isEqualTo(PlaceErrorCode.PLACE_NOT_AVAILABLE);
+    }
+
+    @Test
+    void throwsWhenPlaceCategoryIsNotSupported() {
+        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.PLACE_SELECTING);
+        Place basePlace = availablePlace(21L, placeCategory(1L, true));
+        CourseDraftPlace base = draftPlace(50L, PlaceRole.BASE, 1, basePlace);
+        Place unsupportedCategoryPlace = availablePlace(32L, placeCategory(2L, true, "DESSERT"));
+
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+        given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
+                .willReturn(List.of(base));
+        given(placeRepository.findById(32L)).willReturn(Optional.of(unsupportedCategoryPlace));
 
         assertThatThrownBy(() -> courseDraftPlaceService.addPlace(10L, 1L, new CourseDraftPlaceAddRequest(32L)))
                 .isInstanceOf(PlaceException.class)

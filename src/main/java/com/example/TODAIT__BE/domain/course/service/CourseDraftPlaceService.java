@@ -20,6 +20,7 @@ import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
 import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
 import com.example.TODAIT__BE.domain.place.exception.PlaceException;
 import com.example.TODAIT__BE.domain.place.repository.PlaceRepository;
+import com.example.TODAIT__BE.domain.place.service.support.PlaceCategoryDefaultImage;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import java.util.ArrayList;
@@ -151,6 +152,7 @@ public class CourseDraftPlaceService {
                 && place.getDeletedAt() == null
                 && area != null && Boolean.TRUE.equals(area.getIsActive())
                 && placeCategory != null && Boolean.TRUE.equals(placeCategory.getIsActive())
+                && PlaceCategoryDefaultImage.isSupported(placeCategory.getCode())
                 && place.getLatitude() != null
                 && place.getLongitude() != null;
 
