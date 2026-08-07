@@ -9,13 +9,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 
 @Tag(
-        name = "RECOMMENDATION",
-        description = "홈 추천 및 주변 핫플 추천 API"
+        name = "Recommendation",
+        description = "주변 핫플 추천 관련 API"
 )
 public interface HotPlaceRecommendationControllerDocs {
 
     @Operation(
-            summary = "[임시 코스] 지금 내 주변 핫플 조회",
+            summary = "지금 내 주변 핫플 조회",
             description = """
                     기준 장소 설정 화면에 표시할 추천 장소 목록을 조회합니다.
                     현재 임시 코스에 저장된 분위기 및 음식 취향을 반영합니다.

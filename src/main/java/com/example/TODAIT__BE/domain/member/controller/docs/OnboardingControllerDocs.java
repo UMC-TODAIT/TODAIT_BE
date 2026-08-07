@@ -12,13 +12,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 
 @Tag(
-        name = "MEMBER",
-        description = "로그인, 회원가입, 이메일 인증, 온보딩, 회원 정보 API"
+        name = "Onboarding",
+        description = "카카오/구글 간편 가입 사용자의 온보딩 API"
 )
 public interface OnboardingControllerDocs {
 
     @Operation(
-            summary = "[온보딩] 소셜 회원가입 완료",
+            summary = "소셜 회원가입 완료",
             description = """
                 신규 소셜 로그인 사용자의 닉네임과 약관 동의 정보를 검증합니다.
                 온보딩이 완료되면 회원, 소셜 계정 연결 정보, 약관 동의 내역을 저장하고

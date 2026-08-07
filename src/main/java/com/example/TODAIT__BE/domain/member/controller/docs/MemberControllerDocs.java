@@ -10,13 +10,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(
-        name = "MEMBER",
-        description = "로그인, 회원가입, 이메일 인증, 온보딩, 회원 정보 API"
+        name = "Member",
+        description = "회원 정보 관련 API"
 )
 public interface MemberControllerDocs {
 
     @Operation(
-            summary = "[회원] 닉네임 중복 확인",
+            summary = "닉네임 중복 확인",
             description = """
                     입력한 닉네임의 사용 가능 여부를 확인합니다.
 
@@ -69,7 +69,7 @@ public interface MemberControllerDocs {
     );
 
     @Operation(
-            summary = "[회원] 내 회원 정보 조회",
+            summary = "내 회원 정보 조회",
             description = "현재 로그인한 사용자의 기본 정보와 마이페이지 요약 정보를 조회합니다."
     )
     ResponseEntity<ApiResponse<MemberResponse.Me>> getMyInfo(

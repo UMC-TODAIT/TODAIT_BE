@@ -21,13 +21,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/course-drafts")
-@Tag(name = "COURSE", description = "임시 코스 및 저장 코스 API")
+@Tag(name = "Course Draft Place", description = "임시 코스의 선택 장소 관리 API")
 public class CourseDraftPlaceController {
 
     private final CourseDraftPlaceService courseDraftPlaceService;
 
     @PatchMapping("/{courseDraftId}/places/order")
-    @Operation(summary = "[임시 코스] 선택 장소 순서 변경", description = "임시 코스에 담긴 선택 장소들의 방문 순서를 일괄 변경합니다.")
+    @Operation(summary = "선택 장소 순서 변경", description = "임시 코스에 담긴 선택 장소들의 방문 순서를 일괄 변경합니다.")
     public ResponseEntity<ApiResponse<PlaceOrderUpdateResponse>> updatePlaceOrder(
             @PathVariable Long courseDraftId,
             @AuthenticationPrincipal AuthMember authMember,

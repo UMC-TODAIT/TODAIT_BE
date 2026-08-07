@@ -8,11 +8,11 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 
-@Tag(name = "PLACE", description = "장소 검색 및 상세 조회 API")
+@Tag(name = "Place", description = "장소 검색/상세 조회 API")
 public interface PlaceControllerDocs {
 
     @Operation(
-            summary = "[장소] 카카오 장소 검색 결과 조회",
+            summary = "카카오 장소 검색 결과 조회",
             description = """
                     기준 장소 설정 화면에서 사용자가 입력한 검색어로
                     카카오 Local API의 장소 검색 결과를 조회합니다.
@@ -31,7 +31,7 @@ public interface PlaceControllerDocs {
             String query
     );
     @Operation(
-            summary = "[장소] 장소 카드 상세 조회",
+            summary = "장소 카드 상세 조회",
             description = """
                     placeId에 해당하는 장소의 기본 정보·이미지·카테고리·분위기 태그·음식 카테고리·메뉴를 조회합니다.
                     노출 대상이 아닌 장소는 PLACE400, 존재하지 않는 장소는 PLACE404를 반환합니다.

@@ -9,13 +9,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 
 @Tag(
-        name = "MEMBER",
-        description = "로그인, 회원가입, 이메일 인증, 온보딩, 회원 정보 API"
+        name = "TokenRefresh",
+        description = "토큰 재발급 API"
 )
 @SecurityRequirements
 public interface TokenControllerDocs {
     @Operation(
-            summary = "[인증] Access Token 재발급",
+            summary = "Access Token 재발급",
             description = """
                     Refresh Token을 검증하여 새로운 Access Token을 발급합니다.
                    
