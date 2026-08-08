@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.place.service.support;
 
-import com.example.TODAIT__BE.domain.place.port.out.ExternalPlaceCandidate;
+import com.example.TODAIT__BE.domain.place.service.port.ExternalPlaceCandidate;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import com.example.TODAIT__BE.domain.taxonomy.repository.PlaceCategoryRepository;
 import lombok.RequiredArgsConstructor;
