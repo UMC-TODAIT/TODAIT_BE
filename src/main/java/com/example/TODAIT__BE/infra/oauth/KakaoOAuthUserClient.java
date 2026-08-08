@@ -21,6 +21,6 @@ public class KakaoOAuthUserClient implements OAuthUserClient {
     @Override
     public OAuthUserInfo getUserInfo(String token) {
         KakaoUserInfo userInfo = kakaoOAuthClient.getUserInfo(token);
-        return new OAuthUserInfo(userInfo.providerUserId(), userInfo.email());
+        return new OAuthUserInfo(userInfo.providerUserId(), userInfo.email(), userInfo.profileImageUrl());
     }
 }

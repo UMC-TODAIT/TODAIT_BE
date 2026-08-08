@@ -2,6 +2,7 @@ package com.example.TODAIT__BE.global.security.token;
 
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.domain.member.enums.OAuthProvider;
+import com.example.TODAIT__BE.domain.member.support.MemberInputPolicy;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -71,12 +72,20 @@ public class JwtTokenProvider {
     public String createOAuthOnboardingToken(
             OAuthProvider provider,
             String providerUserId,
-            String email
+            String email,
+            String profileImageUrl
     ) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("tokenType", TokenType.OAUTH_ONBOARDING.name());
         claims.put("provider", provider.name());
         claims.put("email", email);
+
+        String normalizedProfileImageUrl =
+                MemberInputPolicy.normalizeProfileImageUrl(profileImageUrl);
+
+        if (normalizedProfileImageUrl != null) {
+            claims.put("profileImageUrl", normalizedProfileImageUrl);
+        }
 
         return createToken(
                providerUserId,
@@ -162,6 +171,9 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
-
+    public String getProfileImageUrl(String token) {
+        return parseClaims(token)
+                .get("profileImageUrl", String.class);
+    }
 }
 

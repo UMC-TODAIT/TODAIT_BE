@@ -8,7 +8,17 @@ public record KakaoUserResponse(
         KakaoAccount kakaoAccount
 ) {
     public record KakaoAccount(
-            String email
+            String email,
+            Profile profile
+    ) {
+    }
+
+    public record Profile(
+            @JsonProperty("profile_image_url")
+            String profileImageUrl,
+
+            @JsonProperty("is_default_image")
+            Boolean isDefaultImage
     ) {
     }
 }

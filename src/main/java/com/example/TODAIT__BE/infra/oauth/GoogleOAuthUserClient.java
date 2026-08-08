@@ -21,6 +21,6 @@ public class GoogleOAuthUserClient implements OAuthUserClient {
     @Override
     public OAuthUserInfo getUserInfo(String token) {
         GoogleUserInfo userInfo = googleOAuthClient.verifyIdToken(token);
-        return new OAuthUserInfo(userInfo.providerUserId(), userInfo.email());
+        return new OAuthUserInfo(userInfo.providerUserId(), userInfo.email(), userInfo.profileImageUrl());
     }
 }

@@ -61,7 +61,8 @@ public class OAuthService {
         return loginWithOAuth(
                 OAuthProvider.KAKAO,
                 userInfo.providerUserId(),
-                userInfo.email()
+                userInfo.email(),
+                userInfo.profileImageUrl()
         );
     }
 
@@ -72,7 +73,8 @@ public class OAuthService {
         return loginWithOAuth(
                 OAuthProvider.GOOGLE,
                 userInfo.providerUserId(),
-                userInfo.email()
+                userInfo.email(),
+                userInfo.profileImageUrl()
         );
     }
 
@@ -87,6 +89,9 @@ public class OAuthService {
         OAuthProvider provider = claims.provider();
         String email = MemberInputPolicy.normalizeEmail(
                 claims.email()
+        );
+        String profileImageUrl = MemberInputPolicy.normalizeProfileImageUrl(
+                claims.profileImageUrl()
         );
         String nickname = request.nickname();
 
@@ -105,6 +110,7 @@ public class OAuthService {
                 Member.builder()
                         .email(email)
                         .nickname(nickname)
+                        .profileImageUrl(profileImageUrl)
                         .build()
         );
 
@@ -124,9 +130,12 @@ public class OAuthService {
     private OAuthResponse.Login loginWithOAuth(
             OAuthProvider provider,
             String providerUserId,
-            String email
+            String email,
+            String profileImageUrl
     ){
         String normalizedEmail = MemberInputPolicy.normalizeEmail(email);
+        String normalizedProfileImageUrl =
+                MemberInputPolicy.normalizeProfileImageUrl(profileImageUrl);
         Optional<MemberOAuthAccount> result = memberOAuthAccountRepository.findByProviderAndProviderUserId(
                 provider,
                 providerUserId
@@ -142,7 +151,8 @@ public class OAuthService {
         return requireOnboarding(
                 provider,
                 providerUserId,
-                normalizedEmail
+                normalizedEmail,
+                normalizedProfileImageUrl
         );
     }
 
@@ -194,6 +204,7 @@ public class OAuthService {
                 .onboardingToken(null)
                 .email(member.getEmail())
                 .provider(provider)
+                .profileImageUrl(member.getProfileImageUrl())
                 .build();
     }
 
@@ -201,12 +212,14 @@ public class OAuthService {
     private OAuthResponse.Login requireOnboarding(
             OAuthProvider provider,
             String providerUserId,
-            String email
+            String email,
+            String profileImageUrl
     ) {
         String onboardingToken = authService.issueOAuthOnboardingToken(
                 provider,
                 providerUserId,
-                email
+                email,
+                profileImageUrl
         );
 
         return OAuthResponse.Login.builder()
@@ -216,6 +229,7 @@ public class OAuthService {
                 .onboardingToken(onboardingToken)
                 .email(email)
                 .provider(provider)
+                .profileImageUrl(profileImageUrl)
                 .build();
     }
 
