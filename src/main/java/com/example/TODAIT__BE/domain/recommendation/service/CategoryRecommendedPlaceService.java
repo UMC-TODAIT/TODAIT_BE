@@ -25,7 +25,8 @@ import com.example.TODAIT__BE.domain.recommendation.service.support.NearBasePlac
 import com.example.TODAIT__BE.domain.recommendation.service.support.NearBasePlaceRecommendationSelection;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
-import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomyErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.AreaErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.PlaceCategoryErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.domain.taxonomy.repository.FoodCategoryRepository;
 import com.example.TODAIT__BE.domain.taxonomy.repository.PlaceCategoryRepository;
@@ -260,7 +261,7 @@ public class CategoryRecommendedPlaceService {
         )) {
 
             throw new TaxonomyException(
-                    TaxonomyErrorCode.PLACE_CATEGORY_NOT_SUPPORTED
+                    PlaceCategoryErrorCode.PLACE_CATEGORY_NOT_SUPPORTED
             );
         }
 
@@ -269,7 +270,7 @@ public class CategoryRecommendedPlaceService {
                 .filter(PlaceCategory::getIsActive)
                 .orElseThrow(() ->
                         new TaxonomyException(
-                                TaxonomyErrorCode.PLACE_CATEGORY_NOT_SUPPORTED
+                                PlaceCategoryErrorCode.PLACE_CATEGORY_NOT_SUPPORTED
                         )
                 );
     }
@@ -297,7 +298,7 @@ public class CategoryRecommendedPlaceService {
 
             default ->
                     throw new TaxonomyException(
-                            TaxonomyErrorCode.AREA_NOT_SUPPORTED
+                            AreaErrorCode.AREA_NOT_SUPPORTED
                     );
         };
     }

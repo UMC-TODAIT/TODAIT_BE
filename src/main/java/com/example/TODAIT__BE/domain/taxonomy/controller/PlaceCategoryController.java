@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.taxonomy.controller;
 
-import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomySuccessCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.PlaceCategorySuccessCode;
 import com.example.TODAIT__BE.domain.taxonomy.controller.docs.PlaceCategoryControllerDocs;
 import com.example.TODAIT__BE.domain.taxonomy.dto.response.PlaceCategoryListResponse;
 import com.example.TODAIT__BE.domain.taxonomy.service.PlaceCategoryService;
@@ -23,7 +23,7 @@ public class PlaceCategoryController implements PlaceCategoryControllerDocs {
     public ResponseEntity<ApiResponse<PlaceCategoryListResponse>> getPlaceCategories() {
         PlaceCategoryListResponse result = placeCategoryService.getPlaceCategories();
         return ResponseEntity
-                .status(TaxonomySuccessCode.PLACE_CATEGORY_LIST_OK.getStatus())
-                .body(ApiResponse.onSuccess(TaxonomySuccessCode.PLACE_CATEGORY_LIST_OK, result));
+                .status(PlaceCategorySuccessCode.PLACE_CATEGORY_LIST_OK.getStatus())
+                .body(ApiResponse.onSuccess(PlaceCategorySuccessCode.PLACE_CATEGORY_LIST_OK, result));
     }
 }

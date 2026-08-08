@@ -9,7 +9,7 @@ import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
-import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomyErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.domain.taxonomy.repository.FoodCategoryRepository;
@@ -81,7 +81,7 @@ public class CourseDraftFoodCategoryService {
     private List<FoodCategory> validateAndGetFoodCategories(List<Long> foodCategoryIds) {
         List<FoodCategory> foundFoodCategories = foodCategoryRepository.findAllById(foodCategoryIds);
         if (foundFoodCategories.size() != foodCategoryIds.size()) {
-            throw new TaxonomyException(TaxonomyErrorCode.FOOD_CATEGORY_NOT_FOUND);
+            throw new TaxonomyException(FoodCategoryErrorCode.FOOD_CATEGORY_NOT_FOUND);
         }
 
         Map<Long, FoodCategory> foodCategoriesById = foundFoodCategories.stream()

@@ -19,8 +19,11 @@ import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
 import com.example.TODAIT__BE.domain.place.code.PlaceSuccessCode;
 import com.example.TODAIT__BE.domain.recommendation.code.RecommendationErrorCode;
 import com.example.TODAIT__BE.domain.recommendation.code.RecommendationSuccessCode;
-import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomyErrorCode;
-import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomySuccessCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.AreaErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.PlaceCategoryErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.PlaceCategorySuccessCode;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -54,8 +57,11 @@ class ApiResponseCodeContractTest {
             new CodeEnum(PlaceErrorCode.class, Set.of("PLACE")),
             new CodeEnum(RecommendationSuccessCode.class, Set.of("RECOMMENDATION")),
             new CodeEnum(RecommendationErrorCode.class, Set.of("RECOMMENDATION")),
-            new CodeEnum(TaxonomySuccessCode.class, Set.of("TAXONOMY")),
-            new CodeEnum(TaxonomyErrorCode.class, Set.of("TAXONOMY", "MOOD_TAG", "FOOD_CATEGORY", "AREA", "PLACE_CATEGORY"))
+            new CodeEnum(PlaceCategorySuccessCode.class, Set.of("TAXONOMY")),
+            new CodeEnum(MoodTagErrorCode.class, Set.of("MOOD_TAG")),
+            new CodeEnum(FoodCategoryErrorCode.class, Set.of("FOOD_CATEGORY")),
+            new CodeEnum(AreaErrorCode.class, Set.of("AREA")),
+            new CodeEnum(PlaceCategoryErrorCode.class, Set.of("PLACE_CATEGORY"))
     );
 
     private static final Map<String, String> EXPECTED_CODES = Map.ofEntries(
@@ -192,11 +198,11 @@ class ApiResponseCodeContractTest {
             entry("RecommendationErrorCode.INVALID_LOCATION_RANGE", "RECOMMENDATION400_8"),
             entry("RecommendationErrorCode.INVALID_CURSOR", "RECOMMENDATION400_9"),
             entry("RecommendationErrorCode.REQUEST_CONTEXT_SERIALIZATION_FAILED", "RECOMMENDATION500_1"),
-            entry("TaxonomySuccessCode.PLACE_CATEGORY_LIST_OK", "TAXONOMY200"),
-            entry("TaxonomyErrorCode.MOOD_TAG_NOT_FOUND", "MOOD_TAG404"),
-            entry("TaxonomyErrorCode.FOOD_CATEGORY_NOT_FOUND", "FOOD_CATEGORY404"),
-            entry("TaxonomyErrorCode.AREA_NOT_SUPPORTED", "AREA400"),
-            entry("TaxonomyErrorCode.PLACE_CATEGORY_NOT_SUPPORTED", "PLACE_CATEGORY400")
+            entry("PlaceCategorySuccessCode.PLACE_CATEGORY_LIST_OK", "TAXONOMY200"),
+            entry("MoodTagErrorCode.MOOD_TAG_NOT_FOUND", "MOOD_TAG404"),
+            entry("FoodCategoryErrorCode.FOOD_CATEGORY_NOT_FOUND", "FOOD_CATEGORY404"),
+            entry("AreaErrorCode.AREA_NOT_SUPPORTED", "AREA400"),
+            entry("PlaceCategoryErrorCode.PLACE_CATEGORY_NOT_SUPPORTED", "PLACE_CATEGORY400")
     );
 
     @Test

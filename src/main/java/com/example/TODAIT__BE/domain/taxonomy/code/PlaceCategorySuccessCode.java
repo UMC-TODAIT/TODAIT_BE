@@ -7,10 +7,12 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
-public enum TaxonomySuccessCode implements BaseSuccessCode {
-    PLACE_CATEGORY_LIST_OK(HttpStatus.OK,
+public enum PlaceCategorySuccessCode implements BaseSuccessCode {
+    PLACE_CATEGORY_LIST_OK(
+            HttpStatus.OK,
             "TAXONOMY200",
-            "장소 카테고리 목록 조회 성공"),
+            "장소 카테고리 목록 조회 성공"
+    ),
     ;
 
     private final HttpStatus status;

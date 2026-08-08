@@ -16,7 +16,7 @@ import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftFoodCategoryService;
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
-import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomyErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -168,7 +168,7 @@ class CourseDraftFoodCategoryControllerTest {
     @Test
     void saveFoodCategories_foodCategoryNotFound_returns404() throws Exception {
         given(courseDraftFoodCategoryService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new TaxonomyException(TaxonomyErrorCode.FOOD_CATEGORY_NOT_FOUND));
+                .willThrow(new TaxonomyException(FoodCategoryErrorCode.FOOD_CATEGORY_NOT_FOUND));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/food-categories", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken()))
