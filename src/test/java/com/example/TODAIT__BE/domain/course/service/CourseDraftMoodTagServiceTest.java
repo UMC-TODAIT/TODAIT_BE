@@ -42,14 +42,24 @@ class CourseDraftMoodTagServiceTest {
     @Mock
     private MoodTagRepository moodTagRepository;
 
-    private CourseDraftMoodTagService courseDraftMoodTagService;
+    private CourseDraftService courseDraftService;
 
     @BeforeEach
     void setUp() {
-        courseDraftMoodTagService = new CourseDraftMoodTagService(
+        courseDraftService = new CourseDraftService(
                 courseDraftRepository,
+                null,
                 courseDraftMoodTagRepository,
+                null,
+                null,
                 moodTagRepository,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
                 new CourseDraftValidator()
         );
     }
@@ -74,7 +84,7 @@ class CourseDraftMoodTagServiceTest {
         given(courseDraftMoodTagRepository.findByCourseDraft(draft))
                 .willReturn(List.of(oldDraftMoodTag, keptDraftMoodTag));
 
-        MoodTagSaveResponse response = courseDraftMoodTagService.saveMoodTags(
+        MoodTagSaveResponse response = courseDraftService.saveMoodTags(
                 10L,
                 1L,
                 new MoodTagSaveRequest(List.of(2L, 3L))
@@ -109,7 +119,7 @@ class CourseDraftMoodTagServiceTest {
         given(courseDraftMoodTagRepository.findByCourseDraft(draft))
                 .willReturn(List.of(existingMoodTag, secondExistingMoodTag));
 
-        MoodTagSaveResponse response = courseDraftMoodTagService.saveMoodTags(
+        MoodTagSaveResponse response = courseDraftService.saveMoodTags(
                 10L,
                 1L,
                 new MoodTagSaveRequest(List.of(1L, 2L))
@@ -125,7 +135,7 @@ class CourseDraftMoodTagServiceTest {
         CourseDraft draft = draft(CourseDraftStatus.MOOD_SELECTING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        assertThatThrownBy(() -> courseDraftMoodTagService.saveMoodTags(
+        assertThatThrownBy(() -> courseDraftService.saveMoodTags(
                 10L,
                 1L,
                 new MoodTagSaveRequest(List.of(1L))
@@ -143,7 +153,7 @@ class CourseDraftMoodTagServiceTest {
         CourseDraft draft = draft(CourseDraftStatus.MOOD_SELECTING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        assertThatThrownBy(() -> courseDraftMoodTagService.saveMoodTags(
+        assertThatThrownBy(() -> courseDraftService.saveMoodTags(
                 10L,
                 1L,
                 new MoodTagSaveRequest(List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L))
@@ -161,7 +171,7 @@ class CourseDraftMoodTagServiceTest {
         CourseDraft draft = draft(CourseDraftStatus.ORDERING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        assertThatThrownBy(() -> courseDraftMoodTagService.saveMoodTags(
+        assertThatThrownBy(() -> courseDraftService.saveMoodTags(
                 10L,
                 1L,
                 new MoodTagSaveRequest(List.of(1L, 2L))

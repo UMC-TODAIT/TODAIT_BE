@@ -14,12 +14,6 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.Moo
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftBasePlaceService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftFoodCategoryService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftMoodTagService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftOrderingService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftPlaceService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftSavingService;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftService;
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;
@@ -55,19 +49,7 @@ class CourseDraftMoodTagControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @MockitoBean
-    private CourseDraftMoodTagService courseDraftMoodTagService;
-    @MockitoBean
     private CourseDraftService courseDraftService;
-    @MockitoBean
-    private CourseDraftFoodCategoryService courseDraftFoodCategoryService;
-    @MockitoBean
-    private CourseDraftBasePlaceService courseDraftBasePlaceService;
-    @MockitoBean
-    private CourseDraftPlaceService courseDraftPlaceService;
-    @MockitoBean
-    private CourseDraftOrderingService courseDraftOrderingService;
-    @MockitoBean
-    private CourseDraftSavingService courseDraftSavingService;
 
     @TestConfiguration
     @EnableWebSecurity
@@ -91,7 +73,7 @@ class CourseDraftMoodTagControllerTest {
                         new MoodTagItem(4L, "ROMANTIC", "로맨틱")
                 )
         );
-        given(courseDraftMoodTagService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willReturn(response);
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/mood-tags", COURSE_DRAFT_ID)
@@ -113,7 +95,7 @@ class CourseDraftMoodTagControllerTest {
 
     @Test
     void saveMoodTags_notOwner_returns403() throws Exception {
-        given(courseDraftMoodTagService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new CourseException(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/mood-tags", COURSE_DRAFT_ID)
@@ -128,7 +110,7 @@ class CourseDraftMoodTagControllerTest {
 
     @Test
     void saveMoodTags_draftNotFound_returns404() throws Exception {
-        given(courseDraftMoodTagService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/mood-tags", COURSE_DRAFT_ID)
@@ -142,7 +124,7 @@ class CourseDraftMoodTagControllerTest {
 
     @Test
     void saveMoodTags_unsupportedDraftStatus_returns409() throws Exception {
-        given(courseDraftMoodTagService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new CourseException(CourseDraftErrorCode.MOOD_TAG_DRAFT_STATUS_CONFLICT));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/mood-tags", COURSE_DRAFT_ID)
@@ -157,7 +139,7 @@ class CourseDraftMoodTagControllerTest {
 
     @Test
     void saveMoodTags_lessThanMinimumCount_returns400() throws Exception {
-        given(courseDraftMoodTagService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new CourseException(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/mood-tags", COURSE_DRAFT_ID)
@@ -171,7 +153,7 @@ class CourseDraftMoodTagControllerTest {
 
     @Test
     void saveMoodTags_duplicateTag_returns400() throws Exception {
-        given(courseDraftMoodTagService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new CourseException(CourseDraftErrorCode.DUPLICATE_MOOD_TAG));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/mood-tags", COURSE_DRAFT_ID)
@@ -185,7 +167,7 @@ class CourseDraftMoodTagControllerTest {
 
     @Test
     void saveMoodTags_moodTagNotFound_returns404() throws Exception {
-        given(courseDraftMoodTagService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new TaxonomyException(MoodTagErrorCode.MOOD_TAG_NOT_FOUND));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/mood-tags", COURSE_DRAFT_ID)

@@ -47,15 +47,25 @@ class CourseDraftPlaceServiceTest {
     @Mock
     private PlaceRepository placeRepository;
 
-    private CourseDraftPlaceService courseDraftPlaceService;
+    private CourseDraftService courseDraftService;
 
     @BeforeEach
     void setUp() {
-        courseDraftPlaceService =
-                new CourseDraftPlaceService(
+        courseDraftService =
+                new CourseDraftService(
                         courseDraftRepository,
+                        null,
+                        null,
+                        null,
                         courseDraftPlaceRepository,
+                        null,
+                        null,
                         placeRepository,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
                         new CourseDraftValidator()
                 );
     }
@@ -139,7 +149,7 @@ class CourseDraftPlaceServiceTest {
 
         PlaceOrderUpdateRequest request = new PlaceOrderUpdateRequest(List.of(new PlaceOrderItem(100L, 2)));
 
-        assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 2L, request))
+        assertThatThrownBy(() -> courseDraftService.updatePlaceOrder(10L, 2L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED);
@@ -157,7 +167,7 @@ class CourseDraftPlaceServiceTest {
 
         PlaceOrderUpdateRequest request = new PlaceOrderUpdateRequest(List.of(new PlaceOrderItem(999L, 2)));
 
-        assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 1L, request))
+        assertThatThrownBy(() -> courseDraftService.updatePlaceOrder(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.SELECTED_PLACE_NOT_FOUND);
@@ -175,7 +185,7 @@ class CourseDraftPlaceServiceTest {
 
         PlaceOrderUpdateRequest request = new PlaceOrderUpdateRequest(List.of(new PlaceOrderItem(100L, 2)));
 
-        assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 1L, request))
+        assertThatThrownBy(() -> courseDraftService.updatePlaceOrder(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.BASE_PLACE_NOT_REORDERABLE);
@@ -192,7 +202,7 @@ class CourseDraftPlaceServiceTest {
 
         PlaceOrderUpdateRequest request = new PlaceOrderUpdateRequest(List.of(new PlaceOrderItem(101L, 2)));
 
-        assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 1L, request))
+        assertThatThrownBy(() -> courseDraftService.updatePlaceOrder(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.PLACE_ORDER_DRAFT_STATUS_CONFLICT);
@@ -213,7 +223,7 @@ class CourseDraftPlaceServiceTest {
                     .build();
             given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
 
-            assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 1L, request))
+            assertThatThrownBy(() -> courseDraftService.updatePlaceOrder(10L, 1L, request))
                     .isInstanceOf(CourseException.class)
                     .extracting("errorCode")
                     .isEqualTo(CourseDraftErrorCode.PLACE_ORDER_DRAFT_STATUS_CONFLICT);
@@ -239,7 +249,7 @@ class CourseDraftPlaceServiceTest {
                 new PlaceOrderItem(103L, 5)
         ));
 
-        assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 1L, request))
+        assertThatThrownBy(() -> courseDraftService.updatePlaceOrder(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.INVALID_VISIT_ORDER);
@@ -262,7 +272,7 @@ class CourseDraftPlaceServiceTest {
                 new PlaceOrderItem(102L, 2)
         ));
 
-        assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 1L, request))
+        assertThatThrownBy(() -> courseDraftService.updatePlaceOrder(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.INVALID_VISIT_ORDER);
@@ -286,7 +296,7 @@ class CourseDraftPlaceServiceTest {
                 new PlaceOrderItem(102L, 3)
         ));
 
-        assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 1L, request))
+        assertThatThrownBy(() -> courseDraftService.updatePlaceOrder(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.INVALID_VISIT_ORDER);
@@ -309,7 +319,7 @@ class CourseDraftPlaceServiceTest {
                 .willAnswer(invocation -> invocation.getArgument(0));
 
         PlaceAddResponse response =
-                courseDraftPlaceService.addPlace(10L, 1L, new PlaceAddRequest(32L));
+                courseDraftService.addPlace(10L, 1L, new PlaceAddRequest(32L));
 
         assertThat(response.draftStatus()).isEqualTo(CourseDraftStatus.PLACE_SELECTING);
         assertThat(response.addedPlace().placeId()).isEqualTo(32L);
@@ -324,7 +334,7 @@ class CourseDraftPlaceServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.PLACE_SELECTING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        assertThatThrownBy(() -> courseDraftPlaceService.addPlace(10L, 2L, new PlaceAddRequest(32L)))
+        assertThatThrownBy(() -> courseDraftService.addPlace(10L, 2L, new PlaceAddRequest(32L)))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED);
@@ -335,7 +345,7 @@ class CourseDraftPlaceServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        assertThatThrownBy(() -> courseDraftPlaceService.addPlace(10L, 1L, new PlaceAddRequest(32L)))
+        assertThatThrownBy(() -> courseDraftService.addPlace(10L, 1L, new PlaceAddRequest(32L)))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.PLACE_ADD_DRAFT_STATUS_CONFLICT);
@@ -348,7 +358,7 @@ class CourseDraftPlaceServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of());
 
-        assertThatThrownBy(() -> courseDraftPlaceService.addPlace(10L, 1L, new PlaceAddRequest(32L)))
+        assertThatThrownBy(() -> courseDraftService.addPlace(10L, 1L, new PlaceAddRequest(32L)))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.INVALID_BASE_PLACE);
@@ -365,7 +375,7 @@ class CourseDraftPlaceServiceTest {
                 .willReturn(List.of(base));
         given(placeRepository.findById(99L)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> courseDraftPlaceService.addPlace(10L, 1L, new PlaceAddRequest(99L)))
+        assertThatThrownBy(() -> courseDraftService.addPlace(10L, 1L, new PlaceAddRequest(99L)))
                 .isInstanceOf(PlaceException.class)
                 .extracting("errorCode")
                 .isEqualTo(PlaceErrorCode.PLACE_NOT_FOUND);
@@ -394,7 +404,7 @@ class CourseDraftPlaceServiceTest {
                 .willReturn(List.of(base));
         given(placeRepository.findById(32L)).willReturn(Optional.of(inactivePlace));
 
-        assertThatThrownBy(() -> courseDraftPlaceService.addPlace(10L, 1L, new PlaceAddRequest(32L)))
+        assertThatThrownBy(() -> courseDraftService.addPlace(10L, 1L, new PlaceAddRequest(32L)))
                 .isInstanceOf(PlaceException.class)
                 .extracting("errorCode")
                 .isEqualTo(PlaceErrorCode.PLACE_NOT_AVAILABLE);
@@ -412,7 +422,7 @@ class CourseDraftPlaceServiceTest {
                 .willReturn(List.of(base));
         given(placeRepository.findById(32L)).willReturn(Optional.of(unsupportedCategoryPlace));
 
-        assertThatThrownBy(() -> courseDraftPlaceService.addPlace(10L, 1L, new PlaceAddRequest(32L)))
+        assertThatThrownBy(() -> courseDraftService.addPlace(10L, 1L, new PlaceAddRequest(32L)))
                 .isInstanceOf(PlaceException.class)
                 .extracting("errorCode")
                 .isEqualTo(PlaceErrorCode.PLACE_NOT_AVAILABLE);
@@ -429,7 +439,7 @@ class CourseDraftPlaceServiceTest {
                 .willReturn(List.of(base));
         given(placeRepository.findById(21L)).willReturn(Optional.of(basePlace));
 
-        assertThatThrownBy(() -> courseDraftPlaceService.addPlace(10L, 1L, new PlaceAddRequest(21L)))
+        assertThatThrownBy(() -> courseDraftService.addPlace(10L, 1L, new PlaceAddRequest(21L)))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.BASE_PLACE_RESELECT_CONFLICT);
@@ -450,7 +460,7 @@ class CourseDraftPlaceServiceTest {
                 .willReturn(List.of(base, selected));
         given(placeRepository.findById(32L)).willReturn(Optional.of(selectedPlace));
 
-        assertThatThrownBy(() -> courseDraftPlaceService.addPlace(10L, 1L, new PlaceAddRequest(32L)))
+        assertThatThrownBy(() -> courseDraftService.addPlace(10L, 1L, new PlaceAddRequest(32L)))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.SELECTED_PLACE_DUPLICATE);
@@ -469,7 +479,7 @@ class CourseDraftPlaceServiceTest {
                 .willReturn(List.of(base));
         given(placeRepository.findById(33L)).willReturn(Optional.of(anotherCafePlace));
 
-        assertThatThrownBy(() -> courseDraftPlaceService.addPlace(10L, 1L, new PlaceAddRequest(33L)))
+        assertThatThrownBy(() -> courseDraftService.addPlace(10L, 1L, new PlaceAddRequest(33L)))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.SELECTED_PLACE_CATEGORY_DUPLICATE);

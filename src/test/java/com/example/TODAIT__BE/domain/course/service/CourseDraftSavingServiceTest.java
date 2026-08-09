@@ -35,13 +35,24 @@ class CourseDraftSavingServiceTest {
     @Mock
     private CourseDraftPlaceRepository courseDraftPlaceRepository;
 
-    private CourseDraftSavingService courseDraftSavingService;
+    private CourseDraftService courseDraftService;
 
     @BeforeEach
     void setUp() {
-        courseDraftSavingService = new CourseDraftSavingService(
+        courseDraftService = new CourseDraftService(
                 courseDraftRepository,
+                null,
+                null,
+                null,
                 courseDraftPlaceRepository,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
                 new CourseDraftValidator()
         );
     }
@@ -56,7 +67,7 @@ class CourseDraftSavingServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base, selected));
 
-        SavingEnterResponse response = courseDraftSavingService.enterSaving(10L, 1L);
+        SavingEnterResponse response = courseDraftService.enterSaving(10L, 1L);
 
         assertThat(draft.getStatus()).isEqualTo(CourseDraftStatus.SAVING);
         assertThat(response.courseDraftId()).isEqualTo(10L);
@@ -77,7 +88,7 @@ class CourseDraftSavingServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base, selected));
 
-        SavingEnterResponse response = courseDraftSavingService.enterSaving(10L, 1L);
+        SavingEnterResponse response = courseDraftService.enterSaving(10L, 1L);
 
         assertThat(draft.getStatus()).isEqualTo(CourseDraftStatus.SAVING);
         assertThat(response.courseDraftId()).isEqualTo(10L);
@@ -93,7 +104,7 @@ class CourseDraftSavingServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        assertThatThrownBy(() -> courseDraftSavingService.enterSaving(10L, 2L))
+        assertThatThrownBy(() -> courseDraftService.enterSaving(10L, 2L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED);
@@ -109,7 +120,7 @@ class CourseDraftSavingServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), status);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        assertThatThrownBy(() -> courseDraftSavingService.enterSaving(10L, 1L))
+        assertThatThrownBy(() -> courseDraftService.enterSaving(10L, 1L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
@@ -124,7 +135,7 @@ class CourseDraftSavingServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(selected));
 
-        assertThatThrownBy(() -> courseDraftSavingService.enterSaving(10L, 1L))
+        assertThatThrownBy(() -> courseDraftService.enterSaving(10L, 1L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_BASE_PLACE_CONFLICT);
@@ -139,7 +150,7 @@ class CourseDraftSavingServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base));
 
-        assertThatThrownBy(() -> courseDraftSavingService.enterSaving(10L, 1L))
+        assertThatThrownBy(() -> courseDraftService.enterSaving(10L, 1L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_SELECTED_PLACE_CONFLICT);
@@ -155,7 +166,7 @@ class CourseDraftSavingServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base, selected));
 
-        assertThatThrownBy(() -> courseDraftSavingService.enterSaving(10L, 1L))
+        assertThatThrownBy(() -> courseDraftService.enterSaving(10L, 1L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_SELECTED_PLACE_CONFLICT);

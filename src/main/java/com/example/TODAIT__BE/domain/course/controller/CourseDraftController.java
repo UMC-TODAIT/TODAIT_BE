@@ -15,12 +15,6 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.Ord
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceAddResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceOrderUpdateResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.SavingEnterResponse;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftBasePlaceService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftFoodCategoryService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftMoodTagService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftOrderingService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftPlaceService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftSavingService;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
@@ -42,12 +36,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class CourseDraftController implements CourseDraftControllerDocs {
 
     private final CourseDraftService courseDraftService;
-    private final CourseDraftMoodTagService courseDraftMoodTagService;
-    private final CourseDraftFoodCategoryService courseDraftFoodCategoryService;
-    private final CourseDraftBasePlaceService courseDraftBasePlaceService;
-    private final CourseDraftPlaceService courseDraftPlaceService;
-    private final CourseDraftOrderingService courseDraftOrderingService;
-    private final CourseDraftSavingService courseDraftSavingService;
 
     @PostMapping
     @Override
@@ -67,7 +55,7 @@ public class CourseDraftController implements CourseDraftControllerDocs {
             @AuthenticationPrincipal AuthMember authMember,
             @RequestBody MoodTagSaveRequest request
     ) {
-        MoodTagSaveResponse result = courseDraftMoodTagService.saveMoodTags(
+        MoodTagSaveResponse result = courseDraftService.saveMoodTags(
                 courseDraftId,
                 authMember.memberId(),
                 request
@@ -84,7 +72,7 @@ public class CourseDraftController implements CourseDraftControllerDocs {
             @AuthenticationPrincipal AuthMember authMember,
             @RequestBody FoodCategorySaveRequest request
     ) {
-        FoodCategorySaveResponse result = courseDraftFoodCategoryService.saveFoodCategories(
+        FoodCategorySaveResponse result = courseDraftService.saveFoodCategories(
                 courseDraftId,
                 authMember.memberId(),
                 request
@@ -101,7 +89,7 @@ public class CourseDraftController implements CourseDraftControllerDocs {
             @AuthenticationPrincipal AuthMember authMember,
             @RequestBody BasePlaceSaveRequest request
     ) {
-        BasePlaceSaveResponse result = courseDraftBasePlaceService.saveBasePlace(
+        BasePlaceSaveResponse result = courseDraftService.saveBasePlace(
                 courseDraftId,
                 authMember.memberId(),
                 request
@@ -119,7 +107,7 @@ public class CourseDraftController implements CourseDraftControllerDocs {
             @Valid @RequestBody PlaceAddRequest request
     ) {
         PlaceAddResponse result =
-                courseDraftPlaceService.addPlace(courseDraftId, authMember.memberId(), request);
+                courseDraftService.addPlace(courseDraftId, authMember.memberId(), request);
         return ResponseEntity
                 .status(CourseDraftSuccessCode.PLACE_ADD_OK.getStatus())
                 .body(ApiResponse.onSuccess(CourseDraftSuccessCode.PLACE_ADD_OK, result));
@@ -132,7 +120,7 @@ public class CourseDraftController implements CourseDraftControllerDocs {
             @AuthenticationPrincipal AuthMember authMember
     ) {
         OrderingEntryResponse result =
-                courseDraftOrderingService.enterOrdering(courseDraftId, authMember.memberId());
+                courseDraftService.enterOrdering(courseDraftId, authMember.memberId());
 
         return ResponseEntity
                 .status(CourseDraftSuccessCode.ORDERING_ENTRY_OK.getStatus())
@@ -147,7 +135,7 @@ public class CourseDraftController implements CourseDraftControllerDocs {
             @Valid @RequestBody PlaceOrderUpdateRequest request
     ) {
         PlaceOrderUpdateResponse result =
-                courseDraftPlaceService.updatePlaceOrder(courseDraftId, authMember.memberId(), request);
+                courseDraftService.updatePlaceOrder(courseDraftId, authMember.memberId(), request);
         return ResponseEntity
                 .status(CourseDraftSuccessCode.PLACE_ORDER_UPDATE_OK.getStatus())
                 .body(ApiResponse.onSuccess(CourseDraftSuccessCode.PLACE_ORDER_UPDATE_OK, result));
@@ -160,7 +148,7 @@ public class CourseDraftController implements CourseDraftControllerDocs {
             @AuthenticationPrincipal AuthMember authMember
     ) {
         SavingEnterResponse result =
-                courseDraftSavingService.enterSaving(courseDraftId, authMember.memberId());
+                courseDraftService.enterSaving(courseDraftId, authMember.memberId());
 
         return ResponseEntity
                 .status(CourseDraftSuccessCode.COURSE_DRAFT_SAVING_ENTER_OK.getStatus())

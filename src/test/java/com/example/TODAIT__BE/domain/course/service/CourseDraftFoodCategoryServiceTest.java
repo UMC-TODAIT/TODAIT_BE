@@ -42,14 +42,24 @@ class CourseDraftFoodCategoryServiceTest {
     @Mock
     private FoodCategoryRepository foodCategoryRepository;
 
-    private CourseDraftFoodCategoryService courseDraftFoodCategoryService;
+    private CourseDraftService courseDraftService;
 
     @BeforeEach
     void setUp() {
-        courseDraftFoodCategoryService = new CourseDraftFoodCategoryService(
+        courseDraftService = new CourseDraftService(
                 courseDraftRepository,
+                null,
+                null,
                 courseDraftFoodCategoryRepository,
+                null,
+                null,
                 foodCategoryRepository,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
                 new CourseDraftValidator()
         );
     }
@@ -75,7 +85,7 @@ class CourseDraftFoodCategoryServiceTest {
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft))
                 .willReturn(List.of(oldDraftFoodCategory, keptDraftFoodCategory));
 
-        FoodCategorySaveResponse response = courseDraftFoodCategoryService.saveFoodCategories(
+        FoodCategorySaveResponse response = courseDraftService.saveFoodCategories(
                 10L,
                 1L,
                 new FoodCategorySaveRequest(List.of(2L, 3L))
@@ -111,7 +121,7 @@ class CourseDraftFoodCategoryServiceTest {
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft))
                 .willReturn(List.of(existingFoodCategory, secondExistingFoodCategory));
 
-        FoodCategorySaveResponse response = courseDraftFoodCategoryService.saveFoodCategories(
+        FoodCategorySaveResponse response = courseDraftService.saveFoodCategories(
                 10L,
                 1L,
                 new FoodCategorySaveRequest(List.of(1L, 2L))
@@ -127,7 +137,7 @@ class CourseDraftFoodCategoryServiceTest {
         CourseDraft draft = draft(CourseDraftStatus.ORDERING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        assertThatThrownBy(() -> courseDraftFoodCategoryService.saveFoodCategories(
+        assertThatThrownBy(() -> courseDraftService.saveFoodCategories(
                 10L,
                 1L,
                 new FoodCategorySaveRequest(List.of(1L))

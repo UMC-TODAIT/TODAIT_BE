@@ -13,12 +13,6 @@ import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftBasePlaceService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftFoodCategoryService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftMoodTagService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftOrderingService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftPlaceService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftSavingService;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftService;
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
@@ -48,19 +42,7 @@ class CourseDraftSavingControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private CourseDraftSavingService courseDraftSavingService;
-    @MockitoBean
     private CourseDraftService courseDraftService;
-    @MockitoBean
-    private CourseDraftMoodTagService courseDraftMoodTagService;
-    @MockitoBean
-    private CourseDraftFoodCategoryService courseDraftFoodCategoryService;
-    @MockitoBean
-    private CourseDraftBasePlaceService courseDraftBasePlaceService;
-    @MockitoBean
-    private CourseDraftPlaceService courseDraftPlaceService;
-    @MockitoBean
-    private CourseDraftOrderingService courseDraftOrderingService;
 
     @TestConfiguration
     @EnableWebSecurity
@@ -103,7 +85,7 @@ class CourseDraftSavingControllerTest {
                         )
                 )
         );
-        given(courseDraftSavingService.enterSaving(eq(COURSE_DRAFT_ID), eq(MEMBER_ID)))
+        given(courseDraftService.enterSaving(eq(COURSE_DRAFT_ID), eq(MEMBER_ID)))
                 .willReturn(response);
 
         mockMvc.perform(patch("/api/course-drafts/{courseDraftId}/saving", COURSE_DRAFT_ID)
@@ -121,7 +103,7 @@ class CourseDraftSavingControllerTest {
 
     @Test
     void enterSaving_unsupportedDraftStatus_returns409() throws Exception {
-        given(courseDraftSavingService.enterSaving(eq(COURSE_DRAFT_ID), eq(MEMBER_ID)))
+        given(courseDraftService.enterSaving(eq(COURSE_DRAFT_ID), eq(MEMBER_ID)))
                 .willThrow(new CourseException(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT));
 
         mockMvc.perform(patch("/api/course-drafts/{courseDraftId}/saving", COURSE_DRAFT_ID)

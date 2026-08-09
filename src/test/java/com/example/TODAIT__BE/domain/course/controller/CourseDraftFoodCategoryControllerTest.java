@@ -14,12 +14,6 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.Foo
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftBasePlaceService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftFoodCategoryService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftMoodTagService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftOrderingService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftPlaceService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftSavingService;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftService;
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
@@ -55,19 +49,7 @@ class CourseDraftFoodCategoryControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @MockitoBean
-    private CourseDraftFoodCategoryService courseDraftFoodCategoryService;
-    @MockitoBean
     private CourseDraftService courseDraftService;
-    @MockitoBean
-    private CourseDraftMoodTagService courseDraftMoodTagService;
-    @MockitoBean
-    private CourseDraftBasePlaceService courseDraftBasePlaceService;
-    @MockitoBean
-    private CourseDraftPlaceService courseDraftPlaceService;
-    @MockitoBean
-    private CourseDraftOrderingService courseDraftOrderingService;
-    @MockitoBean
-    private CourseDraftSavingService courseDraftSavingService;
 
     @TestConfiguration
     @EnableWebSecurity
@@ -91,7 +73,7 @@ class CourseDraftFoodCategoryControllerTest {
                         new FoodCategoryItem(6L, "DESSERT", "디저트")
                 )
         );
-        given(courseDraftFoodCategoryService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willReturn(response);
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/food-categories", COURSE_DRAFT_ID)
@@ -113,7 +95,7 @@ class CourseDraftFoodCategoryControllerTest {
 
     @Test
     void saveFoodCategories_notOwner_returns403() throws Exception {
-        given(courseDraftFoodCategoryService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new CourseException(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/food-categories", COURSE_DRAFT_ID)
@@ -128,7 +110,7 @@ class CourseDraftFoodCategoryControllerTest {
 
     @Test
     void saveFoodCategories_draftNotFound_returns404() throws Exception {
-        given(courseDraftFoodCategoryService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/food-categories", COURSE_DRAFT_ID)
@@ -142,7 +124,7 @@ class CourseDraftFoodCategoryControllerTest {
 
     @Test
     void saveFoodCategories_unsupportedDraftStatus_returns409() throws Exception {
-        given(courseDraftFoodCategoryService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new CourseException(CourseDraftErrorCode.FOOD_CATEGORY_DRAFT_STATUS_CONFLICT));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/food-categories", COURSE_DRAFT_ID)
@@ -157,7 +139,7 @@ class CourseDraftFoodCategoryControllerTest {
 
     @Test
     void saveFoodCategories_emptyList_returns400() throws Exception {
-        given(courseDraftFoodCategoryService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new CourseException(CourseDraftErrorCode.INVALID_FOOD_CATEGORY_COUNT));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/food-categories", COURSE_DRAFT_ID)
@@ -171,7 +153,7 @@ class CourseDraftFoodCategoryControllerTest {
 
     @Test
     void saveFoodCategories_duplicateCategory_returns400() throws Exception {
-        given(courseDraftFoodCategoryService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new CourseException(CourseDraftErrorCode.DUPLICATE_FOOD_CATEGORY));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/food-categories", COURSE_DRAFT_ID)
@@ -185,7 +167,7 @@ class CourseDraftFoodCategoryControllerTest {
 
     @Test
     void saveFoodCategories_foodCategoryNotFound_returns404() throws Exception {
-        given(courseDraftFoodCategoryService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new TaxonomyException(FoodCategoryErrorCode.FOOD_CATEGORY_NOT_FOUND));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/food-categories", COURSE_DRAFT_ID)

@@ -42,13 +42,24 @@ class CourseDraftOrderingServiceTest {
     @Mock
     private CourseDraftPlaceRepository courseDraftPlaceRepository;
 
-    private CourseDraftOrderingService service;
+    private CourseDraftService service;
 
     @BeforeEach
     void setUp() {
-        service = new CourseDraftOrderingService(
+        service = new CourseDraftService(
                 courseDraftRepository,
+                null,
+                null,
+                null,
                 courseDraftPlaceRepository,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
                 new CourseDraftValidator()
         );
     }

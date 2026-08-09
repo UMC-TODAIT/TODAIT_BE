@@ -18,12 +18,6 @@ import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftBasePlaceService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftFoodCategoryService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftMoodTagService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftOrderingService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftPlaceService;
-import com.example.TODAIT__BE.domain.course.service.CourseDraftSavingService;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftService;
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.domain.place.exception.PlaceException;
@@ -61,19 +55,7 @@ class CourseDraftBasePlaceControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @MockitoBean
-    private CourseDraftBasePlaceService courseDraftBasePlaceService;
-    @MockitoBean
     private CourseDraftService courseDraftService;
-    @MockitoBean
-    private CourseDraftMoodTagService courseDraftMoodTagService;
-    @MockitoBean
-    private CourseDraftFoodCategoryService courseDraftFoodCategoryService;
-    @MockitoBean
-    private CourseDraftPlaceService courseDraftPlaceService;
-    @MockitoBean
-    private CourseDraftOrderingService courseDraftOrderingService;
-    @MockitoBean
-    private CourseDraftSavingService courseDraftSavingService;
 
     @TestConfiguration
     @EnableWebSecurity
@@ -98,7 +80,7 @@ class CourseDraftBasePlaceControllerTest {
         BasePlaceSaveResponse response =
                 BasePlaceSaveResponse.of(COURSE_DRAFT_ID, CourseDraftStatus.PLACE_SELECTING, basePlace);
 
-        given(courseDraftBasePlaceService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willReturn(response);
 
         mockMvc.perform(patch("/api/course-drafts/{courseDraftId}/base-place", COURSE_DRAFT_ID)
@@ -129,7 +111,7 @@ class CourseDraftBasePlaceControllerTest {
         BasePlaceSaveResponse response =
                 BasePlaceSaveResponse.of(COURSE_DRAFT_ID, CourseDraftStatus.PLACE_SELECTING, basePlace);
 
-        given(courseDraftBasePlaceService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willReturn(response);
 
         ExternalPlace externalPlace = new ExternalPlace(
@@ -150,7 +132,7 @@ class CourseDraftBasePlaceControllerTest {
 
     @Test
     void saveBasePlace_notOwner_returns403() throws Exception {
-        given(courseDraftBasePlaceService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new CourseException(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED));
 
         mockMvc.perform(patch("/api/course-drafts/{courseDraftId}/base-place", COURSE_DRAFT_ID)
@@ -164,7 +146,7 @@ class CourseDraftBasePlaceControllerTest {
 
     @Test
     void saveBasePlace_draftNotFound_returns404() throws Exception {
-        given(courseDraftBasePlaceService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
 
         mockMvc.perform(patch("/api/course-drafts/{courseDraftId}/base-place", COURSE_DRAFT_ID)
@@ -178,7 +160,7 @@ class CourseDraftBasePlaceControllerTest {
 
     @Test
     void saveBasePlace_wrongDraftStatus_returns409() throws Exception {
-        given(courseDraftBasePlaceService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new CourseException(CourseDraftErrorCode.BASE_PLACE_DRAFT_STATUS_CONFLICT));
 
         mockMvc.perform(patch("/api/course-drafts/{courseDraftId}/base-place", COURSE_DRAFT_ID)
@@ -192,7 +174,7 @@ class CourseDraftBasePlaceControllerTest {
 
     @Test
     void saveBasePlace_bothPlaceIdAndExternalPlace_returns400() throws Exception {
-        given(courseDraftBasePlaceService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new CourseException(CourseDraftErrorCode.BASE_PLACE_SOURCE_CONFLICT));
 
         ExternalPlace externalPlace = new ExternalPlace(
@@ -210,7 +192,7 @@ class CourseDraftBasePlaceControllerTest {
 
     @Test
     void saveBasePlace_neitherPlaceIdNorExternalPlace_returns400() throws Exception {
-        given(courseDraftBasePlaceService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new CourseException(CourseDraftErrorCode.BASE_PLACE_SOURCE_MISSING));
 
         mockMvc.perform(patch("/api/course-drafts/{courseDraftId}/base-place", COURSE_DRAFT_ID)
@@ -224,7 +206,7 @@ class CourseDraftBasePlaceControllerTest {
 
     @Test
     void saveBasePlace_placeNotFound_returns404() throws Exception {
-        given(courseDraftBasePlaceService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new PlaceException(PlaceErrorCode.PLACE_NOT_FOUND));
 
         mockMvc.perform(patch("/api/course-drafts/{courseDraftId}/base-place", COURSE_DRAFT_ID)
@@ -238,7 +220,7 @@ class CourseDraftBasePlaceControllerTest {
 
     @Test
     void saveBasePlace_placeNotAvailable_returns400() throws Exception {
-        given(courseDraftBasePlaceService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new PlaceException(PlaceErrorCode.PLACE_NOT_AVAILABLE));
 
         mockMvc.perform(patch("/api/course-drafts/{courseDraftId}/base-place", COURSE_DRAFT_ID)
@@ -252,7 +234,7 @@ class CourseDraftBasePlaceControllerTest {
 
     @Test
     void saveBasePlace_areaNotSupported_returns400() throws Exception {
-        given(courseDraftBasePlaceService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new TaxonomyException(AreaErrorCode.AREA_NOT_SUPPORTED));
 
         ExternalPlace externalPlace = new ExternalPlace(
@@ -270,7 +252,7 @@ class CourseDraftBasePlaceControllerTest {
 
     @Test
     void saveBasePlace_dataSourceNotFound_returns404() throws Exception {
-        given(courseDraftBasePlaceService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
+        given(courseDraftService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willThrow(new PlaceException(PlaceErrorCode.DATA_SOURCE_NOT_FOUND));
 
         ExternalPlace externalPlace = new ExternalPlace(

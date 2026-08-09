@@ -68,13 +68,18 @@ class CourseDraftBasePlaceServiceTest {
     @Mock
     private ExternalPlaceRegistrationService externalPlaceRegistrationService;
 
-    private CourseDraftBasePlaceService courseDraftBasePlaceService;
+    private CourseDraftService courseDraftService;
 
     @BeforeEach
     void setUp() {
-        courseDraftBasePlaceService = new CourseDraftBasePlaceService(
+        courseDraftService = new CourseDraftService(
                 courseDraftRepository,
+                null,
+                null,
+                null,
                 courseDraftPlaceRepository,
+                null,
+                null,
                 placeRepository,
                 placeSourceRepository,
                 dataSourceRepository,
@@ -98,7 +103,7 @@ class CourseDraftBasePlaceServiceTest {
         given(courseDraftPlaceRepository.save(any(CourseDraftPlace.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
-        BasePlaceSaveResponse response = courseDraftBasePlaceService.saveBasePlace(
+        BasePlaceSaveResponse response = courseDraftService.saveBasePlace(
                 10L, 1L, new BasePlaceSaveRequest(21L, null)
         );
 
@@ -130,7 +135,7 @@ class CourseDraftBasePlaceServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftAndPlaceRole(draft, PlaceRole.BASE))
                 .willReturn(List.of(existingBase));
 
-        BasePlaceSaveResponse response = courseDraftBasePlaceService.saveBasePlace(
+        BasePlaceSaveResponse response = courseDraftService.saveBasePlace(
                 10L, 1L, new BasePlaceSaveRequest(22L, null)
         );
 
@@ -170,7 +175,7 @@ class CourseDraftBasePlaceServiceTest {
         given(courseDraftPlaceRepository.save(any(CourseDraftPlace.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
-        BasePlaceSaveResponse response = courseDraftBasePlaceService.saveBasePlace(
+        BasePlaceSaveResponse response = courseDraftService.saveBasePlace(
                 10L, 1L, new BasePlaceSaveRequest(null, externalPlace)
         );
 
@@ -219,7 +224,7 @@ class CourseDraftBasePlaceServiceTest {
         given(courseDraftPlaceRepository.save(any(CourseDraftPlace.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
-        BasePlaceSaveResponse response = courseDraftBasePlaceService.saveBasePlace(
+        BasePlaceSaveResponse response = courseDraftService.saveBasePlace(
                 10L, 1L, new BasePlaceSaveRequest(null, externalPlace)
         );
 
@@ -263,7 +268,7 @@ class CourseDraftBasePlaceServiceTest {
         given(placeSourceRepository.findByDataSourceAndSourcePlaceId(kakao, "1234567890"))
                 .willReturn(Optional.of(existingSource));
 
-        assertThatThrownBy(() -> courseDraftBasePlaceService.saveBasePlace(
+        assertThatThrownBy(() -> courseDraftService.saveBasePlace(
                 10L, 1L, new BasePlaceSaveRequest(null, externalPlace)
         ))
                 .isInstanceOf(PlaceException.class)
@@ -304,7 +309,7 @@ class CourseDraftBasePlaceServiceTest {
         given(courseDraftPlaceRepository.save(any(CourseDraftPlace.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
-        BasePlaceSaveResponse response = courseDraftBasePlaceService.saveBasePlace(
+        BasePlaceSaveResponse response = courseDraftService.saveBasePlace(
                 10L, 1L, new BasePlaceSaveRequest(null, externalPlace)
         );
 
@@ -323,7 +328,7 @@ class CourseDraftBasePlaceServiceTest {
                 "KAKAO", "1", "n", "a", null, 0.0, 0.0, "YEONNAM", "CAFE", null, null, null
         );
 
-        assertThatThrownBy(() -> courseDraftBasePlaceService.saveBasePlace(
+        assertThatThrownBy(() -> courseDraftService.saveBasePlace(
                 10L, 1L, new BasePlaceSaveRequest(21L, externalPlace)
         ))
                 .isInstanceOf(CourseException.class)
@@ -336,7 +341,7 @@ class CourseDraftBasePlaceServiceTest {
         CourseDraft draft = draft(CourseDraftStatus.BASE_PLACE_SELECTING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        assertThatThrownBy(() -> courseDraftBasePlaceService.saveBasePlace(
+        assertThatThrownBy(() -> courseDraftService.saveBasePlace(
                 10L, 1L, new BasePlaceSaveRequest(null, null)
         ))
                 .isInstanceOf(CourseException.class)
@@ -349,7 +354,7 @@ class CourseDraftBasePlaceServiceTest {
         CourseDraft draft = draft(CourseDraftStatus.PLACE_SELECTING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        assertThatThrownBy(() -> courseDraftBasePlaceService.saveBasePlace(
+        assertThatThrownBy(() -> courseDraftService.saveBasePlace(
                 10L, 1L, new BasePlaceSaveRequest(21L, null)
         ))
                 .isInstanceOf(CourseException.class)
@@ -362,7 +367,7 @@ class CourseDraftBasePlaceServiceTest {
         CourseDraft draft = draft(CourseDraftStatus.BASE_PLACE_SELECTING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        assertThatThrownBy(() -> courseDraftBasePlaceService.saveBasePlace(
+        assertThatThrownBy(() -> courseDraftService.saveBasePlace(
                 10L, 999L, new BasePlaceSaveRequest(21L, null)
         ))
                 .isInstanceOf(CourseException.class)
@@ -376,7 +381,7 @@ class CourseDraftBasePlaceServiceTest {
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
         given(placeRepository.findById(21L)).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> courseDraftBasePlaceService.saveBasePlace(
+        assertThatThrownBy(() -> courseDraftService.saveBasePlace(
                 10L, 1L, new BasePlaceSaveRequest(21L, null)
         ))
                 .isInstanceOf(PlaceException.class)
@@ -402,7 +407,7 @@ class CourseDraftBasePlaceServiceTest {
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
         given(placeRepository.findById(21L)).willReturn(Optional.of(inactivePlace));
 
-        assertThatThrownBy(() -> courseDraftBasePlaceService.saveBasePlace(
+        assertThatThrownBy(() -> courseDraftService.saveBasePlace(
                 10L, 1L, new BasePlaceSaveRequest(21L, null)
         ))
                 .isInstanceOf(PlaceException.class)
@@ -429,7 +434,7 @@ class CourseDraftBasePlaceServiceTest {
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
         given(placeRepository.findById(21L)).willReturn(Optional.of(deletedPlace));
 
-        assertThatThrownBy(() -> courseDraftBasePlaceService.saveBasePlace(
+        assertThatThrownBy(() -> courseDraftService.saveBasePlace(
                 10L, 1L, new BasePlaceSaveRequest(21L, null)
         ))
                 .isInstanceOf(PlaceException.class)
@@ -446,7 +451,7 @@ class CourseDraftBasePlaceServiceTest {
                 "KAKAO", "1", "n", "a", null, 91.0, 0.0, "YEONNAM", "CAFE", null, null, null
         );
 
-        assertThatThrownBy(() -> courseDraftBasePlaceService.saveBasePlace(
+        assertThatThrownBy(() -> courseDraftService.saveBasePlace(
                 10L, 1L, new BasePlaceSaveRequest(null, externalPlace)
         ))
                 .isInstanceOf(PlaceException.class)
@@ -466,7 +471,7 @@ class CourseDraftBasePlaceServiceTest {
                 "KAKAO", "1", "n", "a", null, 0.0, 0.0, "UNKNOWN", "CAFE", null, null, null
         );
 
-        assertThatThrownBy(() -> courseDraftBasePlaceService.saveBasePlace(
+        assertThatThrownBy(() -> courseDraftService.saveBasePlace(
                 10L, 1L, new BasePlaceSaveRequest(null, externalPlace)
         ))
                 .isInstanceOf(TaxonomyException.class)
