@@ -24,6 +24,7 @@ import com.example.TODAIT__BE.domain.course.repository.CourseFoodCategoryReposit
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
+import com.example.TODAIT__BE.domain.course.service.support.CourseSaveSupport;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.place.entity.Place;
@@ -64,7 +65,12 @@ class RecommendedCourseSaveServiceTest {
                 coursePlaceRepository,
                 courseMoodTagRepository,
                 courseFoodCategoryRepository,
-                memberRepository
+                memberRepository,
+                new CourseSaveSupport(
+                        courseMoodTagRepository,
+                        courseFoodCategoryRepository,
+                        coursePlaceRepository
+                )
         );
     }
 
