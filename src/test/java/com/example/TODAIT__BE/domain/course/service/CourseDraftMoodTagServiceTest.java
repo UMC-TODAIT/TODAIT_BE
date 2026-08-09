@@ -20,7 +20,9 @@ import com.example.TODAIT__BE.domain.course.repository.CourseDraftMoodTagReposit
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.member.entity.Member;
+import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomyErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
+import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.domain.taxonomy.repository.MoodTagRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -80,7 +82,8 @@ class CourseDraftMoodTagServiceTest {
                 .build();
 
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
-        given(moodTagRepository.findAllById(List.of(2L, 3L))).willReturn(List.of(keptMoodTag, addedMoodTag));
+        given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(2L, 3L)))
+                .willReturn(List.of(keptMoodTag, addedMoodTag));
         given(courseDraftMoodTagRepository.findByCourseDraft(draft))
                 .willReturn(List.of(oldDraftMoodTag, keptDraftMoodTag));
 
@@ -115,7 +118,8 @@ class CourseDraftMoodTagServiceTest {
                 .build();
 
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
-        given(moodTagRepository.findAllById(List.of(1L, 2L))).willReturn(List.of(moodTag, secondMoodTag));
+        given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L)))
+                .willReturn(List.of(moodTag, secondMoodTag));
         given(courseDraftMoodTagRepository.findByCourseDraft(draft))
                 .willReturn(List.of(existingMoodTag, secondExistingMoodTag));
 
@@ -144,7 +148,7 @@ class CourseDraftMoodTagServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT);
 
-        verify(moodTagRepository, never()).findAllById(any());
+        verify(moodTagRepository, never()).findByIdInAndIsActiveTrue(any());
         verify(courseDraftMoodTagRepository, never()).findByCourseDraft(any());
     }
 
@@ -162,7 +166,7 @@ class CourseDraftMoodTagServiceTest {
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT);
 
-        verify(moodTagRepository, never()).findAllById(any());
+        verify(moodTagRepository, never()).findByIdInAndIsActiveTrue(any());
         verify(courseDraftMoodTagRepository, never()).findByCourseDraft(any());
     }
 
@@ -179,6 +183,25 @@ class CourseDraftMoodTagServiceTest {
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.MOOD_TAG_DRAFT_STATUS_CONFLICT);
+
+        verify(courseDraftMoodTagRepository, never()).findByCourseDraft(any());
+    }
+
+    @Test
+    void throwsWhenMoodTagIsInactive() {
+        CourseDraft draft = draft(CourseDraftStatus.MOOD_SELECTING);
+
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+        given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L))).willReturn(List.of(mock(MoodTag.class)));
+
+        assertThatThrownBy(() -> courseDraftService.saveMoodTags(
+                10L,
+                1L,
+                new MoodTagSaveRequest(List.of(1L, 2L))
+        ))
+                .isInstanceOf(TaxonomyException.class)
+                .extracting("errorCode")
+                .isEqualTo(TaxonomyErrorCode.MOOD_TAG_NOT_FOUND);
 
         verify(courseDraftMoodTagRepository, never()).findByCourseDraft(any());
     }

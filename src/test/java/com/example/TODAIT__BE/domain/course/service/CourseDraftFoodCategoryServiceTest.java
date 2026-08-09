@@ -20,7 +20,9 @@ import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRe
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.member.entity.Member;
+import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomyErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
+import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.domain.taxonomy.repository.FoodCategoryRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -80,7 +82,7 @@ class CourseDraftFoodCategoryServiceTest {
                 .build();
 
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
-        given(foodCategoryRepository.findAllById(List.of(2L, 3L)))
+        given(foodCategoryRepository.findByIdInAndIsActiveTrue(List.of(2L, 3L)))
                 .willReturn(List.of(keptFoodCategory, addedFoodCategory));
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft))
                 .willReturn(List.of(oldDraftFoodCategory, keptDraftFoodCategory));
@@ -116,7 +118,7 @@ class CourseDraftFoodCategoryServiceTest {
                 .build();
 
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
-        given(foodCategoryRepository.findAllById(List.of(1L, 2L)))
+        given(foodCategoryRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L)))
                 .willReturn(List.of(foodCategory, secondFoodCategory));
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft))
                 .willReturn(List.of(existingFoodCategory, secondExistingFoodCategory));
@@ -145,6 +147,26 @@ class CourseDraftFoodCategoryServiceTest {
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(CourseDraftErrorCode.FOOD_CATEGORY_DRAFT_STATUS_CONFLICT);
+
+        verify(courseDraftFoodCategoryRepository, never()).findByCourseDraft(any());
+    }
+
+    @Test
+    void throwsWhenFoodCategoryIsInactive() {
+        CourseDraft draft = draft(CourseDraftStatus.FOOD_SELECTING);
+
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+        given(foodCategoryRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L)))
+                .willReturn(List.of(mock(FoodCategory.class)));
+
+        assertThatThrownBy(() -> courseDraftService.saveFoodCategories(
+                10L,
+                1L,
+                new FoodCategorySaveRequest(List.of(1L, 2L))
+        ))
+                .isInstanceOf(TaxonomyException.class)
+                .extracting("errorCode")
+                .isEqualTo(TaxonomyErrorCode.FOOD_CATEGORY_NOT_FOUND);
 
         verify(courseDraftFoodCategoryRepository, never()).findByCourseDraft(any());
     }

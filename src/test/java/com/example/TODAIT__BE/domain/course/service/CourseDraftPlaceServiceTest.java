@@ -145,7 +145,7 @@ class CourseDraftPlaceServiceTest {
     @Test
     void throwsWhenRequesterIsNotOwner() {
         CourseDraft draft = courseDraft(10L, member(1L));
-        given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         PlaceOrderUpdateRequest request = new PlaceOrderUpdateRequest(List.of(new PlaceOrderItem(100L, 2)));
 
@@ -158,7 +158,7 @@ class CourseDraftPlaceServiceTest {
     @Test
     void throwsWhenPlaceIdDoesNotBelongToDraft() {
         CourseDraft draft = courseDraft(10L, member(1L));
-        given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         CourseDraftPlace base = draftPlace(100L, PlaceRole.BASE, 1);
         CourseDraftPlace selected = draftPlace(101L, PlaceRole.SELECTED, 2);
@@ -176,7 +176,7 @@ class CourseDraftPlaceServiceTest {
     @Test
     void throwsWhenBasePlaceIncludedInRequest() {
         CourseDraft draft = courseDraft(10L, member(1L));
-        given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         CourseDraftPlace base = draftPlace(100L, PlaceRole.BASE, 1);
         CourseDraftPlace selected = draftPlace(101L, PlaceRole.SELECTED, 2);
@@ -198,7 +198,7 @@ class CourseDraftPlaceServiceTest {
                 .member(member(1L))
                 .status(CourseDraftStatus.COMPLETED)
                 .build();
-        given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         PlaceOrderUpdateRequest request = new PlaceOrderUpdateRequest(List.of(new PlaceOrderItem(101L, 2)));
 
@@ -221,7 +221,7 @@ class CourseDraftPlaceServiceTest {
                     .member(member(1L))
                     .status(status)
                     .build();
-            given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
+            given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
             assertThatThrownBy(() -> courseDraftService.updatePlaceOrder(10L, 1L, request))
                     .isInstanceOf(CourseException.class)
@@ -233,7 +233,7 @@ class CourseDraftPlaceServiceTest {
     @Test
     void throwsWhenVisitOrderNotContinuousFromTwo() {
         CourseDraft draft = courseDraft(10L, member(1L));
-        given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         CourseDraftPlace base = draftPlace(100L, PlaceRole.BASE, 1);
         CourseDraftPlace s1 = draftPlace(101L, PlaceRole.SELECTED, 2);
@@ -258,7 +258,7 @@ class CourseDraftPlaceServiceTest {
     @Test
     void throwsWhenVisitOrderHasDuplicate() {
         CourseDraft draft = courseDraft(10L, member(1L));
-        given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         CourseDraftPlace base = draftPlace(100L, PlaceRole.BASE, 1);
         CourseDraftPlace s1 = draftPlace(101L, PlaceRole.SELECTED, 2);
@@ -281,7 +281,7 @@ class CourseDraftPlaceServiceTest {
     @Test
     void throwsWhenSelectedPlaceIsMissingFromRequest() {
         CourseDraft draft = courseDraft(10L, member(1L));
-        given(courseDraftRepository.findById(10L)).willReturn(Optional.of(draft));
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
         CourseDraftPlace base = draftPlace(100L, PlaceRole.BASE, 1);
         CourseDraftPlace s1 = draftPlace(101L, PlaceRole.SELECTED, 2);

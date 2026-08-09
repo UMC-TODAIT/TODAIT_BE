@@ -8,7 +8,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest.PlaceOrderItem;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.OrderingEntryResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceOrderUpdateResponse;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
@@ -184,6 +187,33 @@ class CourseDraftOrderingServiceTest {
                 place(102L, 35L, 3, PlaceRole.SELECTED, "코이르"));
 
         assertConflict(CourseDraftErrorCode.ORDERING_ENTRY_INVALID_VISIT_ORDER);
+    }
+
+    @Test
+    void updatePlaceOrderLocksDraftBeforeReorderingPlaces() {
+        CourseDraft draft = draft(CourseDraftStatus.ORDERING, MEMBER_ID);
+        CourseDraftPlace basePlace = place(101L, 21L, 1, PlaceRole.BASE, "쥬노이");
+        CourseDraftPlace firstSelectedPlace = place(102L, 35L, 2, PlaceRole.SELECTED, "코이르");
+        CourseDraftPlace secondSelectedPlace = place(103L, 36L, 3, PlaceRole.SELECTED, "서니");
+
+        given(courseDraftRepository.findByIdForUpdate(DRAFT_ID)).willReturn(Optional.of(draft));
+        given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
+                .willReturn(List.of(basePlace, firstSelectedPlace, secondSelectedPlace));
+
+        PlaceOrderUpdateResponse response = service.updatePlaceOrder(
+                DRAFT_ID,
+                MEMBER_ID,
+                new PlaceOrderUpdateRequest(List.of(
+                        new PlaceOrderItem(103L, 2),
+                        new PlaceOrderItem(102L, 3)
+                ))
+        );
+
+        verify(courseDraftRepository).findByIdForUpdate(DRAFT_ID);
+        verify(courseDraftPlaceRepository).flush();
+        assertThat(response.places()).extracting("courseDraftPlaceId").containsExactly(101L, 103L, 102L);
+        assertThat(secondSelectedPlace.getVisitOrder()).isEqualTo(2);
+        assertThat(firstSelectedPlace.getVisitOrder()).isEqualTo(3);
     }
 
     private void givenPlaces(CourseDraftStatus status, CourseDraftPlace... places) {

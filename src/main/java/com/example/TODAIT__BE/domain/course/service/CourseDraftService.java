@@ -329,8 +329,7 @@ public class CourseDraftService {
             Long memberId,
             PlaceOrderUpdateRequest request
     ) {
-        CourseDraft courseDraft = courseDraftRepository.findById(courseDraftId)
-                .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
+        CourseDraft courseDraft = getCourseDraftForUpdate(courseDraftId);
 
         courseDraftValidator.validateOwner(courseDraft, memberId);
         courseDraftValidator.validateStatus(
@@ -394,7 +393,7 @@ public class CourseDraftService {
     }
 
     private List<MoodTag> validateAndGetMoodTags(List<Long> moodTagIds) {
-        List<MoodTag> foundMoodTags = moodTagRepository.findAllById(moodTagIds);
+        List<MoodTag> foundMoodTags = moodTagRepository.findByIdInAndIsActiveTrue(moodTagIds);
         if (foundMoodTags.size() != moodTagIds.size()) {
             throw new TaxonomyException(MoodTagErrorCode.MOOD_TAG_NOT_FOUND);
         }
@@ -430,7 +429,7 @@ public class CourseDraftService {
     }
 
     private List<FoodCategory> validateAndGetFoodCategories(List<Long> foodCategoryIds) {
-        List<FoodCategory> foundFoodCategories = foodCategoryRepository.findAllById(foodCategoryIds);
+        List<FoodCategory> foundFoodCategories = foodCategoryRepository.findByIdInAndIsActiveTrue(foodCategoryIds);
         if (foundFoodCategories.size() != foodCategoryIds.size()) {
             throw new TaxonomyException(FoodCategoryErrorCode.FOOD_CATEGORY_NOT_FOUND);
         }

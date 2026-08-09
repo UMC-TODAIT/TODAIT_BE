@@ -117,6 +117,12 @@ class CourseSaveServiceTest {
         return moodTag;
     }
 
+    private FoodCategory activeFoodCategory() {
+        FoodCategory foodCategory = mock(FoodCategory.class);
+        given(foodCategory.getIsActive()).willReturn(true);
+        return foodCategory;
+    }
+
     @Test
     void throwsWhenRequesterIsNotOwner() {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING);
@@ -344,6 +350,31 @@ class CourseSaveServiceTest {
     }
 
     @Test
+    void throwsWhenDraftFoodCategoryIsInactive() {
+        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+        MoodTag hip = moodTag(1L, "HIP", "힙한");
+        MoodTag calm = moodTag(2L, "CALM", "차분한");
+        given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L))).willReturn(List.of(hip, calm));
+
+        FoodCategory inactiveFoodCategory = mock(FoodCategory.class);
+        given(inactiveFoodCategory.getIsActive()).willReturn(false);
+        CourseDraftFoodCategory draftFoodCategory = CourseDraftFoodCategory.builder()
+                .foodCategory(inactiveFoodCategory)
+                .build();
+        given(courseDraftFoodCategoryRepository.findByCourseDraft(draft)).willReturn(List.of(draftFoodCategory));
+
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
+
+        assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
+                .isInstanceOf(CourseException.class)
+                .extracting("errorCode")
+                .isEqualTo(CourseSaveErrorCode.COURSE_FOOD_CATEGORY_NOT_FOUND);
+
+        verify(courseRepository, never()).save(any());
+    }
+
+    @Test
     void throwsWhenBasePlaceMissing() {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
@@ -351,7 +382,9 @@ class CourseSaveServiceTest {
         MoodTag calm = moodTag(2L, "CALM", "차분한");
         given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L))).willReturn(List.of(hip, calm));
 
-        CourseDraftFoodCategory draftFoodCategory = CourseDraftFoodCategory.builder().build();
+        CourseDraftFoodCategory draftFoodCategory = CourseDraftFoodCategory.builder()
+                .foodCategory(activeFoodCategory())
+                .build();
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft)).willReturn(List.of(draftFoodCategory));
 
         CourseDraftPlace selectedOnly = CourseDraftPlace.builder()
@@ -383,7 +416,9 @@ class CourseSaveServiceTest {
         MoodTag calm = moodTag(2L, "CALM", "차분한");
         given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L))).willReturn(List.of(hip, calm));
 
-        CourseDraftFoodCategory draftFoodCategory = CourseDraftFoodCategory.builder().build();
+        CourseDraftFoodCategory draftFoodCategory = CourseDraftFoodCategory.builder()
+                .foodCategory(activeFoodCategory())
+                .build();
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft)).willReturn(List.of(draftFoodCategory));
 
         CourseDraftPlace baseOnly = CourseDraftPlace.builder()
@@ -442,6 +477,7 @@ class CourseSaveServiceTest {
         given(foodCategory.getId()).willReturn(5L);
         given(foodCategory.getCode()).willReturn("KOREAN");
         given(foodCategory.getName()).willReturn("한식");
+        given(foodCategory.getIsActive()).willReturn(true);
         CourseDraftFoodCategory draftFoodCategory = CourseDraftFoodCategory.builder()
                 .courseDraft(draft)
                 .foodCategory(foodCategory)

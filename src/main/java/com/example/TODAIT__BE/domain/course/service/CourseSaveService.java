@@ -72,6 +72,7 @@ public class CourseSaveService {
         if (draftFoodCategories.isEmpty()) {
             throw new CourseException(CourseSaveErrorCode.FOOD_CATEGORY_NOT_SELECTED);
         }
+        validateDraftFoodCategories(draftFoodCategories);
 
         ValidatedDraftPlaces validatedDraftPlaces = validateAndGetDraftPlaces(courseDraft);
         List<CourseDraftPlace> draftPlaces = validatedDraftPlaces.draftPlaces();
@@ -132,6 +133,15 @@ public class CourseSaveService {
         return moodTagIds.stream()
                 .map(moodTagsById::get)
                 .toList();
+    }
+
+    private void validateDraftFoodCategories(List<CourseDraftFoodCategory> draftFoodCategories) {
+        boolean hasUnavailableFoodCategory = draftFoodCategories.stream()
+                .map(CourseDraftFoodCategory::getFoodCategory)
+                .anyMatch(foodCategory -> foodCategory == null || !Boolean.TRUE.equals(foodCategory.getIsActive()));
+        if (hasUnavailableFoodCategory) {
+            throw new CourseException(CourseSaveErrorCode.COURSE_FOOD_CATEGORY_NOT_FOUND);
+        }
     }
 
     private void validateSavableDraft(CourseDraft courseDraft) {

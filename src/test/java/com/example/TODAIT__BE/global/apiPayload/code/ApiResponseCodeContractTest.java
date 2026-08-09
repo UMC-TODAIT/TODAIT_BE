@@ -183,6 +183,7 @@ class ApiResponseCodeContractTest {
             entry("CourseSaveErrorCode.INVALID_COURSE_TITLE", "COURSE_TITLE400"),
             entry("CourseSaveErrorCode.FOOD_CATEGORY_NOT_SELECTED", "COURSE_FOOD400"),
             entry("CourseSaveErrorCode.COURSE_MOOD_TAG_NOT_FOUND", "COURSE_MOOD404"),
+            entry("CourseSaveErrorCode.COURSE_FOOD_CATEGORY_NOT_FOUND", "COURSE_FOOD404"),
             entry("RecommendedCourseErrorCode.RECOMMENDED_COURSE_NOT_FOUND", "COURSE404"),
             entry("RecommendedCourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE", "COURSE400_5"),
             entry("SavedCourseErrorCode.SAVED_COURSE_ACCESS_DENIED", "COURSE403_2"),
