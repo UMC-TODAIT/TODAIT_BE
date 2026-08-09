@@ -9,6 +9,7 @@ import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
+import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
@@ -32,6 +33,7 @@ public class CourseDraftFoodCategoryService {
     private final CourseDraftRepository courseDraftRepository;
     private final CourseDraftFoodCategoryRepository courseDraftFoodCategoryRepository;
     private final FoodCategoryRepository foodCategoryRepository;
+    private final CourseDraftValidator courseDraftValidator;
 
     @Transactional
     public CourseDraftFoodCategorySaveResponse saveFoodCategories(
@@ -42,11 +44,13 @@ public class CourseDraftFoodCategoryService {
         CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
                 .orElseThrow(() -> new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
 
-        if (!courseDraft.getMember().getId().equals(memberId)) {
-            throw new CourseException(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
-        }
-
-        validateUpdatableStatus(courseDraft);
+        courseDraftValidator.validateOwner(courseDraft, memberId);
+        courseDraftValidator.validateStatusIn(
+                courseDraft,
+                CourseErrorCode.FOOD_CATEGORY_DRAFT_STATUS_CONFLICT,
+                CourseDraftStatus.FOOD_SELECTING,
+                CourseDraftStatus.BASE_PLACE_SELECTING
+        );
 
         List<Long> foodCategoryIds = request.foodCategoryIds();
 
@@ -69,13 +73,6 @@ public class CourseDraftFoodCategoryService {
                 courseDraft.getStatus(),
                 foodCategories
         );
-    }
-
-    private void validateUpdatableStatus(CourseDraft courseDraft) {
-        if (courseDraft.getStatus() != CourseDraftStatus.FOOD_SELECTING
-                && courseDraft.getStatus() != CourseDraftStatus.BASE_PLACE_SELECTING) {
-            throw new CourseException(CourseErrorCode.FOOD_CATEGORY_DRAFT_STATUS_CONFLICT);
-        }
     }
 
     private List<FoodCategory> validateAndGetFoodCategories(List<Long> foodCategoryIds) {

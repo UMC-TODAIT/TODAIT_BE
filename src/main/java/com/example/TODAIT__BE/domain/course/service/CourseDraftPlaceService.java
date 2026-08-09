@@ -14,6 +14,7 @@ import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
+import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
@@ -44,16 +45,19 @@ public class CourseDraftPlaceService {
     private final CourseDraftRepository courseDraftRepository;
     private final CourseDraftPlaceRepository courseDraftPlaceRepository;
     private final PlaceRepository placeRepository;
+    private final CourseDraftValidator courseDraftValidator;
 
     @Transactional
     public PlaceOrderUpdateResponse updatePlaceOrder(Long courseDraftId, Long memberId, PlaceOrderUpdateRequest request) {
         CourseDraft courseDraft = courseDraftRepository.findById(courseDraftId)
                 .orElseThrow(() -> new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
 
-        if (!courseDraft.getMember().getId().equals(memberId)) {
-            throw new CourseException(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
-        }
-        validateEditableDraft(courseDraft);
+        courseDraftValidator.validateOwner(courseDraft, memberId);
+        courseDraftValidator.validateStatus(
+                courseDraft,
+                CourseDraftStatus.ORDERING,
+                CourseErrorCode.PLACE_ORDER_DRAFT_STATUS_CONFLICT
+        );
 
         List<PlaceOrderItem> placeOrders = request.placeOrders() != null ? request.placeOrders() : List.of();
 
@@ -78,12 +82,12 @@ public class CourseDraftPlaceService {
         CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
                 .orElseThrow(() -> new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
 
-        if (!courseDraft.getMember().getId().equals(memberId)) {
-            throw new CourseException(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
-        }
-        if (courseDraft.getStatus() != CourseDraftStatus.PLACE_SELECTING) {
-            throw new CourseException(CourseErrorCode.PLACE_ADD_DRAFT_STATUS_CONFLICT);
-        }
+        courseDraftValidator.validateOwner(courseDraft, memberId);
+        courseDraftValidator.validateStatus(
+                courseDraft,
+                CourseDraftStatus.PLACE_SELECTING,
+                CourseErrorCode.PLACE_ADD_DRAFT_STATUS_CONFLICT
+        );
 
         List<CourseDraftPlace> existingPlaces =
                 courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(courseDraft);
@@ -158,12 +162,6 @@ public class CourseDraftPlaceService {
 
         if (!available) {
             throw new PlaceException(PlaceErrorCode.PLACE_NOT_AVAILABLE);
-        }
-    }
-
-    private void validateEditableDraft(CourseDraft courseDraft) {
-        if (courseDraft.getStatus() != CourseDraftStatus.ORDERING) {
-            throw new CourseException(CourseErrorCode.PLACE_ORDER_DRAFT_STATUS_CONFLICT);
         }
     }
 

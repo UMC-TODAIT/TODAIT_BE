@@ -25,6 +25,7 @@ import com.example.TODAIT__BE.domain.course.repository.CourseFoodCategoryReposit
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
+import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
@@ -59,15 +60,14 @@ public class CourseSaveService {
     private final CourseFoodCategoryRepository courseFoodCategoryRepository;
     private final CoursePlaceRepository coursePlaceRepository;
     private final MoodTagRepository moodTagRepository;
+    private final CourseDraftValidator courseDraftValidator;
 
     @Transactional
     public CourseSaveResponse saveCourse(Long courseDraftId, Long memberId, CourseSaveRequest request) {
         CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
                 .orElseThrow(() -> new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
 
-        if (!courseDraft.getMember().getId().equals(memberId)) {
-            throw new CourseException(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
-        }
+        courseDraftValidator.validateOwner(courseDraft, memberId);
 
         validateSavableDraft(courseDraft);
 

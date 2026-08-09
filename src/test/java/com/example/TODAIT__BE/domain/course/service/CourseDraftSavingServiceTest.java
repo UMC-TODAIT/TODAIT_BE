@@ -14,6 +14,7 @@ import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
+import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import java.util.List;
@@ -40,7 +41,8 @@ class CourseDraftSavingServiceTest {
     void setUp() {
         courseDraftSavingService = new CourseDraftSavingService(
                 courseDraftRepository,
-                courseDraftPlaceRepository
+                courseDraftPlaceRepository,
+                new CourseDraftValidator()
         );
     }
 

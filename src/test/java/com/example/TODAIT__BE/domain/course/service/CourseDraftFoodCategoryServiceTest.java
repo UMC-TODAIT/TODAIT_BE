@@ -18,6 +18,7 @@ import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
+import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.repository.FoodCategoryRepository;
@@ -48,7 +49,8 @@ class CourseDraftFoodCategoryServiceTest {
         courseDraftFoodCategoryService = new CourseDraftFoodCategoryService(
                 courseDraftRepository,
                 courseDraftFoodCategoryRepository,
-                foodCategoryRepository
+                foodCategoryRepository,
+                new CourseDraftValidator()
         );
     }
 

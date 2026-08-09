@@ -30,6 +30,7 @@ import com.example.TODAIT__BE.domain.course.repository.CourseFoodCategoryReposit
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
+import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
@@ -83,7 +84,8 @@ class CourseSaveServiceTest {
                 courseMoodTagRepository,
                 courseFoodCategoryRepository,
                 coursePlaceRepository,
-                moodTagRepository
+                moodTagRepository,
+                new CourseDraftValidator()
         );
     }
 

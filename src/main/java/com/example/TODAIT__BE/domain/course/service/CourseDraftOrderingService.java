@@ -10,6 +10,7 @@ import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
+import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ public class CourseDraftOrderingService {
 
     private final CourseDraftRepository courseDraftRepository;
     private final CourseDraftPlaceRepository courseDraftPlaceRepository;
+    private final CourseDraftValidator courseDraftValidator;
 
     @Transactional
     public OrderingEntryResponse enterOrdering(Long courseDraftId, Long memberId) {
@@ -35,11 +37,13 @@ public class CourseDraftOrderingService {
                 .orElseThrow(() ->
                         new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
 
-        if (!courseDraft.getMember().getId().equals(memberId)) {
-            throw new CourseException(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
-        }
-
-        validateEnterableStatus(courseDraft.getStatus());
+        courseDraftValidator.validateOwner(courseDraft, memberId);
+        courseDraftValidator.validateStatusIn(
+                courseDraft,
+                CourseErrorCode.ORDERING_ENTRY_STATUS_CONFLICT,
+                CourseDraftStatus.PLACE_SELECTING,
+                CourseDraftStatus.ORDERING
+        );
 
         List<CourseDraftPlace> places = courseDraftPlaceRepository
                 .findByCourseDraftIdWithPlaceOrderByVisitOrderAsc(courseDraftId);
@@ -60,14 +64,6 @@ public class CourseDraftOrderingService {
                         .map(OrderingEntryPlaceResponse::from)
                         .toList()
         );
-    }
-
-    private void validateEnterableStatus(CourseDraftStatus status) {
-        if (status != CourseDraftStatus.PLACE_SELECTING
-                && status != CourseDraftStatus.ORDERING) {
-            throw new CourseException(
-                    CourseErrorCode.ORDERING_ENTRY_STATUS_CONFLICT);
-        }
     }
 
     /**

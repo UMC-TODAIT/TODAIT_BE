@@ -20,6 +20,7 @@ import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
+import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.place.entity.PlaceDataSource;
 import com.example.TODAIT__BE.domain.place.entity.Place;
@@ -79,7 +80,8 @@ class CourseDraftBasePlaceServiceTest {
                 dataSourceRepository,
                 areaRepository,
                 placeCategoryRepository,
-                externalPlaceRegistrationService
+                externalPlaceRegistrationService,
+                new CourseDraftValidator()
         );
     }
 

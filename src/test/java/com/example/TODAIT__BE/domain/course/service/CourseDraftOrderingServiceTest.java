@@ -17,13 +17,14 @@ import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
+import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -41,8 +42,16 @@ class CourseDraftOrderingServiceTest {
     @Mock
     private CourseDraftPlaceRepository courseDraftPlaceRepository;
 
-    @InjectMocks
     private CourseDraftOrderingService service;
+
+    @BeforeEach
+    void setUp() {
+        service = new CourseDraftOrderingService(
+                courseDraftRepository,
+                courseDraftPlaceRepository,
+                new CourseDraftValidator()
+        );
+    }
 
     @Test
     void transitionsToOrderingAndReturnsPlacesOnFirstEntry() {

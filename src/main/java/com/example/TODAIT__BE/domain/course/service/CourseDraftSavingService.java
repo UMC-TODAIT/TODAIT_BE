@@ -10,6 +10,7 @@ import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
+import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -25,17 +26,20 @@ public class CourseDraftSavingService {
 
     private final CourseDraftRepository courseDraftRepository;
     private final CourseDraftPlaceRepository courseDraftPlaceRepository;
+    private final CourseDraftValidator courseDraftValidator;
 
     @Transactional
     public CourseDraftSavingEnterResponse enterSaving(Long courseDraftId, Long memberId) {
         CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
                 .orElseThrow(() -> new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
 
-        if (!courseDraft.getMember().getId().equals(memberId)) {
-            throw new CourseException(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
-        }
-
-        validateEnterSavingStatus(courseDraft);
+        courseDraftValidator.validateOwner(courseDraft, memberId);
+        courseDraftValidator.validateStatusIn(
+                courseDraft,
+                CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT,
+                CourseDraftStatus.ORDERING,
+                CourseDraftStatus.SAVING
+        );
 
         List<CourseDraftPlace> draftPlaces =
                 courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(courseDraft);
@@ -54,13 +58,6 @@ public class CourseDraftSavingService {
                 courseDraft.getStatus(),
                 routePreview
         );
-    }
-
-    private void validateEnterSavingStatus(CourseDraft courseDraft) {
-        if (courseDraft.getStatus() != CourseDraftStatus.ORDERING
-                && courseDraft.getStatus() != CourseDraftStatus.SAVING) {
-            throw new CourseException(CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
-        }
     }
 
     private void validatePlaces(List<CourseDraftPlace> draftPlaces) {

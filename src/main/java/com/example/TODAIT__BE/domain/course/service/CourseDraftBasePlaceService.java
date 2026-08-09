@@ -12,6 +12,7 @@ import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
+import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.place.entity.PlaceDataSource;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.entity.PlaceSource;
@@ -56,6 +57,7 @@ public class CourseDraftBasePlaceService {
     private final AreaRepository areaRepository;
     private final PlaceCategoryRepository placeCategoryRepository;
     private final ExternalPlaceRegistrationService externalPlaceRegistrationService;
+    private final CourseDraftValidator courseDraftValidator;
 
     @Transactional
     public CourseDraftBasePlaceSaveResponse saveBasePlace(
@@ -66,13 +68,12 @@ public class CourseDraftBasePlaceService {
         CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
                 .orElseThrow(() -> new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
 
-        if (!courseDraft.getMember().getId().equals(memberId)) {
-            throw new CourseException(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
-        }
-
-        if (courseDraft.getStatus() != CourseDraftStatus.BASE_PLACE_SELECTING) {
-            throw new CourseException(CourseErrorCode.BASE_PLACE_DRAFT_STATUS_CONFLICT);
-        }
+        courseDraftValidator.validateOwner(courseDraft, memberId);
+        courseDraftValidator.validateStatus(
+                courseDraft,
+                CourseDraftStatus.BASE_PLACE_SELECTING,
+                CourseErrorCode.BASE_PLACE_DRAFT_STATUS_CONFLICT
+        );
 
         validateExactlyOneSource(request);
 

@@ -19,6 +19,7 @@ import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
+import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
 import com.example.TODAIT__BE.domain.place.entity.Place;
@@ -51,7 +52,12 @@ class CourseDraftPlaceServiceTest {
     @BeforeEach
     void setUp() {
         courseDraftPlaceService =
-                new CourseDraftPlaceService(courseDraftRepository, courseDraftPlaceRepository, placeRepository);
+                new CourseDraftPlaceService(
+                        courseDraftRepository,
+                        courseDraftPlaceRepository,
+                        placeRepository,
+                        new CourseDraftValidator()
+                );
     }
 
     private Member member(Long id) {
