@@ -20,7 +20,6 @@ import java.util.Set;
 public class NearBasePlaceResponseAssembler {
 
     private final MoodTagRepository moodTagRepository;
-    private final NearBasePlaceReasonResolver reasonResolver;
 
     public CategoryRecommendedPlaceResponse assemble(
             RecommendationLog recommendationLog,
@@ -131,7 +130,7 @@ public class NearBasePlaceResponseAssembler {
                 evaluated.matchedFoodCount(),
                 evaluated.internalScore(),
 
-                reasonResolver.resolve(evaluated),
+                evaluated.recommendationReasons(),
 
                 false,
                 true

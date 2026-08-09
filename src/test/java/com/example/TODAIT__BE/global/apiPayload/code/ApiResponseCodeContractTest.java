@@ -17,8 +17,13 @@ import com.example.TODAIT__BE.domain.member.code.PasswordResetErrorCode;
 import com.example.TODAIT__BE.domain.member.code.PasswordResetSuccessCode;
 import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
 import com.example.TODAIT__BE.domain.place.code.PlaceSuccessCode;
-import com.example.TODAIT__BE.domain.recommendation.code.RecommendationErrorCode;
-import com.example.TODAIT__BE.domain.recommendation.code.RecommendationSuccessCode;
+import com.example.TODAIT__BE.domain.recommendation.code.CategoryRecommendedPlaceSuccessCode;
+import com.example.TODAIT__BE.domain.recommendation.code.HomeRecommendationErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.HomeRecommendationSuccessCode;
+import com.example.TODAIT__BE.domain.recommendation.code.HotPlaceRecommendationErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.HotPlaceRecommendationSuccessCode;
+import com.example.TODAIT__BE.domain.recommendation.code.RecommendationLogErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.RecommendedPlaceErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomyErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomySuccessCode;
 import java.util.ArrayList;
@@ -52,8 +57,13 @@ class ApiResponseCodeContractTest {
             new CodeEnum(CourseErrorCode.class, Set.of("COURSE")),
             new CodeEnum(PlaceSuccessCode.class, Set.of("PLACE")),
             new CodeEnum(PlaceErrorCode.class, Set.of("PLACE")),
-            new CodeEnum(RecommendationSuccessCode.class, Set.of("RECOMMENDATION")),
-            new CodeEnum(RecommendationErrorCode.class, Set.of("RECOMMENDATION")),
+            new CodeEnum(HomeRecommendationSuccessCode.class, Set.of("RECOMMENDATION")),
+            new CodeEnum(HotPlaceRecommendationSuccessCode.class, Set.of("RECOMMENDATION")),
+            new CodeEnum(CategoryRecommendedPlaceSuccessCode.class, Set.of("RECOMMENDATION")),
+            new CodeEnum(HomeRecommendationErrorCode.class, Set.of("RECOMMENDATION")),
+            new CodeEnum(HotPlaceRecommendationErrorCode.class, Set.of("RECOMMENDATION")),
+            new CodeEnum(RecommendedPlaceErrorCode.class, Set.of("RECOMMENDATION")),
+            new CodeEnum(RecommendationLogErrorCode.class, Set.of("RECOMMENDATION")),
             new CodeEnum(TaxonomySuccessCode.class, Set.of("TAXONOMY")),
             new CodeEnum(TaxonomyErrorCode.class, Set.of("TAXONOMY", "MOOD_TAG", "FOOD_CATEGORY", "AREA", "PLACE_CATEGORY"))
     );
@@ -178,20 +188,20 @@ class ApiResponseCodeContractTest {
             entry("PlaceErrorCode.PLACE_NOT_AVAILABLE", "PLACE400"),
             entry("PlaceErrorCode.INVALID_PLACE_COORDINATE", "PLACE400_5"),
             entry("PlaceErrorCode.DATA_SOURCE_NOT_FOUND", "PLACE404_1"),
-            entry("RecommendationSuccessCode.HOME_RECOMMENDED_COURSE_LIST_OK", "RECOMMENDATION200"),
-            entry("RecommendationSuccessCode.CATEGORY_RECOMMENDED_PLACE_LIST_OK", "RECOMMENDATION202"),
-            entry("RecommendationSuccessCode.HOT_PLACE_LIST_OK", "RECOMMENDATION200_2"),
-            entry("RecommendationSuccessCode.HOME_RECOMMENDED_PLACE_LIST_OK", "RECOMMENDATION201"),
-            entry("RecommendationErrorCode.INVALID_PAGE", "RECOMMENDATION400_1"),
-            entry("RecommendationErrorCode.INVALID_SIZE", "RECOMMENDATION400_2"),
-            entry("RecommendationErrorCode.INVALID_HOT_PLACE_SIZE", "RECOMMENDATION400_3"),
-            entry("RecommendationErrorCode.INCOMPLETE_COORDINATES", "RECOMMENDATION400_4"),
-            entry("RecommendationErrorCode.INVALID_COORDINATES", "RECOMMENDATION400_5"),
-            entry("RecommendationErrorCode.INVALID_PLACE_SIZE", "RECOMMENDATION400_6"),
-            entry("RecommendationErrorCode.INVALID_LOCATION_PAIR", "RECOMMENDATION400_7"),
-            entry("RecommendationErrorCode.INVALID_LOCATION_RANGE", "RECOMMENDATION400_8"),
-            entry("RecommendationErrorCode.INVALID_CURSOR", "RECOMMENDATION400_9"),
-            entry("RecommendationErrorCode.REQUEST_CONTEXT_SERIALIZATION_FAILED", "RECOMMENDATION500_1"),
+            entry("HomeRecommendationSuccessCode.HOME_RECOMMENDED_COURSE_LIST_OK", "RECOMMENDATION200"),
+            entry("CategoryRecommendedPlaceSuccessCode.CATEGORY_RECOMMENDED_PLACE_LIST_OK", "RECOMMENDATION202"),
+            entry("HotPlaceRecommendationSuccessCode.HOT_PLACE_LIST_OK", "RECOMMENDATION200_2"),
+            entry("HomeRecommendationSuccessCode.HOME_RECOMMENDED_PLACE_LIST_OK", "RECOMMENDATION201"),
+            entry("HomeRecommendationErrorCode.INVALID_PAGE", "RECOMMENDATION400_1"),
+            entry("HomeRecommendationErrorCode.INVALID_SIZE", "RECOMMENDATION400_2"),
+            entry("HotPlaceRecommendationErrorCode.INVALID_HOT_PLACE_SIZE", "RECOMMENDATION400_3"),
+            entry("HotPlaceRecommendationErrorCode.INCOMPLETE_COORDINATES", "RECOMMENDATION400_4"),
+            entry("HotPlaceRecommendationErrorCode.INVALID_COORDINATES", "RECOMMENDATION400_5"),
+            entry("RecommendedPlaceErrorCode.INVALID_PLACE_SIZE", "RECOMMENDATION400_6"),
+            entry("HomeRecommendationErrorCode.INVALID_LOCATION_PAIR", "RECOMMENDATION400_7"),
+            entry("HomeRecommendationErrorCode.INVALID_LOCATION_RANGE", "RECOMMENDATION400_8"),
+            entry("HomeRecommendationErrorCode.INVALID_CURSOR", "RECOMMENDATION400_9"),
+            entry("RecommendationLogErrorCode.REQUEST_CONTEXT_SERIALIZATION_FAILED", "RECOMMENDATION500_1"),
             entry("TaxonomySuccessCode.PLACE_CATEGORY_LIST_OK", "TAXONOMY200"),
             entry("TaxonomyErrorCode.MOOD_TAG_NOT_FOUND", "MOOD_TAG404"),
             entry("TaxonomyErrorCode.FOOD_CATEGORY_NOT_FOUND", "FOOD_CATEGORY404"),

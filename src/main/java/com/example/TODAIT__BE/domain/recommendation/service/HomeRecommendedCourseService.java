@@ -12,15 +12,13 @@ import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
-import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendedCourseListResponse;
-import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendedCourseResponse;
-import com.example.TODAIT__BE.domain.recommendation.dto.response.RecommendedCourseAreaResponse;
-import com.example.TODAIT__BE.domain.recommendation.dto.response.RecommendedCourseTagResponse;
+import com.example.TODAIT__BE.domain.recommendation.code.HomeRecommendationErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.RecommendationLogErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendationResponse;
 import com.example.TODAIT__BE.domain.recommendation.entity.RecommendationLog;
 import com.example.TODAIT__BE.domain.recommendation.entity.RecommendationResult;
 import com.example.TODAIT__BE.domain.recommendation.enums.RecommendationType;
 import com.example.TODAIT__BE.domain.recommendation.exception.RecommendationException;
-import com.example.TODAIT__BE.domain.recommendation.code.RecommendationErrorCode;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationLogRepository;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationResultRepository;
 import com.example.TODAIT__BE.domain.recommendation.service.support.HomeRecommendationCursor;
@@ -79,7 +77,7 @@ public class HomeRecommendedCourseService {
     }
 
     @Transactional
-    public HomeRecommendedCourseListResponse getHomeRecommendedCourses(
+    public HomeRecommendationResponse.CourseList getHomeRecommendedCourses(
             Long memberId,
             String cursorParam,
             Integer sizeParam
@@ -117,10 +115,10 @@ public class HomeRecommendedCourseService {
         );
 
         // 3. 응답 코스 상세 구성 + 추천 결과 저장 (result N건)
-        List<HomeRecommendedCourseResponse> courses =
+        List<HomeRecommendationResponse.CourseItem> courses =
                 buildCourseResponses(pageCourses, log, from);
 
-        return new HomeRecommendedCourseListResponse(
+        return new HomeRecommendationResponse.CourseList(
                 log.getId(),
                 size,
                 hasNext,
@@ -131,11 +129,11 @@ public class HomeRecommendedCourseService {
 
     private int resolveSize(Integer sizeParam) {
         if (sizeParam == null) {
-            return DEFAULT_SIZE;
+                    return DEFAULT_SIZE;
         }
         if (sizeParam < MIN_SIZE || sizeParam > MAX_SIZE) {
             throw new RecommendationException(
-                    RecommendationErrorCode.INVALID_SIZE
+                    HomeRecommendationErrorCode.INVALID_SIZE
             );
         }
         return sizeParam;
@@ -255,7 +253,7 @@ public class HomeRecommendedCourseService {
         return recommendationLogRepository.save(log);
     }
 
-    private List<HomeRecommendedCourseResponse> buildCourseResponses(
+    private List<HomeRecommendationResponse.CourseItem> buildCourseResponses(
             List<Course> pageCourses,
             RecommendationLog log,
             long offset
@@ -273,7 +271,7 @@ public class HomeRecommendedCourseService {
         Map<Long, MoodTag> representativeMoodTagByCourseId =
                 loadRepresentativeMoodTags(pageCourseIds);
 
-        List<HomeRecommendedCourseResponse> responses =
+        List<HomeRecommendationResponse.CourseItem> responses =
                 new ArrayList<>(pageCourses.size());
         List<RecommendationResult> results =
                 new ArrayList<>(pageCourses.size());
@@ -288,7 +286,7 @@ public class HomeRecommendedCourseService {
             CoursePlace representativePlace =
                     findRepresentativePlace(coursePlaces);
 
-            responses.add(new HomeRecommendedCourseResponse(
+            responses.add(new HomeRecommendationResponse.CourseItem(
                     course.getId(),
                     course.getTitle(),
                     toAreaResponse(course),
@@ -330,8 +328,8 @@ public class HomeRecommendedCourseService {
                 .orElse(null);
     }
 
-    private RecommendedCourseAreaResponse toAreaResponse(Course course) {
-        return new RecommendedCourseAreaResponse(
+    private HomeRecommendationResponse.CourseArea toAreaResponse(Course course) {
+        return new HomeRecommendationResponse.CourseArea(
                 course.getArea().getId(),
                 course.getArea().getCode(),
                 course.getArea().getName()
@@ -345,14 +343,14 @@ public class HomeRecommendedCourseService {
         return representativePlace.getPlace().getDefaultImageUrl();
     }
 
-    private List<RecommendedCourseTagResponse> buildTags(
+    private List<HomeRecommendationResponse.CourseTag> buildTags(
             MoodTag representativeMoodTag,
             CoursePlace representativePlace
     ) {
-        List<RecommendedCourseTagResponse> tags = new ArrayList<>(2);
+        List<HomeRecommendationResponse.CourseTag> tags = new ArrayList<>(2);
 
         if (representativeMoodTag != null) {
-            tags.add(RecommendedCourseTagResponse.mood(
+            tags.add(HomeRecommendationResponse.CourseTag.mood(
                     representativeMoodTag.getCode(),
                     representativeMoodTag.getName()
             ));
@@ -363,7 +361,7 @@ public class HomeRecommendedCourseService {
                 ? representativePlace.getPlace().getSubCategory()
                 : null;
         if (subCategory != null && !subCategory.isBlank()) {
-            tags.add(RecommendedCourseTagResponse.subCategory(subCategory));
+            tags.add(HomeRecommendationResponse.CourseTag.subCategory(subCategory));
         }
 
         return tags;
@@ -392,7 +390,7 @@ public class HomeRecommendedCourseService {
             return objectMapper.writeValueAsString(context);
         } catch (JsonProcessingException exception) {
             throw new RecommendationException(
-                    RecommendationErrorCode.REQUEST_CONTEXT_SERIALIZATION_FAILED,
+                    RecommendationLogErrorCode.REQUEST_CONTEXT_SERIALIZATION_FAILED,
                     exception
             );
         }

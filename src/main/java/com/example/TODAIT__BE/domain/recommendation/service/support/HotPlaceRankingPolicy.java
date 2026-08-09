@@ -1,6 +1,7 @@
 package com.example.TODAIT__BE.domain.recommendation.service.support;
 
 import com.example.TODAIT__BE.domain.place.entity.Place;
+import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceCandidateLoader.CandidateData;
 import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
@@ -14,15 +15,15 @@ public class HotPlaceRankingPolicy {
     private static final double EARTH_RADIUS_METERS = 6_371_000;
     private static final String ACTIVITY_CATEGORY_CODE = "ACTIVITY";
 
-    public List<EvaluatedHotPlace> evaluateAndSort(
-            HotPlaceCandidateData candidateData,
+    public List<EvaluatedPlace> evaluateAndSort(
+            CandidateData candidateData,
             Set<Long> selectedMoodTagIds,
             Set<Long> selectedFoodCategoryIds,
             Double latitude,
             Double longitude,
             boolean locationAvailable
     ) {
-        Comparator<EvaluatedHotPlace> comparator =
+        Comparator<EvaluatedPlace> comparator =
                 createComparator(locationAvailable);
 
         return candidateData.places().stream()
@@ -39,12 +40,12 @@ public class HotPlaceRankingPolicy {
                         .toList();
     }
 
-    private Comparator<EvaluatedHotPlace> createComparator(
+    private Comparator<EvaluatedPlace> createComparator(
             boolean locationAvailable
     ) {
-        Comparator<EvaluatedHotPlace> preferenceComparator =
+        Comparator<EvaluatedPlace> preferenceComparator =
                 Comparator.comparingInt(
-                                EvaluatedHotPlace::matchedMoodCount
+                                EvaluatedPlace::matchedMoodCount
                         )
                         .reversed()
                         .thenComparing(
@@ -52,9 +53,9 @@ public class HotPlaceRankingPolicy {
                                 Comparator.reverseOrder()
                         );
 
-        Comparator<EvaluatedHotPlace> stableComparator =
+        Comparator<EvaluatedPlace> stableComparator =
                 Comparator.comparing(
-                                (EvaluatedHotPlace evaluated) ->
+                                (EvaluatedPlace evaluated) ->
                                         evaluated.place().getCreatedAt(),
                                 Comparator.nullsLast(
                                         Comparator.naturalOrder()
@@ -69,14 +70,14 @@ public class HotPlaceRankingPolicy {
         }
 
         return Comparator.comparing(
-                        EvaluatedHotPlace::nearby,
+                        EvaluatedPlace::nearby,
                         Comparator.nullsLast(
                                 Comparator.reverseOrder()
                         )
                 )
                 .thenComparing(preferenceComparator)
                 .thenComparing(
-                        EvaluatedHotPlace::distanceMeters,
+                        EvaluatedPlace::distanceMeters,
                         Comparator.nullsLast(
                                 Comparator.naturalOrder()
                         )
@@ -84,7 +85,7 @@ public class HotPlaceRankingPolicy {
                 .thenComparing(stableComparator);
     }
 
-    private int foodMatchScore(EvaluatedHotPlace evaluated) {
+    private int foodMatchScore(EvaluatedPlace evaluated) {
         return evaluated.matchedFoodCount() == null
                 ? 0
                 : evaluated.matchedFoodCount();
@@ -157,9 +158,9 @@ public class HotPlaceRankingPolicy {
         return (int) Math.round(distance);
     }
 
-    private EvaluatedHotPlace evaluate(
+    private EvaluatedPlace evaluate(
             Place place,
-            HotPlaceCandidateData candidateData,
+            CandidateData candidateData,
             Set<Long> selectedMoodTagIds,
             Set<Long> selectedFoodCategoryIds,
             Double latitude,
@@ -198,7 +199,7 @@ public class HotPlaceRankingPolicy {
             nearby = distanceMeters <= NEARBY_DISTANCE_METERS;
         }
 
-        return new EvaluatedHotPlace(
+        return new EvaluatedPlace(
                 place,
                 distanceMeters,
                 nearby,
@@ -207,5 +208,12 @@ public class HotPlaceRankingPolicy {
         );
     }
 
-
+    public record EvaluatedPlace(
+            Place place,
+            Integer distanceMeters,
+            Boolean nearby,
+            int matchedMoodCount,
+            Integer matchedFoodCount
+    ) {
+    }
 }

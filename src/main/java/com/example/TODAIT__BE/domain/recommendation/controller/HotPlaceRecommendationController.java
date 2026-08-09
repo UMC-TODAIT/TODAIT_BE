@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.recommendation.controller;
 
-import com.example.TODAIT__BE.domain.recommendation.code.RecommendationSuccessCode;
+import com.example.TODAIT__BE.domain.recommendation.code.HotPlaceRecommendationSuccessCode;
 import com.example.TODAIT__BE.domain.recommendation.controller.docs.HotPlaceRecommendationControllerDocs;
 import com.example.TODAIT__BE.domain.recommendation.dto.response.HotPlaceRecommendationResponse;
 import com.example.TODAIT__BE.domain.recommendation.service.HotPlaceRecommendationService;
@@ -38,13 +38,13 @@ public class HotPlaceRecommendationController implements HotPlaceRecommendationC
 
         return ResponseEntity
                 .status(
-                        RecommendationSuccessCode
+                        HotPlaceRecommendationSuccessCode
                                 .HOT_PLACE_LIST_OK
                                 .getStatus()
                 )
                 .body(
                         ApiResponse.onSuccess(
-                                RecommendationSuccessCode
+                                HotPlaceRecommendationSuccessCode
                                         .HOT_PLACE_LIST_OK,
                                 result
                         )

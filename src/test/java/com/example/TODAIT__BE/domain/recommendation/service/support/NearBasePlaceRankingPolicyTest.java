@@ -41,8 +41,8 @@ class NearBasePlaceRankingPolicyTest {
                 126.9236
         );
 
-        NearBasePlaceCandidateData candidateData =
-                new NearBasePlaceCandidateData(
+        NearBasePlaceCandidateLoader.CandidateData candidateData =
+                new NearBasePlaceCandidateLoader.CandidateData(
                         List.of(candidate),
                         Map.of(
                                 2L,
@@ -105,8 +105,8 @@ class NearBasePlaceRankingPolicyTest {
                 126.9236
         );
 
-        NearBasePlaceCandidateData candidateData =
-                new NearBasePlaceCandidateData(
+        NearBasePlaceCandidateLoader.CandidateData candidateData =
+                new NearBasePlaceCandidateLoader.CandidateData(
                         List.of(farPlace),
                         Map.of(
                                 2L,
@@ -156,8 +156,8 @@ class NearBasePlaceRankingPolicyTest {
                 126.9236
         );
 
-        NearBasePlaceCandidateData candidateData =
-                new NearBasePlaceCandidateData(
+        NearBasePlaceCandidateLoader.CandidateData candidateData =
+                new NearBasePlaceCandidateLoader.CandidateData(
                         List.of(
                                 weakMoodMatch,
                                 strongMoodMatch
@@ -217,8 +217,8 @@ class NearBasePlaceRankingPolicyTest {
                 126.9236
         );
 
-        NearBasePlaceCandidateData candidateData =
-                new NearBasePlaceCandidateData(
+        NearBasePlaceCandidateLoader.CandidateData candidateData =
+                new NearBasePlaceCandidateLoader.CandidateData(
                         List.of(candidate),
                         Map.of(
                                 2L,
@@ -266,8 +266,8 @@ class NearBasePlaceRankingPolicyTest {
                 126.9236
         );
 
-        NearBasePlaceCandidateData candidateData =
-                new NearBasePlaceCandidateData(
+        NearBasePlaceCandidateLoader.CandidateData candidateData =
+                new NearBasePlaceCandidateLoader.CandidateData(
                         List.of(candidate),
                         Map.of(
                                 2L,

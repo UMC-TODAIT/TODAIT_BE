@@ -1,7 +1,6 @@
 package com.example.TODAIT__BE.domain.recommendation.controller.docs;
 
-import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendedCourseListResponse;
-import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendedPlaceListResponse;
+import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendationResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,7 +24,7 @@ public interface HomeRecommendationControllerDocs {
                     - size 기본값은 3, 허용 범위는 1~18입니다.
                     """
     )
-    ResponseEntity<ApiResponse<HomeRecommendedCourseListResponse>>
+    ResponseEntity<ApiResponse<HomeRecommendationResponse.CourseList>>
     getHomeRecommendedCourses(
             AuthMember authMember,
             @Parameter(description = "다음 목록 조회 커서")
@@ -46,7 +45,7 @@ public interface HomeRecommendationControllerDocs {
                     - latitude와 longitude는 반드시 함께 전달해야 합니다.
                     """
     )
-    ResponseEntity<ApiResponse<HomeRecommendedPlaceListResponse>>
+    ResponseEntity<ApiResponse<HomeRecommendationResponse.PlaceList>>
     getHomeRecommendedPlaces(
             AuthMember authMember,
             @Parameter(description = "다음 목록 조회 커서")

@@ -1,5 +1,7 @@
 package com.example.TODAIT__BE.domain.recommendation.service;
 
+import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendationResponse;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -22,12 +24,11 @@ import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.place.entity.Place;
-import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendedCourseListResponse;
-import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendedCourseResponse;
 import com.example.TODAIT__BE.domain.recommendation.entity.RecommendationLog;
 import com.example.TODAIT__BE.domain.recommendation.entity.RecommendationResult;
 import com.example.TODAIT__BE.domain.recommendation.exception.RecommendationException;
-import com.example.TODAIT__BE.domain.recommendation.code.RecommendationErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.HomeRecommendationErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.RecommendationLogErrorCode;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationLogRepository;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationResultRepository;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
@@ -117,7 +118,7 @@ class HomeRecommendedCourseServiceTest {
         given(courseMoodTagRepository.findAllWithCourseAndMoodTagByCourseIds(any()))
                 .willReturn(moodTags);
 
-        HomeRecommendedCourseListResponse response =
+        HomeRecommendationResponse.CourseList response =
                 service.getHomeRecommendedCourses(MEMBER_ID, null, null);
 
         assertThat(response.size()).isEqualTo(3);
@@ -127,10 +128,10 @@ class HomeRecommendedCourseServiceTest {
 
         // 지역 순서는 날짜 로테이션에 따라 달라지므로 집합/구조 불변식으로 검증한다.
         assertThat(response.courses())
-                .extracting(HomeRecommendedCourseResponse::courseId)
+                .extracting(HomeRecommendationResponse.CourseItem::courseId)
                 .containsExactlyInAnyOrder(1L, 2L, 3L);
         assertThat(response.courses())
-                .extracting(HomeRecommendedCourseResponse::rank)
+                .extracting(HomeRecommendationResponse.CourseItem::rank)
                 .containsExactly(1, 2, 3);
         assertThat(response.courses())
                 .allSatisfy(course -> {
@@ -185,12 +186,12 @@ class HomeRecommendedCourseServiceTest {
         given(courseMoodTagRepository.findAllWithCourseAndMoodTagByCourseIds(any()))
                 .willReturn(List.of());
 
-        HomeRecommendedCourseListResponse response =
+        HomeRecommendationResponse.CourseList response =
                 service.getHomeRecommendedCourses(MEMBER_ID, null, 6);
 
         assertThat(response.courses()).hasSize(6);
         assertThat(response.courses())
-                .extracting(HomeRecommendedCourseResponse::rank)
+                .extracting(HomeRecommendationResponse.CourseItem::rank)
                 .containsExactly(1, 2, 3, 4, 5, 6);
 
         // 각 지역 1개씩 우선 배치: 앞 3개와 뒤 3개 모두 서로 다른 3개 지역으로 구성
@@ -233,9 +234,9 @@ class HomeRecommendedCourseServiceTest {
         given(courseMoodTagRepository.findAllWithCourseAndMoodTagByCourseIds(any()))
                 .willReturn(List.of());
 
-        HomeRecommendedCourseListResponse firstResponse =
+        HomeRecommendationResponse.CourseList firstResponse =
                 service.getHomeRecommendedCourses(MEMBER_ID, null, 2);
-        HomeRecommendedCourseListResponse secondResponse =
+        HomeRecommendationResponse.CourseList secondResponse =
                 service.getHomeRecommendedCourses(
                         MEMBER_ID,
                         firstResponse.nextCursor(),
@@ -245,10 +246,10 @@ class HomeRecommendedCourseServiceTest {
         assertThat(firstResponse.hasNext()).isTrue();
         assertThat(firstResponse.nextCursor()).isNotBlank();
         assertThat(firstResponse.courses())
-                .extracting(HomeRecommendedCourseResponse::rank)
+                .extracting(HomeRecommendationResponse.CourseItem::rank)
                 .containsExactly(1, 2);
         assertThat(secondResponse.courses())
-                .extracting(HomeRecommendedCourseResponse::rank)
+                .extracting(HomeRecommendationResponse.CourseItem::rank)
                 .containsExactly(3, 4);
 
         ArgumentCaptor<List<RecommendationResult>> resultsCaptor =
@@ -265,7 +266,7 @@ class HomeRecommendedCourseServiceTest {
         given(courseRepository.findRecommendedCourseCandidates(any(), any(), any()))
                 .willReturn(List.of());
 
-        HomeRecommendedCourseListResponse response =
+        HomeRecommendationResponse.CourseList response =
                 service.getHomeRecommendedCourses(MEMBER_ID, null, null);
 
         assertThat(response.courses()).isEmpty();
@@ -285,7 +286,7 @@ class HomeRecommendedCourseServiceTest {
                 .isInstanceOfSatisfying(
                         RecommendationException.class,
                         exception -> assertThat(exception.getErrorCode())
-                                .isEqualTo(RecommendationErrorCode.INVALID_CURSOR)
+                                .isEqualTo(HomeRecommendationErrorCode.INVALID_CURSOR)
                 )
                 .hasCauseInstanceOf(IllegalArgumentException.class);
 
@@ -305,7 +306,7 @@ class HomeRecommendedCourseServiceTest {
                 .isInstanceOfSatisfying(
                         RecommendationException.class,
                         exception -> assertThat(exception.getErrorCode())
-                                .isEqualTo(RecommendationErrorCode.INVALID_CURSOR)
+                                .isEqualTo(HomeRecommendationErrorCode.INVALID_CURSOR)
                 )
                 .hasCauseInstanceOf(IllegalArgumentException.class);
 
@@ -367,8 +368,7 @@ class HomeRecommendedCourseServiceTest {
                         ((RecommendationException) exception).getErrorCode()
                 )
                 .isEqualTo(
-                        RecommendationErrorCode
-                                .REQUEST_CONTEXT_SERIALIZATION_FAILED
+                        RecommendationLogErrorCode.REQUEST_CONTEXT_SERIALIZATION_FAILED
                 );
 
         verify(recommendationLogRepository, never())
@@ -383,7 +383,7 @@ class HomeRecommendedCourseServiceTest {
                 .isInstanceOfSatisfying(
                         RecommendationException.class,
                         exception -> assertThat(exception.getErrorCode())
-                                .isEqualTo(RecommendationErrorCode.INVALID_SIZE)
+                                .isEqualTo(HomeRecommendationErrorCode.INVALID_SIZE)
                 );
 
         assertThatThrownBy(() ->
@@ -392,7 +392,7 @@ class HomeRecommendedCourseServiceTest {
                 .isInstanceOfSatisfying(
                         RecommendationException.class,
                         exception -> assertThat(exception.getErrorCode())
-                                .isEqualTo(RecommendationErrorCode.INVALID_SIZE)
+                                .isEqualTo(HomeRecommendationErrorCode.INVALID_SIZE)
                 );
 
         verify(recommendationLogRepository, never())

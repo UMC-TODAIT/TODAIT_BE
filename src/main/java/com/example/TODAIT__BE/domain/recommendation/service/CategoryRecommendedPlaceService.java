@@ -11,7 +11,8 @@ import com.example.TODAIT__BE.domain.course.repository.CourseDraftMoodTagReposit
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.place.entity.Place;
-import com.example.TODAIT__BE.domain.recommendation.code.RecommendationErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.RecommendedPlaceErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.RecommendationLogErrorCode;
 import com.example.TODAIT__BE.domain.recommendation.entity.RecommendationLog;
 import com.example.TODAIT__BE.domain.recommendation.entity.RecommendationResult;
 import com.example.TODAIT__BE.domain.recommendation.enums.RecommendationType;
@@ -19,8 +20,8 @@ import com.example.TODAIT__BE.domain.recommendation.exception.RecommendationExce
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationLogRepository;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationResultRepository;
 import com.example.TODAIT__BE.domain.recommendation.service.support.EvaluatedNearBasePlace;
-import com.example.TODAIT__BE.domain.recommendation.service.support.NearBasePlaceCandidateData;
 import com.example.TODAIT__BE.domain.recommendation.service.support.NearBasePlaceCandidateLoader;
+import com.example.TODAIT__BE.domain.recommendation.service.support.NearBasePlaceCandidateLoader.CandidateData;
 import com.example.TODAIT__BE.domain.recommendation.service.support.NearBasePlaceRankingPolicy;
 import com.example.TODAIT__BE.domain.recommendation.service.support.NearBasePlaceRecommendationSelection;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
@@ -34,7 +35,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.TODAIT__BE.domain.recommendation.service.support.NearBasePlaceReasonResolver;
 import com.example.TODAIT__BE.domain.recommendation.dto.response.CategoryRecommendedPlaceResponse;
 import com.example.TODAIT__BE.domain.recommendation.service.support.NearBasePlaceResponseAssembler;
 
@@ -71,7 +71,6 @@ public class CategoryRecommendedPlaceService {
     private final RecommendationResultRepository recommendationResultRepository;
 
     private final ObjectMapper objectMapper;
-    private final NearBasePlaceReasonResolver reasonResolver;
     private final NearBasePlaceResponseAssembler responseAssembler;
 
     private static final Set<String> SUPPORTED_PLACE_CATEGORY_CODES =
@@ -132,7 +131,7 @@ public class CategoryRecommendedPlaceService {
                         basePlace.getArea().getCode()
                 );
 
-        NearBasePlaceCandidateData candidateData =
+        CandidateData candidateData =
                 candidateLoader.load(
                         candidateAreaCodes,
                         placeCategory.getCode(),
@@ -185,7 +184,7 @@ public class CategoryRecommendedPlaceService {
 
         if (size < MIN_SIZE || size > MAX_SIZE) {
             throw new RecommendationException(
-                    RecommendationErrorCode.INVALID_PLACE_SIZE
+                    RecommendedPlaceErrorCode.INVALID_PLACE_SIZE
             );
         }
 
@@ -394,7 +393,7 @@ public class CategoryRecommendedPlaceService {
             );
         } catch (JsonProcessingException exception) {
             throw new RecommendationException(
-                    RecommendationErrorCode
+                    RecommendationLogErrorCode
                             .REQUEST_CONTEXT_SERIALIZATION_FAILED,
                     exception
             );
@@ -419,13 +418,13 @@ public class CategoryRecommendedPlaceService {
             EvaluatedNearBasePlace evaluated =
                     selectedPlaces.get(index);
 
-            List<String> recommendationReasons =
-                    reasonResolver.resolve(evaluated);
-
             String reasonText =
-                    recommendationReasons.isEmpty()
+                    evaluated.recommendationReasons().isEmpty()
                             ? null
-                            : String.join(" ", recommendationReasons);
+                            : String.join(
+                                    " ",
+                                    evaluated.recommendationReasons()
+                            );
 
             RecommendationResult result =
                     RecommendationResult.forPlace(
