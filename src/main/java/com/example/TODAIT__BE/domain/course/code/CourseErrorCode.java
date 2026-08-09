@@ -1,4 +1,4 @@
-package com.example.TODAIT__BE.domain.course.exception.code;
+package com.example.TODAIT__BE.domain.course.code;
 
 import com.example.TODAIT__BE.global.apiPayload.code.BaseErrorCode;
 import lombok.Getter;

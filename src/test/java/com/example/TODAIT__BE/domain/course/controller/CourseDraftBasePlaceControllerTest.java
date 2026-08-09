@@ -17,7 +17,7 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftBasePlaceSav
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftBasePlaceService;
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.domain.place.exception.PlaceException;

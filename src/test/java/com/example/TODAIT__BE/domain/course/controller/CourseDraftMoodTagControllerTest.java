@@ -13,7 +13,7 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftMoodTagSaveR
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftMoodTagSaveResponse.MoodTagItem;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftMoodTagService;
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;

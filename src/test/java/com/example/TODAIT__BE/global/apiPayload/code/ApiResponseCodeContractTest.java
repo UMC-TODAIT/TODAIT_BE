@@ -4,7 +4,7 @@ import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.TODAIT__BE.domain.course.code.CourseSuccessCode;
-import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.member.code.AuthErrorCode;
 import com.example.TODAIT__BE.domain.member.code.AuthSuccessCode;
 import com.example.TODAIT__BE.domain.member.code.EmailVerificationErrorCode;
