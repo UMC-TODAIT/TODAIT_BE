@@ -3,7 +3,7 @@ package com.example.TODAIT__BE.domain.place.service.support;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.entity.PlaceSource;
 import com.example.TODAIT__BE.domain.place.enums.PlaceDataSourceCode;
-import com.example.TODAIT__BE.domain.place.port.out.ExternalPlaceCandidate;
+import com.example.TODAIT__BE.domain.place.service.port.ExternalPlaceCandidate;
 import com.example.TODAIT__BE.domain.place.repository.PlaceImageRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceSourceRepository;
 import lombok.RequiredArgsConstructor;

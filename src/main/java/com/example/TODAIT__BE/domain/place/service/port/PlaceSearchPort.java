@@ -1,4 +1,4 @@
-package com.example.TODAIT__BE.domain.place.port.out;
+package com.example.TODAIT__BE.domain.place.service.port;
 
 
 public interface PlaceSearchPort {
