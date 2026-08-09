@@ -5,7 +5,7 @@ import com.example.TODAIT__BE.domain.place.entity.Place;
 import java.util.Map;
 import java.util.Set;
 
-public record KakaoPlaceSearchData(
+public record PlaceSearchData(
         Map<String, Place> registeredPlacesByExternalId,
         Map<Long, String> primaryImageUrlsByPlaceId,
         Set<Long> operatorSourcePlaceIds

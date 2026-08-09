@@ -16,7 +16,7 @@ import com.example.TODAIT__BE.domain.place.repository.PlaceImageRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceMenuRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceMoodTagRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceRepository;
-import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceDetailErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
@@ -47,10 +47,10 @@ public class PlaceService {
     public PlaceDetailResponse getPlaceDetail(Long placeId) {
         Place place = placeRepository.findDetailById(placeId)
                 .orElseThrow(() ->
-                        new PlaceException(PlaceErrorCode.PLACE_NOT_FOUND));
+                        new PlaceException(PlaceDetailErrorCode.PLACE_NOT_FOUND));
 
         if (!isExposable(place)) {
-            throw new PlaceException(PlaceErrorCode.PLACE_NOT_EXPOSED);
+            throw new PlaceException(PlaceDetailErrorCode.PLACE_NOT_EXPOSED);
         }
 
         return new PlaceDetailResponse(

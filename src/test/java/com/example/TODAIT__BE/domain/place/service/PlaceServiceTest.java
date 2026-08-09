@@ -9,7 +9,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceDetailErrorCode;
 import com.example.TODAIT__BE.domain.place.dto.response.PlaceDetailResponse;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.entity.PlaceFoodCategory;
@@ -119,7 +119,7 @@ class PlaceServiceTest {
 
         assertThatThrownBy(() -> placeService.getPlaceDetail(99L))
                 .isInstanceOfSatisfying(PlaceException.class, e ->
-                        assertThat(e.getErrorCode()).isEqualTo(PlaceErrorCode.PLACE_NOT_FOUND));
+                        assertThat(e.getErrorCode()).isEqualTo(PlaceDetailErrorCode.PLACE_NOT_FOUND));
 
         verify(placeMenuRepository, never())
                 .findAllByPlaceIdOrderByDisplayOrderAscIdAsc(any());
@@ -227,7 +227,7 @@ class PlaceServiceTest {
 
         assertThatThrownBy(() -> placeService.getPlaceDetail(placeId))
                 .isInstanceOfSatisfying(PlaceException.class, e ->
-                        assertThat(e.getErrorCode()).isEqualTo(PlaceErrorCode.PLACE_NOT_EXPOSED));
+                        assertThat(e.getErrorCode()).isEqualTo(PlaceDetailErrorCode.PLACE_NOT_EXPOSED));
 
         verifyNoInteractions(
                 placeFoodCategoryRepository,

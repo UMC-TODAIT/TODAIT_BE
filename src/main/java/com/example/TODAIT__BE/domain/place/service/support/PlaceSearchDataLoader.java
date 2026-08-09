@@ -3,9 +3,9 @@ package com.example.TODAIT__BE.domain.place.service.support;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.entity.PlaceSource;
 import com.example.TODAIT__BE.domain.place.enums.PlaceDataSourceCode;
-import com.example.TODAIT__BE.domain.place.service.port.ExternalPlaceCandidate;
 import com.example.TODAIT__BE.domain.place.repository.PlaceImageRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceSourceRepository;
+import com.example.TODAIT__BE.domain.place.service.port.ExternalPlaceCandidate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -16,12 +16,12 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class KakaoPlaceSearchDataLoader {
+public class PlaceSearchDataLoader {
 
     private final PlaceSourceRepository placeSourceRepository;
     private final PlaceImageRepository placeImageRepository;
 
-    public KakaoPlaceSearchData load(
+    public PlaceSearchData load(
             List<ExternalPlaceCandidate> candidates
     ) {
         Map<String, Place> registeredPlacesByExternalId =
@@ -34,7 +34,7 @@ public class KakaoPlaceSearchDataLoader {
                         .distinct()
                         .toList();
 
-        return new KakaoPlaceSearchData(
+        return new PlaceSearchData(
                 registeredPlacesByExternalId,
                 findPrimaryImageUrlsByPlaceId(registeredPlaceIds),
                 findOperatorSourcePlaceIds(registeredPlaceIds)
@@ -49,7 +49,6 @@ public class KakaoPlaceSearchDataLoader {
         }
 
         PlaceDataSourceCode source = candidates.get(0).source();
-
         boolean containsDifferentSource = candidates.stream()
                 .anyMatch(candidate -> candidate.source() != source);
 
@@ -64,17 +63,12 @@ public class KakaoPlaceSearchDataLoader {
                 .toList();
 
         return placeSourceRepository
-                .findRegisteredPlaceSources(
-                        source.name(),
-                        externalPlaceIds
-                )
+                .findRegisteredPlaceSources(source.name(), externalPlaceIds)
                 .stream()
-                .collect(
-                        Collectors.toMap(
-                                PlaceSource::getSourcePlaceId,
-                                PlaceSource::getPlace
-                        )
-                );
+                .collect(Collectors.toMap(
+                        PlaceSource::getSourcePlaceId,
+                        PlaceSource::getPlace
+                ));
     }
 
     private Map<Long, String> findPrimaryImageUrlsByPlaceId(
@@ -87,17 +81,11 @@ public class KakaoPlaceSearchDataLoader {
         return placeImageRepository
                 .findPrimaryImageUrlsByPlaceIds(placeIds)
                 .stream()
-                .collect(
-                        Collectors.toMap(
-                                PlaceImageRepository
-                                        .PrimaryImageUrlView
-                                        ::getPlaceId,
-                                PlaceImageRepository
-                                        .PrimaryImageUrlView
-                                        ::getImageUrl,
-                                (first, duplicate) -> first
-                        )
-                );
+                .collect(Collectors.toMap(
+                        PlaceImageRepository.PrimaryImageUrlView::getPlaceId,
+                        PlaceImageRepository.PrimaryImageUrlView::getImageUrl,
+                        (first, duplicate) -> first
+                ));
     }
 
     private Set<Long> findOperatorSourcePlaceIds(
@@ -107,10 +95,9 @@ public class KakaoPlaceSearchDataLoader {
             return Set.of();
         }
 
-        return placeSourceRepository
-                .findPlaceIdsHavingActiveDataSource(
-                        placeIds,
-                        PlaceDataSourceCode.OPERATOR.name()
-                );
+        return placeSourceRepository.findPlaceIdsHavingActiveDataSource(
+                placeIds,
+                PlaceDataSourceCode.OPERATOR.name()
+        );
     }
 }

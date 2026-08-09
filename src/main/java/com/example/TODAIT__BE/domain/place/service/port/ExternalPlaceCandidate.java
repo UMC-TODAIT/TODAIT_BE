@@ -8,14 +8,14 @@ public record ExternalPlaceCandidate(
         PlaceDataSourceCode source,
         String externalPlaceId,
         String name,
-        String categoryName,
-        String categoryGroupCode,
-        String categoryGroupName,
-        String phone,
         String address,
         String roadAddress,
         BigDecimal latitude,
         BigDecimal longitude,
-        String sourceUrl
+        String phone,
+        String sourceUrl,
+        String areaCode,
+        String placeCategoryCode,
+        String subCategory
 ) {
 }

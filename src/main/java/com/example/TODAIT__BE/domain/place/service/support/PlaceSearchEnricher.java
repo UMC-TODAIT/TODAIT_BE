@@ -16,9 +16,9 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class PlaceSearchEnricher {
 
-    private final KakaoPlaceAreaResolver areaResolver;
-    private final KakaoPlaceCategoryResolver categoryResolver;
-    private final KakaoPlaceSearchDataLoader dataLoader;
+    private final PlaceSearchAreaResolver areaResolver;
+    private final PlaceSearchCategoryResolver categoryResolver;
+    private final PlaceSearchDataLoader dataLoader;
     private final PlaceSearchImageResolver imageResolver;
     private final PlaceDetailAvailabilityPolicy detailAvailabilityPolicy;
 
@@ -29,13 +29,10 @@ public class PlaceSearchEnricher {
             return List.of();
         }
 
-        Map<String, Area> activeAreasByCode =
-                areaResolver.getActiveAreasByCode();
-
+        Map<String, Area> activeAreasByCode = areaResolver.getActiveAreasByCode();
         Map<String, PlaceCategory> activeCategoriesByCode =
                 categoryResolver.getActiveCategoriesByCode();
-
-        KakaoPlaceSearchData searchData = dataLoader.load(candidates);
+        PlaceSearchData searchData = dataLoader.load(candidates);
 
         return candidates.stream()
                 .map(candidate -> toPlaceItem(
@@ -52,16 +49,11 @@ public class PlaceSearchEnricher {
             ExternalPlaceCandidate candidate,
             Map<String, Area> activeAreasByCode,
             Map<String, PlaceCategory> activeCategoriesByCode,
-            KakaoPlaceSearchData searchData
+            PlaceSearchData searchData
     ) {
-        Area area = areaResolver.resolve(
-                candidate.address(),
-                candidate.roadAddress(),
-                activeAreasByCode
-        );
-
+        Area area = areaResolver.resolve(candidate.areaCode(), activeAreasByCode);
         PlaceCategory category = categoryResolver.resolve(
-                candidate,
+                candidate.placeCategoryCode(),
                 activeCategoriesByCode
         );
 
@@ -69,25 +61,19 @@ public class PlaceSearchEnricher {
             return null;
         }
 
-        Place registeredPlace =
-                searchData.registeredPlacesByExternalId().get(
-                        candidate.externalPlaceId()
-                );
-
+        Place registeredPlace = searchData.registeredPlacesByExternalId()
+                .get(candidate.externalPlaceId());
         boolean isRegistered = registeredPlace != null;
 
-        PlaceSearchImageResolver.ImageSelection imageSelection =
-                imageResolver.resolve(
-                        registeredPlace,
-                        category,
-                        searchData.primaryImageUrlsByPlaceId()
-                );
-
-        boolean detailAvailable =
-                detailAvailabilityPolicy.isAvailable(
-                        registeredPlace,
-                        searchData.operatorSourcePlaceIds()
-                );
+        PlaceSearchImageResolver.ImageSelection imageSelection = imageResolver.resolve(
+                registeredPlace,
+                category,
+                searchData.primaryImageUrlsByPlaceId()
+        );
+        boolean detailAvailable = detailAvailabilityPolicy.isAvailable(
+                registeredPlace,
+                searchData.operatorSourcePlaceIds()
+        );
 
         return new PlaceSearchResponse.PlaceItem(
                 candidate.externalPlaceId(),
@@ -99,17 +85,13 @@ public class PlaceSearchEnricher {
                 candidate.longitude(),
                 emptyToNull(candidate.phone()),
                 emptyToNull(candidate.sourceUrl()),
-                new PlaceSearchResponse.AreaInfo(
-                        area.getId(),
-                        area.getCode(),
-                        area.getName()
-                ),
+                new PlaceSearchResponse.AreaInfo(area.getId(), area.getCode(), area.getName()),
                 new PlaceSearchResponse.CategoryInfo(
                         category.getId(),
                         category.getCode(),
                         category.getName()
                 ),
-                extractSubCategory(candidate.categoryName()),
+                emptyToNull(candidate.subCategory()),
                 isRegistered,
                 imageSelection.imageUrl(),
                 imageSelection.imageType(),
@@ -123,15 +105,5 @@ public class PlaceSearchEnricher {
         }
 
         return value.trim();
-    }
-
-    private String extractSubCategory(String categoryName) {
-        if (categoryName == null || categoryName.isBlank()) {
-            return null;
-        }
-
-        String[] categories = categoryName.split(">");
-
-        return categories[categories.length - 1].trim();
     }
 }
