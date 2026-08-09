@@ -1,13 +1,7 @@
 package com.example.TODAIT__BE.domain.course.controller;
 
 import com.example.TODAIT__BE.domain.course.code.CourseDraftSuccessCode;
-import com.example.TODAIT__BE.domain.course.controller.docs.CourseDraftBasePlaceControllerDocs;
 import com.example.TODAIT__BE.domain.course.controller.docs.CourseDraftControllerDocs;
-import com.example.TODAIT__BE.domain.course.controller.docs.CourseDraftFoodCategoryControllerDocs;
-import com.example.TODAIT__BE.domain.course.controller.docs.CourseDraftMoodTagControllerDocs;
-import com.example.TODAIT__BE.domain.course.controller.docs.CourseDraftOrderingControllerDocs;
-import com.example.TODAIT__BE.domain.course.controller.docs.CourseDraftPlaceControllerDocs;
-import com.example.TODAIT__BE.domain.course.controller.docs.CourseDraftSavingControllerDocs;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftBasePlaceSaveRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftFoodCategorySaveRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftMoodTagSaveRequest;
@@ -45,14 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/course-drafts")
-public class CourseDraftController implements
-        CourseDraftControllerDocs,
-        CourseDraftMoodTagControllerDocs,
-        CourseDraftFoodCategoryControllerDocs,
-        CourseDraftBasePlaceControllerDocs,
-        CourseDraftPlaceControllerDocs,
-        CourseDraftOrderingControllerDocs,
-        CourseDraftSavingControllerDocs {
+public class CourseDraftController implements CourseDraftControllerDocs {
 
     private final CourseDraftService courseDraftService;
     private final CourseDraftMoodTagService courseDraftMoodTagService;
