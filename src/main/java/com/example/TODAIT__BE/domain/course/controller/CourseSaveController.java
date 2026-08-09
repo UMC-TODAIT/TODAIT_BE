@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.course.controller;
 
-import com.example.TODAIT__BE.domain.course.code.CourseSuccessCode;
+import com.example.TODAIT__BE.domain.course.code.CourseSaveSuccessCode;
 import com.example.TODAIT__BE.domain.course.controller.docs.CourseSaveControllerDocs;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseSaveRequest;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse;
@@ -32,7 +32,7 @@ public class CourseSaveController implements CourseSaveControllerDocs {
     ) {
         CourseSaveResponse result = courseSaveService.saveCourse(courseDraftId, authMember.memberId(), request);
         return ResponseEntity
-                .status(CourseSuccessCode.COURSE_SAVE_OK.getStatus())
-                .body(ApiResponse.onSuccess(CourseSuccessCode.COURSE_SAVE_OK, result));
+                .status(CourseSaveSuccessCode.COURSE_SAVE_OK.getStatus())
+                .body(ApiResponse.onSuccess(CourseSaveSuccessCode.COURSE_SAVE_OK, result));
     }
 }

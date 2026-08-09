@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.course.controller;
 
-import com.example.TODAIT__BE.domain.course.code.CourseSuccessCode;
+import com.example.TODAIT__BE.domain.course.code.SavedCourseSuccessCode;
 import com.example.TODAIT__BE.domain.course.controller.docs.SavedCourseControllerDocs;
 import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseOverviewResponse;
 import com.example.TODAIT__BE.domain.course.service.SavedCourseService;
@@ -41,13 +41,13 @@ public class SavedCourseController implements SavedCourseControllerDocs {
 
         return ResponseEntity
                 .status(
-                        CourseSuccessCode
+                        SavedCourseSuccessCode
                                 .SAVED_COURSE_OVERVIEW_OK
                                 .getStatus()
                 )
                 .body(
                         ApiResponse.onSuccess(
-                                CourseSuccessCode
+                                SavedCourseSuccessCode
                                         .SAVED_COURSE_OVERVIEW_OK,
                                 result
                         )
@@ -69,7 +69,7 @@ public class SavedCourseController implements SavedCourseControllerDocs {
 
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(
-                        CourseSuccessCode.SAVED_COURSE_DETAIL_OK,
+                        SavedCourseSuccessCode.SAVED_COURSE_DETAIL_OK,
                         result
                 )
         );
@@ -92,7 +92,7 @@ public class SavedCourseController implements SavedCourseControllerDocs {
 
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(
-                        CourseSuccessCode.SAVED_COURSE_MEMO_UPDATE_OK,
+                        SavedCourseSuccessCode.SAVED_COURSE_MEMO_UPDATE_OK,
                         result
                 )
         );
@@ -117,7 +117,7 @@ public class SavedCourseController implements SavedCourseControllerDocs {
 
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(
-                        CourseSuccessCode.SAVED_COURSE_PLACE_MEMO_UPDATE_OK,
+                        SavedCourseSuccessCode.SAVED_COURSE_PLACE_MEMO_UPDATE_OK,
                         result
                 )
         );

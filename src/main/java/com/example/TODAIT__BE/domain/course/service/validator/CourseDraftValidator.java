@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.course.service.validator;
 
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
@@ -12,14 +12,14 @@ public class CourseDraftValidator {
 
     public void validateOwner(CourseDraft courseDraft, Long memberId) {
         if (!courseDraft.getMember().getId().equals(memberId)) {
-            throw new CourseException(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
+            throw new CourseException(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED);
         }
     }
 
     public void validateStatus(
             CourseDraft courseDraft,
             CourseDraftStatus expectedStatus,
-            CourseErrorCode errorCode
+            CourseDraftErrorCode errorCode
     ) {
         if (courseDraft.getStatus() != expectedStatus) {
             throw new CourseException(errorCode);
@@ -28,7 +28,7 @@ public class CourseDraftValidator {
 
     public void validateStatusIn(
             CourseDraft courseDraft,
-            CourseErrorCode errorCode,
+            CourseDraftErrorCode errorCode,
             CourseDraftStatus... allowedStatuses
     ) {
         boolean allowed = Arrays.stream(allowedStatuses)

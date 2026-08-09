@@ -17,7 +17,7 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftBasePlaceSav
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftBasePlaceService;
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.domain.place.exception.PlaceException;
@@ -133,7 +133,7 @@ class CourseDraftBasePlaceControllerTest {
     @Test
     void saveBasePlace_notOwner_returns403() throws Exception {
         given(courseDraftBasePlaceService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new CourseException(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED));
+                .willThrow(new CourseException(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED));
 
         mockMvc.perform(patch("/api/course-drafts/{courseDraftId}/base-place", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken()))
@@ -141,13 +141,13 @@ class CourseDraftBasePlaceControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 new CourseDraftBasePlaceSaveRequest(21L, null))))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.code").value(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED.getCode()));
+                .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED.getCode()));
     }
 
     @Test
     void saveBasePlace_draftNotFound_returns404() throws Exception {
         given(courseDraftBasePlaceService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
+                .willThrow(new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
 
         mockMvc.perform(patch("/api/course-drafts/{courseDraftId}/base-place", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken()))
@@ -155,13 +155,13 @@ class CourseDraftBasePlaceControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 new CourseDraftBasePlaceSaveRequest(21L, null))))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value(CourseErrorCode.COURSE_DRAFT_NOT_FOUND.getCode()));
+                .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND.getCode()));
     }
 
     @Test
     void saveBasePlace_wrongDraftStatus_returns409() throws Exception {
         given(courseDraftBasePlaceService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new CourseException(CourseErrorCode.BASE_PLACE_DRAFT_STATUS_CONFLICT));
+                .willThrow(new CourseException(CourseDraftErrorCode.BASE_PLACE_DRAFT_STATUS_CONFLICT));
 
         mockMvc.perform(patch("/api/course-drafts/{courseDraftId}/base-place", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken()))
@@ -169,13 +169,13 @@ class CourseDraftBasePlaceControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 new CourseDraftBasePlaceSaveRequest(21L, null))))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value(CourseErrorCode.BASE_PLACE_DRAFT_STATUS_CONFLICT.getCode()));
+                .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.BASE_PLACE_DRAFT_STATUS_CONFLICT.getCode()));
     }
 
     @Test
     void saveBasePlace_bothPlaceIdAndExternalPlace_returns400() throws Exception {
         given(courseDraftBasePlaceService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new CourseException(CourseErrorCode.BASE_PLACE_SOURCE_CONFLICT));
+                .willThrow(new CourseException(CourseDraftErrorCode.BASE_PLACE_SOURCE_CONFLICT));
 
         ExternalPlace externalPlace = new ExternalPlace(
                 "KAKAO", "1", "n", "a", null, 0.0, 0.0, "YEONNAM", "CAFE", null, null, null
@@ -187,13 +187,13 @@ class CourseDraftBasePlaceControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 new CourseDraftBasePlaceSaveRequest(21L, externalPlace))))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(CourseErrorCode.BASE_PLACE_SOURCE_CONFLICT.getCode()));
+                .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.BASE_PLACE_SOURCE_CONFLICT.getCode()));
     }
 
     @Test
     void saveBasePlace_neitherPlaceIdNorExternalPlace_returns400() throws Exception {
         given(courseDraftBasePlaceService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new CourseException(CourseErrorCode.BASE_PLACE_SOURCE_MISSING));
+                .willThrow(new CourseException(CourseDraftErrorCode.BASE_PLACE_SOURCE_MISSING));
 
         mockMvc.perform(patch("/api/course-drafts/{courseDraftId}/base-place", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken()))
@@ -201,7 +201,7 @@ class CourseDraftBasePlaceControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 new CourseDraftBasePlaceSaveRequest(null, null))))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(CourseErrorCode.BASE_PLACE_SOURCE_MISSING.getCode()));
+                .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.BASE_PLACE_SOURCE_MISSING.getCode()));
     }
 
     @Test

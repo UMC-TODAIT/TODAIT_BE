@@ -12,7 +12,7 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftSavingEnterR
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftSavingService;
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
@@ -104,13 +104,13 @@ class CourseDraftSavingControllerTest {
     @Test
     void enterSaving_unsupportedDraftStatus_returns409() throws Exception {
         given(courseDraftSavingService.enterSaving(eq(COURSE_DRAFT_ID), eq(MEMBER_ID)))
-                .willThrow(new CourseException(CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT));
+                .willThrow(new CourseException(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT));
 
         mockMvc.perform(patch("/api/course-drafts/{courseDraftId}/saving", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken())))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.isSuccess").value(false))
-                .andExpect(jsonPath("$.code").value(CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT.getCode()));
+                .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT.getCode()));
     }
 
     private UsernamePasswordAuthenticationToken authMemberToken() {

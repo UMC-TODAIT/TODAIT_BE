@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.course.controller;
 
-import com.example.TODAIT__BE.domain.course.code.CourseSuccessCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftSuccessCode;
 import com.example.TODAIT__BE.domain.course.controller.docs.CourseDraftOrderingControllerDocs;
 import com.example.TODAIT__BE.domain.course.dto.response.OrderingEntryResponse;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftOrderingService;
@@ -32,8 +32,8 @@ public class CourseDraftOrderingController implements CourseDraftOrderingControl
                         courseDraftId, authMember.memberId());
 
         return ResponseEntity
-                .status(CourseSuccessCode.ORDERING_ENTRY_OK.getStatus())
+                .status(CourseDraftSuccessCode.ORDERING_ENTRY_OK.getStatus())
                 .body(ApiResponse.onSuccess(
-                        CourseSuccessCode.ORDERING_ENTRY_OK, result));
+                        CourseDraftSuccessCode.ORDERING_ENTRY_OK, result));
     }
 }

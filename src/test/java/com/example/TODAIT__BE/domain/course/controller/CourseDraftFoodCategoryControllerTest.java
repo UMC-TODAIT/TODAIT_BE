@@ -13,7 +13,7 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftFoodCategory
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftFoodCategorySaveResponse.FoodCategoryItem;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftFoodCategoryService;
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
@@ -96,7 +96,7 @@ class CourseDraftFoodCategoryControllerTest {
     @Test
     void saveFoodCategories_notOwner_returns403() throws Exception {
         given(courseDraftFoodCategoryService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new CourseException(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED));
+                .willThrow(new CourseException(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/food-categories", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken()))
@@ -105,13 +105,13 @@ class CourseDraftFoodCategoryControllerTest {
                                 new CourseDraftFoodCategorySaveRequest(List.of(3L, 6L)))))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.isSuccess").value(false))
-                .andExpect(jsonPath("$.code").value(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED.getCode()));
+                .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED.getCode()));
     }
 
     @Test
     void saveFoodCategories_draftNotFound_returns404() throws Exception {
         given(courseDraftFoodCategoryService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
+                .willThrow(new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/food-categories", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken()))
@@ -119,13 +119,13 @@ class CourseDraftFoodCategoryControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 new CourseDraftFoodCategorySaveRequest(List.of(3L, 6L)))))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value(CourseErrorCode.COURSE_DRAFT_NOT_FOUND.getCode()));
+                .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND.getCode()));
     }
 
     @Test
     void saveFoodCategories_unsupportedDraftStatus_returns409() throws Exception {
         given(courseDraftFoodCategoryService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new CourseException(CourseErrorCode.FOOD_CATEGORY_DRAFT_STATUS_CONFLICT));
+                .willThrow(new CourseException(CourseDraftErrorCode.FOOD_CATEGORY_DRAFT_STATUS_CONFLICT));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/food-categories", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken()))
@@ -133,14 +133,14 @@ class CourseDraftFoodCategoryControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 new CourseDraftFoodCategorySaveRequest(List.of(3L, 6L)))))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value(CourseErrorCode.FOOD_CATEGORY_DRAFT_STATUS_CONFLICT.getCode()))
+                .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.FOOD_CATEGORY_DRAFT_STATUS_CONFLICT.getCode()))
                 .andExpect(jsonPath("$.message").value("현재 임시 코스 상태에서는 음식 카테고리를 저장할 수 없습니다."));
     }
 
     @Test
     void saveFoodCategories_emptyList_returns400() throws Exception {
         given(courseDraftFoodCategoryService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new CourseException(CourseErrorCode.INVALID_FOOD_CATEGORY_COUNT));
+                .willThrow(new CourseException(CourseDraftErrorCode.INVALID_FOOD_CATEGORY_COUNT));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/food-categories", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken()))
@@ -148,13 +148,13 @@ class CourseDraftFoodCategoryControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 new CourseDraftFoodCategorySaveRequest(List.of()))))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(CourseErrorCode.INVALID_FOOD_CATEGORY_COUNT.getCode()));
+                .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.INVALID_FOOD_CATEGORY_COUNT.getCode()));
     }
 
     @Test
     void saveFoodCategories_duplicateCategory_returns400() throws Exception {
         given(courseDraftFoodCategoryService.saveFoodCategories(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new CourseException(CourseErrorCode.DUPLICATE_FOOD_CATEGORY));
+                .willThrow(new CourseException(CourseDraftErrorCode.DUPLICATE_FOOD_CATEGORY));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/food-categories", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken()))
@@ -162,7 +162,7 @@ class CourseDraftFoodCategoryControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 new CourseDraftFoodCategorySaveRequest(List.of(3L, 3L)))))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(CourseErrorCode.DUPLICATE_FOOD_CATEGORY.getCode()));
+                .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.DUPLICATE_FOOD_CATEGORY.getCode()));
     }
 
     @Test

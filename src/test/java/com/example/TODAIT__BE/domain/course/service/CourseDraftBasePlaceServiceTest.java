@@ -17,7 +17,7 @@ import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
@@ -328,7 +328,7 @@ class CourseDraftBasePlaceServiceTest {
         ))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.BASE_PLACE_SOURCE_CONFLICT);
+                .isEqualTo(CourseDraftErrorCode.BASE_PLACE_SOURCE_CONFLICT);
     }
 
     @Test
@@ -341,7 +341,7 @@ class CourseDraftBasePlaceServiceTest {
         ))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.BASE_PLACE_SOURCE_MISSING);
+                .isEqualTo(CourseDraftErrorCode.BASE_PLACE_SOURCE_MISSING);
     }
 
     @Test
@@ -354,7 +354,7 @@ class CourseDraftBasePlaceServiceTest {
         ))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.BASE_PLACE_DRAFT_STATUS_CONFLICT);
+                .isEqualTo(CourseDraftErrorCode.BASE_PLACE_DRAFT_STATUS_CONFLICT);
     }
 
     @Test
@@ -367,7 +367,7 @@ class CourseDraftBasePlaceServiceTest {
         ))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED);
     }
 
     @Test

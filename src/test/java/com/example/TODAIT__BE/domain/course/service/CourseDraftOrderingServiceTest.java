@@ -14,7 +14,7 @@ import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
@@ -112,7 +112,7 @@ class CourseDraftOrderingServiceTest {
         assertThatThrownBy(() -> service.enterOrdering(DRAFT_ID, MEMBER_ID))
                 .isInstanceOfSatisfying(CourseException.class, e ->
                         assertThat(e.getErrorCode())
-                                .isEqualTo(CourseErrorCode.ORDERING_ENTRY_STATUS_CONFLICT));
+                                .isEqualTo(CourseDraftErrorCode.ORDERING_ENTRY_STATUS_CONFLICT));
 
         verify(courseDraftPlaceRepository, never())
                 .findByCourseDraftIdWithPlaceOrderByVisitOrderAsc(any());
@@ -126,7 +126,7 @@ class CourseDraftOrderingServiceTest {
         assertThatThrownBy(() -> service.enterOrdering(DRAFT_ID, MEMBER_ID))
                 .isInstanceOfSatisfying(CourseException.class, e ->
                         assertThat(e.getErrorCode())
-                                .isEqualTo(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
+                                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
     }
 
     @Test
@@ -138,7 +138,7 @@ class CourseDraftOrderingServiceTest {
         assertThatThrownBy(() -> service.enterOrdering(DRAFT_ID, MEMBER_ID))
                 .isInstanceOfSatisfying(CourseException.class, e ->
                         assertThat(e.getErrorCode())
-                                .isEqualTo(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED));
+                                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED));
     }
 
     @Test
@@ -146,7 +146,7 @@ class CourseDraftOrderingServiceTest {
         givenPlaces(CourseDraftStatus.PLACE_SELECTING,
                 place(102L, 35L, 1, PlaceRole.SELECTED, "코이르"));
 
-        assertConflict(CourseErrorCode.ORDERING_ENTRY_INVALID_BASE_PLACE);
+        assertConflict(CourseDraftErrorCode.ORDERING_ENTRY_INVALID_BASE_PLACE);
     }
 
     @Test
@@ -155,7 +155,7 @@ class CourseDraftOrderingServiceTest {
                 place(102L, 35L, 1, PlaceRole.SELECTED, "코이르"),
                 place(101L, 21L, 2, PlaceRole.BASE, "쥬노이"));
 
-        assertConflict(CourseErrorCode.ORDERING_ENTRY_INVALID_BASE_PLACE);
+        assertConflict(CourseDraftErrorCode.ORDERING_ENTRY_INVALID_BASE_PLACE);
     }
 
     @Test
@@ -163,7 +163,7 @@ class CourseDraftOrderingServiceTest {
         givenPlaces(CourseDraftStatus.PLACE_SELECTING,
                 place(101L, 21L, 1, PlaceRole.BASE, "쥬노이"));
 
-        assertConflict(CourseErrorCode.ORDERING_ENTRY_SELECTED_PLACE_REQUIRED);
+        assertConflict(CourseDraftErrorCode.ORDERING_ENTRY_SELECTED_PLACE_REQUIRED);
     }
 
     @Test
@@ -172,7 +172,7 @@ class CourseDraftOrderingServiceTest {
                 place(101L, 21L, 1, PlaceRole.BASE, "쥬노이"),
                 place(102L, 35L, 3, PlaceRole.SELECTED, "코이르"));
 
-        assertConflict(CourseErrorCode.ORDERING_ENTRY_INVALID_VISIT_ORDER);
+        assertConflict(CourseDraftErrorCode.ORDERING_ENTRY_INVALID_VISIT_ORDER);
     }
 
     private void givenPlaces(CourseDraftStatus status, CourseDraftPlace... places) {
@@ -184,7 +184,7 @@ class CourseDraftOrderingServiceTest {
                 .willReturn(List.of(places));
     }
 
-    private void assertConflict(CourseErrorCode expected) {
+    private void assertConflict(CourseDraftErrorCode expected) {
         assertThatThrownBy(() -> service.enterOrdering(DRAFT_ID, MEMBER_ID))
                 .isInstanceOfSatisfying(CourseException.class, e ->
                         assertThat(e.getErrorCode()).isEqualTo(expected));

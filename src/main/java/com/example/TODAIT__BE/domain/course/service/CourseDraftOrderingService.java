@@ -7,7 +7,7 @@ import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
@@ -35,12 +35,12 @@ public class CourseDraftOrderingService {
     public OrderingEntryResponse enterOrdering(Long courseDraftId, Long memberId) {
         CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
                 .orElseThrow(() ->
-                        new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
+                        new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
 
         courseDraftValidator.validateOwner(courseDraft, memberId);
         courseDraftValidator.validateStatusIn(
                 courseDraft,
-                CourseErrorCode.ORDERING_ENTRY_STATUS_CONFLICT,
+                CourseDraftErrorCode.ORDERING_ENTRY_STATUS_CONFLICT,
                 CourseDraftStatus.PLACE_SELECTING,
                 CourseDraftStatus.ORDERING
         );
@@ -79,7 +79,7 @@ public class CourseDraftOrderingService {
         if (basePlaces.size() != 1
                 || basePlaces.get(0).getVisitOrder() != BASE_PLACE_VISIT_ORDER) {
             throw new CourseException(
-                    CourseErrorCode.ORDERING_ENTRY_INVALID_BASE_PLACE);
+                    CourseDraftErrorCode.ORDERING_ENTRY_INVALID_BASE_PLACE);
         }
 
         long selectedPlaceCount = places.stream()
@@ -87,7 +87,7 @@ public class CourseDraftOrderingService {
                 .count();
         if (selectedPlaceCount == 0) {
             throw new CourseException(
-                    CourseErrorCode.ORDERING_ENTRY_SELECTED_PLACE_REQUIRED);
+                    CourseDraftErrorCode.ORDERING_ENTRY_SELECTED_PLACE_REQUIRED);
         }
 
         validateContiguousVisitOrders(places);
@@ -101,7 +101,7 @@ public class CourseDraftOrderingService {
             Integer visitOrder = places.get(i).getVisitOrder();
             if (visitOrder == null || visitOrder != i + 1) {
                 throw new CourseException(
-                        CourseErrorCode.ORDERING_ENTRY_INVALID_VISIT_ORDER);
+                        CourseDraftErrorCode.ORDERING_ENTRY_INVALID_VISIT_ORDER);
             }
         }
     }

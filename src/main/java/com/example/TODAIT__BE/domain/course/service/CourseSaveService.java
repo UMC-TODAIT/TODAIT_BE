@@ -14,7 +14,8 @@ import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseSaveErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
@@ -56,7 +57,7 @@ public class CourseSaveService {
     @Transactional
     public CourseSaveResponse saveCourse(Long courseDraftId, Long memberId, CourseSaveRequest request) {
         CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
-                .orElseThrow(() -> new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
+                .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
 
         courseDraftValidator.validateOwner(courseDraft, memberId);
 
@@ -69,7 +70,7 @@ public class CourseSaveService {
         List<CourseDraftFoodCategory> draftFoodCategories =
                 courseDraftFoodCategoryRepository.findByCourseDraft(courseDraft);
         if (draftFoodCategories.isEmpty()) {
-            throw new CourseException(CourseErrorCode.FOOD_CATEGORY_NOT_SELECTED);
+            throw new CourseException(CourseSaveErrorCode.FOOD_CATEGORY_NOT_SELECTED);
         }
 
         ValidatedDraftPlaces validatedDraftPlaces = validateAndGetDraftPlaces(courseDraft);
@@ -101,7 +102,7 @@ public class CourseSaveService {
     private String validateAndNormalizeTitle(String rawTitle) {
         String title = rawTitle == null ? null : rawTitle.trim();
         if (title == null || title.isEmpty() || title.length() > MAX_TITLE_LENGTH) {
-            throw new CourseException(CourseErrorCode.INVALID_COURSE_TITLE);
+            throw new CourseException(CourseSaveErrorCode.INVALID_COURSE_TITLE);
         }
         return title;
     }
@@ -118,12 +119,12 @@ public class CourseSaveService {
                 || moodTagIds.size() < MIN_MOOD_TAG_COUNT
                 || moodTagIds.size() > MAX_MOOD_TAG_COUNT
                 || new HashSet<>(moodTagIds).size() != moodTagIds.size()) {
-            throw new CourseException(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
+            throw new CourseException(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT);
         }
 
         List<MoodTag> foundMoodTags = moodTagRepository.findByIdInAndIsActiveTrue(moodTagIds);
         if (foundMoodTags.size() != moodTagIds.size()) {
-            throw new CourseException(CourseErrorCode.COURSE_MOOD_TAG_NOT_FOUND);
+            throw new CourseException(CourseSaveErrorCode.COURSE_MOOD_TAG_NOT_FOUND);
         }
 
         Map<Long, MoodTag> moodTagsById = foundMoodTags.stream()
@@ -137,13 +138,13 @@ public class CourseSaveService {
         if (courseDraft.getStatus() == CourseDraftStatus.COMPLETED) {
             Long completedCourseId = courseDraft.getCourse() == null ? null : courseDraft.getCourse().getId();
             throw new CourseException(
-                    CourseErrorCode.COURSE_DRAFT_ALREADY_COMPLETED,
+                    CourseSaveErrorCode.COURSE_DRAFT_ALREADY_COMPLETED,
                     Collections.singletonMap("courseId", completedCourseId)
             );
         }
 
         if (courseDraft.getStatus() != CourseDraftStatus.SAVING) {
-            throw new CourseException(CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
+            throw new CourseException(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
         }
     }
 
@@ -156,7 +157,7 @@ public class CourseSaveService {
         Set<Long> placeIds = new HashSet<>();
         for (CourseDraftPlace draftPlace : draftPlaces) {
             if (!placeIds.add(draftPlace.getPlace().getId())) {
-                throw new CourseException(CourseErrorCode.INVALID_SELECTED_PLACE);
+                throw new CourseException(CourseDraftErrorCode.INVALID_SELECTED_PLACE);
             }
         }
 
@@ -165,13 +166,13 @@ public class CourseSaveService {
                 .sorted(Comparator.comparing(CourseDraftPlace::getVisitOrder))
                 .toList();
         if (selectedPlaces.isEmpty()) {
-            throw new CourseException(CourseErrorCode.INVALID_SELECTED_PLACE);
+            throw new CourseException(CourseDraftErrorCode.INVALID_SELECTED_PLACE);
         }
 
         for (int i = 0; i < selectedPlaces.size(); i++) {
             int expectedOrder = SELECTED_PLACE_START_ORDER + i;
             if (!selectedPlaces.get(i).getVisitOrder().equals(expectedOrder)) {
-                throw new CourseException(CourseErrorCode.INVALID_VISIT_ORDER);
+                throw new CourseException(CourseDraftErrorCode.INVALID_VISIT_ORDER);
             }
         }
 
@@ -189,12 +190,12 @@ public class CourseSaveService {
                 .filter(draftPlace -> draftPlace.getPlaceRole() == PlaceRole.BASE)
                 .toList();
         if (basePlaces.size() != 1 || !basePlaces.get(0).getVisitOrder().equals(1)) {
-            throw new CourseException(CourseErrorCode.INVALID_BASE_PLACE);
+            throw new CourseException(CourseDraftErrorCode.INVALID_BASE_PLACE);
         }
 
         CourseDraftPlace baseDraftPlace = basePlaces.get(0);
         if (baseDraftPlace.getPlace() == null) {
-            throw new CourseException(CourseErrorCode.INVALID_BASE_PLACE);
+            throw new CourseException(CourseDraftErrorCode.INVALID_BASE_PLACE);
         }
 
         return baseDraftPlace;

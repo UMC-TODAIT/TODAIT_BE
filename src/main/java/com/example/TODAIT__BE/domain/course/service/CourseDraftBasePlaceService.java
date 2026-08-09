@@ -9,7 +9,7 @@ import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
@@ -66,13 +66,13 @@ public class CourseDraftBasePlaceService {
             CourseDraftBasePlaceSaveRequest request
     ) {
         CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
-                .orElseThrow(() -> new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
+                .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
 
         courseDraftValidator.validateOwner(courseDraft, memberId);
         courseDraftValidator.validateStatus(
                 courseDraft,
                 CourseDraftStatus.BASE_PLACE_SELECTING,
-                CourseErrorCode.BASE_PLACE_DRAFT_STATUS_CONFLICT
+                CourseDraftErrorCode.BASE_PLACE_DRAFT_STATUS_CONFLICT
         );
 
         validateExactlyOneSource(request);
@@ -95,10 +95,10 @@ public class CourseDraftBasePlaceService {
         boolean hasExternalPlace = request.externalPlace() != null;
 
         if (hasPlaceId && hasExternalPlace) {
-            throw new CourseException(CourseErrorCode.BASE_PLACE_SOURCE_CONFLICT);
+            throw new CourseException(CourseDraftErrorCode.BASE_PLACE_SOURCE_CONFLICT);
         }
         if (!hasPlaceId && !hasExternalPlace) {
-            throw new CourseException(CourseErrorCode.BASE_PLACE_SOURCE_MISSING);
+            throw new CourseException(CourseDraftErrorCode.BASE_PLACE_SOURCE_MISSING);
         }
     }
 
@@ -200,7 +200,7 @@ public class CourseDraftBasePlaceService {
                 && externalPlace.longitude() != null;
 
         if (!valid) {
-            throw new CourseException(CourseErrorCode.BASE_PLACE_SOURCE_MISSING);
+            throw new CourseException(CourseDraftErrorCode.BASE_PLACE_SOURCE_MISSING);
         }
     }
 

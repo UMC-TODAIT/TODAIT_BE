@@ -15,7 +15,7 @@ import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftMoodTag;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
@@ -132,7 +132,7 @@ class CourseDraftMoodTagServiceTest {
         ))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
+                .isEqualTo(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT);
 
         verify(moodTagRepository, never()).findAllById(any());
         verify(courseDraftMoodTagRepository, never()).findByCourseDraft(any());
@@ -150,7 +150,7 @@ class CourseDraftMoodTagServiceTest {
         ))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
+                .isEqualTo(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT);
 
         verify(moodTagRepository, never()).findAllById(any());
         verify(courseDraftMoodTagRepository, never()).findByCourseDraft(any());
@@ -168,7 +168,7 @@ class CourseDraftMoodTagServiceTest {
         ))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.MOOD_TAG_DRAFT_STATUS_CONFLICT);
+                .isEqualTo(CourseDraftErrorCode.MOOD_TAG_DRAFT_STATUS_CONFLICT);
 
         verify(courseDraftMoodTagRepository, never()).findByCourseDraft(any());
     }

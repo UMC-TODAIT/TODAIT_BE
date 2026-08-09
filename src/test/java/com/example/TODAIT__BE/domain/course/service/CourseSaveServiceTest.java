@@ -22,7 +22,8 @@ import com.example.TODAIT__BE.domain.course.entity.CoursePlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseSaveErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
@@ -126,7 +127,7 @@ class CourseSaveServiceTest {
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 2L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED);
 
         verify(courseRepository, never()).save(any());
     }
@@ -142,7 +143,7 @@ class CourseSaveServiceTest {
                 .isInstanceOf(CourseException.class)
                 .satisfies(exception -> {
                     CourseException courseException = (CourseException) exception;
-                    assertThat(courseException.getErrorCode()).isEqualTo(CourseErrorCode.COURSE_DRAFT_ALREADY_COMPLETED);
+                    assertThat(courseException.getErrorCode()).isEqualTo(CourseSaveErrorCode.COURSE_DRAFT_ALREADY_COMPLETED);
                     assertThat((Map<String, Object>) courseException.getResult()).containsEntry("courseId", null);
                 });
 
@@ -168,7 +169,7 @@ class CourseSaveServiceTest {
                 .isInstanceOf(CourseException.class)
                 .satisfies(exception -> {
                     CourseException courseException = (CourseException) exception;
-                    assertThat(courseException.getErrorCode()).isEqualTo(CourseErrorCode.COURSE_DRAFT_ALREADY_COMPLETED);
+                    assertThat(courseException.getErrorCode()).isEqualTo(CourseSaveErrorCode.COURSE_DRAFT_ALREADY_COMPLETED);
                     assertThat((Map<String, Object>) courseException.getResult()).containsEntry("courseId", 999L);
                 });
 
@@ -191,8 +192,8 @@ class CourseSaveServiceTest {
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .satisfies(errorCode -> {
-                    assertThat(errorCode).isEqualTo(CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
-                    assertThat(((CourseErrorCode) errorCode).getStatus()).isEqualTo(HttpStatus.CONFLICT);
+                    assertThat(errorCode).isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
+                    assertThat(((CourseDraftErrorCode) errorCode).getStatus()).isEqualTo(HttpStatus.CONFLICT);
                 });
 
         verify(courseRepository, never()).save(any());
@@ -208,7 +209,7 @@ class CourseSaveServiceTest {
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_COURSE_TITLE);
+                .isEqualTo(CourseSaveErrorCode.INVALID_COURSE_TITLE);
 
         verify(courseRepository, never()).save(any());
     }
@@ -223,7 +224,7 @@ class CourseSaveServiceTest {
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_COURSE_TITLE);
+                .isEqualTo(CourseSaveErrorCode.INVALID_COURSE_TITLE);
 
         verify(courseRepository, never()).save(any());
     }
@@ -238,7 +239,7 @@ class CourseSaveServiceTest {
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
+                .isEqualTo(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT);
 
         verify(courseRepository, never()).save(any());
     }
@@ -253,7 +254,7 @@ class CourseSaveServiceTest {
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
+                .isEqualTo(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT);
 
         verify(courseRepository, never()).save(any());
     }
@@ -268,7 +269,7 @@ class CourseSaveServiceTest {
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
+                .isEqualTo(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT);
 
         verify(courseRepository, never()).save(any());
     }
@@ -283,7 +284,7 @@ class CourseSaveServiceTest {
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
+                .isEqualTo(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT);
 
         verify(courseRepository, never()).save(any());
     }
@@ -300,7 +301,7 @@ class CourseSaveServiceTest {
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.COURSE_MOOD_TAG_NOT_FOUND);
+                .isEqualTo(CourseSaveErrorCode.COURSE_MOOD_TAG_NOT_FOUND);
 
         verify(courseRepository, never()).save(any());
     }
@@ -318,7 +319,7 @@ class CourseSaveServiceTest {
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.COURSE_MOOD_TAG_NOT_FOUND);
+                .isEqualTo(CourseSaveErrorCode.COURSE_MOOD_TAG_NOT_FOUND);
 
         verify(courseRepository, never()).save(any());
     }
@@ -337,7 +338,7 @@ class CourseSaveServiceTest {
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.FOOD_CATEGORY_NOT_SELECTED);
+                .isEqualTo(CourseSaveErrorCode.FOOD_CATEGORY_NOT_SELECTED);
 
         verify(courseRepository, never()).save(any());
     }
@@ -366,7 +367,7 @@ class CourseSaveServiceTest {
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_BASE_PLACE);
+                .isEqualTo(CourseDraftErrorCode.INVALID_BASE_PLACE);
 
         verify(courseRepository, never()).save(any());
     }
@@ -398,7 +399,7 @@ class CourseSaveServiceTest {
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_SELECTED_PLACE);
+                .isEqualTo(CourseDraftErrorCode.INVALID_SELECTED_PLACE);
 
         verify(courseRepository, never()).save(any());
     }

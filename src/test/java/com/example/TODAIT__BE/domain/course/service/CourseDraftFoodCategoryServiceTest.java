@@ -15,7 +15,7 @@ import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftFoodCategory;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
@@ -134,7 +134,7 @@ class CourseDraftFoodCategoryServiceTest {
         ))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.FOOD_CATEGORY_DRAFT_STATUS_CONFLICT);
+                .isEqualTo(CourseDraftErrorCode.FOOD_CATEGORY_DRAFT_STATUS_CONFLICT);
 
         verify(courseDraftFoodCategoryRepository, never()).findByCourseDraft(any());
     }

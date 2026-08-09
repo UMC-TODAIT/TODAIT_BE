@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.course.controller;
 
-import com.example.TODAIT__BE.domain.course.code.CourseSuccessCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftSuccessCode;
 import com.example.TODAIT__BE.domain.course.controller.docs.CourseDraftFoodCategoryControllerDocs;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftFoodCategorySaveRequest;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftFoodCategorySaveResponse;
@@ -36,7 +36,7 @@ public class CourseDraftFoodCategoryController implements CourseDraftFoodCategor
                 request
         );
         return ResponseEntity
-                .status(CourseSuccessCode.FOOD_CATEGORY_SAVE_OK.getStatus())
-                .body(ApiResponse.onSuccess(CourseSuccessCode.FOOD_CATEGORY_SAVE_OK, result));
+                .status(CourseDraftSuccessCode.FOOD_CATEGORY_SAVE_OK.getStatus())
+                .body(ApiResponse.onSuccess(CourseDraftSuccessCode.FOOD_CATEGORY_SAVE_OK, result));
     }
 }

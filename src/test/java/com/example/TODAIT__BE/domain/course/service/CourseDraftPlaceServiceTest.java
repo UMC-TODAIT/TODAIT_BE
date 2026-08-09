@@ -16,7 +16,7 @@ import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
@@ -142,7 +142,7 @@ class CourseDraftPlaceServiceTest {
         assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 2L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED);
     }
 
     @Test
@@ -160,7 +160,7 @@ class CourseDraftPlaceServiceTest {
         assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.SELECTED_PLACE_NOT_FOUND);
+                .isEqualTo(CourseDraftErrorCode.SELECTED_PLACE_NOT_FOUND);
     }
 
     @Test
@@ -178,7 +178,7 @@ class CourseDraftPlaceServiceTest {
         assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.BASE_PLACE_NOT_REORDERABLE);
+                .isEqualTo(CourseDraftErrorCode.BASE_PLACE_NOT_REORDERABLE);
     }
 
     @Test
@@ -195,7 +195,7 @@ class CourseDraftPlaceServiceTest {
         assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.PLACE_ORDER_DRAFT_STATUS_CONFLICT);
+                .isEqualTo(CourseDraftErrorCode.PLACE_ORDER_DRAFT_STATUS_CONFLICT);
     }
 
     @Test
@@ -216,7 +216,7 @@ class CourseDraftPlaceServiceTest {
             assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 1L, request))
                     .isInstanceOf(CourseException.class)
                     .extracting("errorCode")
-                    .isEqualTo(CourseErrorCode.PLACE_ORDER_DRAFT_STATUS_CONFLICT);
+                    .isEqualTo(CourseDraftErrorCode.PLACE_ORDER_DRAFT_STATUS_CONFLICT);
         }
     }
 
@@ -242,7 +242,7 @@ class CourseDraftPlaceServiceTest {
         assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_VISIT_ORDER);
+                .isEqualTo(CourseDraftErrorCode.INVALID_VISIT_ORDER);
     }
 
     @Test
@@ -265,7 +265,7 @@ class CourseDraftPlaceServiceTest {
         assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_VISIT_ORDER);
+                .isEqualTo(CourseDraftErrorCode.INVALID_VISIT_ORDER);
     }
 
     @Test
@@ -289,7 +289,7 @@ class CourseDraftPlaceServiceTest {
         assertThatThrownBy(() -> courseDraftPlaceService.updatePlaceOrder(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_VISIT_ORDER);
+                .isEqualTo(CourseDraftErrorCode.INVALID_VISIT_ORDER);
     }
 
     @Test
@@ -327,7 +327,7 @@ class CourseDraftPlaceServiceTest {
         assertThatThrownBy(() -> courseDraftPlaceService.addPlace(10L, 2L, new CourseDraftPlaceAddRequest(32L)))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED);
     }
 
     @Test
@@ -338,7 +338,7 @@ class CourseDraftPlaceServiceTest {
         assertThatThrownBy(() -> courseDraftPlaceService.addPlace(10L, 1L, new CourseDraftPlaceAddRequest(32L)))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.PLACE_ADD_DRAFT_STATUS_CONFLICT);
+                .isEqualTo(CourseDraftErrorCode.PLACE_ADD_DRAFT_STATUS_CONFLICT);
     }
 
     @Test
@@ -351,7 +351,7 @@ class CourseDraftPlaceServiceTest {
         assertThatThrownBy(() -> courseDraftPlaceService.addPlace(10L, 1L, new CourseDraftPlaceAddRequest(32L)))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_BASE_PLACE);
+                .isEqualTo(CourseDraftErrorCode.INVALID_BASE_PLACE);
     }
 
     @Test
@@ -432,7 +432,7 @@ class CourseDraftPlaceServiceTest {
         assertThatThrownBy(() -> courseDraftPlaceService.addPlace(10L, 1L, new CourseDraftPlaceAddRequest(21L)))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.BASE_PLACE_RESELECT_CONFLICT);
+                .isEqualTo(CourseDraftErrorCode.BASE_PLACE_RESELECT_CONFLICT);
     }
 
     @Test
@@ -453,7 +453,7 @@ class CourseDraftPlaceServiceTest {
         assertThatThrownBy(() -> courseDraftPlaceService.addPlace(10L, 1L, new CourseDraftPlaceAddRequest(32L)))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.SELECTED_PLACE_DUPLICATE);
+                .isEqualTo(CourseDraftErrorCode.SELECTED_PLACE_DUPLICATE);
     }
 
     @Test
@@ -472,6 +472,6 @@ class CourseDraftPlaceServiceTest {
         assertThatThrownBy(() -> courseDraftPlaceService.addPlace(10L, 1L, new CourseDraftPlaceAddRequest(33L)))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.SELECTED_PLACE_CATEGORY_DUPLICATE);
+                .isEqualTo(CourseDraftErrorCode.SELECTED_PLACE_CATEGORY_DUPLICATE);
     }
 }

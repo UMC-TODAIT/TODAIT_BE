@@ -11,7 +11,7 @@ import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
@@ -50,13 +50,13 @@ public class CourseDraftPlaceService {
     @Transactional
     public PlaceOrderUpdateResponse updatePlaceOrder(Long courseDraftId, Long memberId, PlaceOrderUpdateRequest request) {
         CourseDraft courseDraft = courseDraftRepository.findById(courseDraftId)
-                .orElseThrow(() -> new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
+                .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
 
         courseDraftValidator.validateOwner(courseDraft, memberId);
         courseDraftValidator.validateStatus(
                 courseDraft,
                 CourseDraftStatus.ORDERING,
-                CourseErrorCode.PLACE_ORDER_DRAFT_STATUS_CONFLICT
+                CourseDraftErrorCode.PLACE_ORDER_DRAFT_STATUS_CONFLICT
         );
 
         List<PlaceOrderItem> placeOrders = request.placeOrders() != null ? request.placeOrders() : List.of();
@@ -80,13 +80,13 @@ public class CourseDraftPlaceService {
     @Transactional
     public CourseDraftPlaceAddResponse addPlace(Long courseDraftId, Long memberId, CourseDraftPlaceAddRequest request) {
         CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
-                .orElseThrow(() -> new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
+                .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
 
         courseDraftValidator.validateOwner(courseDraft, memberId);
         courseDraftValidator.validateStatus(
                 courseDraft,
                 CourseDraftStatus.PLACE_SELECTING,
-                CourseErrorCode.PLACE_ADD_DRAFT_STATUS_CONFLICT
+                CourseDraftErrorCode.PLACE_ADD_DRAFT_STATUS_CONFLICT
         );
 
         List<CourseDraftPlace> existingPlaces =
@@ -98,20 +98,20 @@ public class CourseDraftPlaceService {
         validateAvailablePlace(place);
 
         if (place.getId().equals(basePlace.getPlace().getId())) {
-            throw new CourseException(CourseErrorCode.BASE_PLACE_RESELECT_CONFLICT);
+            throw new CourseException(CourseDraftErrorCode.BASE_PLACE_RESELECT_CONFLICT);
         }
 
         boolean alreadySelected = existingPlaces.stream()
                 .anyMatch(draftPlace -> draftPlace.getPlace().getId().equals(place.getId()));
         if (alreadySelected) {
-            throw new CourseException(CourseErrorCode.SELECTED_PLACE_DUPLICATE);
+            throw new CourseException(CourseDraftErrorCode.SELECTED_PLACE_DUPLICATE);
         }
 
         boolean categoryAlreadyUsed = existingPlaces.stream()
                 .anyMatch(draftPlace ->
                         draftPlace.getPlace().getPlaceCategory().getId().equals(place.getPlaceCategory().getId()));
         if (categoryAlreadyUsed) {
-            throw new CourseException(CourseErrorCode.SELECTED_PLACE_CATEGORY_DUPLICATE);
+            throw new CourseException(CourseDraftErrorCode.SELECTED_PLACE_CATEGORY_DUPLICATE);
         }
 
         int nextVisitOrder = existingPlaces.stream()
@@ -141,7 +141,7 @@ public class CourseDraftPlaceService {
                 .filter(draftPlace -> draftPlace.getPlaceRole() == PlaceRole.BASE)
                 .toList();
         if (baseDraftPlaces.size() != 1 || !baseDraftPlaces.get(0).getVisitOrder().equals(BASE_VISIT_ORDER)) {
-            throw new CourseException(CourseErrorCode.INVALID_BASE_PLACE);
+            throw new CourseException(CourseDraftErrorCode.INVALID_BASE_PLACE);
         }
         return baseDraftPlaces.get(0);
     }
@@ -176,10 +176,10 @@ public class CourseDraftPlaceService {
         for (PlaceOrderItem item : placeOrders) {
             CourseDraftPlace place = placesById.get(item.courseDraftPlaceId());
             if (place == null) {
-                throw new CourseException(CourseErrorCode.SELECTED_PLACE_NOT_FOUND);
+                throw new CourseException(CourseDraftErrorCode.SELECTED_PLACE_NOT_FOUND);
             }
             if (place.getPlaceRole() == PlaceRole.BASE) {
-                throw new CourseException(CourseErrorCode.BASE_PLACE_NOT_REORDERABLE);
+                throw new CourseException(CourseDraftErrorCode.BASE_PLACE_NOT_REORDERABLE);
             }
             targetPlaces.add(place);
         }
@@ -204,7 +204,7 @@ public class CourseDraftPlaceService {
                 .toList();
         for (int i = 0; i < sortedOrders.size(); i++) {
             if (!sortedOrders.get(i).equals(SELECTED_PLACE_START_ORDER + i)) {
-                throw new CourseException(CourseErrorCode.INVALID_VISIT_ORDER);
+                throw new CourseException(CourseDraftErrorCode.INVALID_VISIT_ORDER);
             }
         }
 
@@ -217,7 +217,7 @@ public class CourseDraftPlaceService {
                 .collect(Collectors.toSet());
 
         if (requestedIds.size() != placeOrders.size() || !requestedIds.equals(actualSelectedIds)) {
-            throw new CourseException(CourseErrorCode.INVALID_VISIT_ORDER);
+            throw new CourseException(CourseDraftErrorCode.INVALID_VISIT_ORDER);
         }
     }
 }

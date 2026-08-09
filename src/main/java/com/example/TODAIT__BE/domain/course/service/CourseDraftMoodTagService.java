@@ -6,7 +6,7 @@ import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftMoodTag;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
@@ -43,12 +43,12 @@ public class CourseDraftMoodTagService {
             CourseDraftMoodTagSaveRequest request
     ) {
         CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
-                .orElseThrow(() -> new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
+                .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
 
         courseDraftValidator.validateOwner(courseDraft, memberId);
         courseDraftValidator.validateStatusIn(
                 courseDraft,
-                CourseErrorCode.MOOD_TAG_DRAFT_STATUS_CONFLICT,
+                CourseDraftErrorCode.MOOD_TAG_DRAFT_STATUS_CONFLICT,
                 CourseDraftStatus.MOOD_SELECTING,
                 CourseDraftStatus.FOOD_SELECTING
         );
@@ -58,11 +58,11 @@ public class CourseDraftMoodTagService {
         if (moodTagIds == null
                 || moodTagIds.size() < MIN_MOOD_TAG_COUNT
                 || moodTagIds.size() > MAX_MOOD_TAG_COUNT) {
-            throw new CourseException(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
+            throw new CourseException(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT);
         }
 
         if (new HashSet<>(moodTagIds).size() != moodTagIds.size()) {
-            throw new CourseException(CourseErrorCode.DUPLICATE_MOOD_TAG);
+            throw new CourseException(CourseDraftErrorCode.DUPLICATE_MOOD_TAG);
         }
 
         List<MoodTag> moodTags = validateAndGetMoodTags(moodTagIds);

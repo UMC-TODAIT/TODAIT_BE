@@ -10,10 +10,10 @@ import com.example.TODAIT__BE.domain.course.dto.response.SavedCoursePreviewPlace
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
 import com.example.TODAIT__BE.domain.course.entity.CoursePlace;
+import com.example.TODAIT__BE.domain.course.code.SavedCourseErrorCode;
 import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
@@ -133,13 +133,13 @@ public class SavedCourseService {
                 .findSavedCourseDetailById(courseId)
                 .orElseThrow(() ->
                         new CourseException(
-                                CourseErrorCode.SAVED_COURSE_NOT_FOUND
+                                SavedCourseErrorCode.SAVED_COURSE_NOT_FOUND
                         )
                 );
 
         if (!course.getMember().getId().equals(memberId)) {
             throw new CourseException(
-                    CourseErrorCode.SAVED_COURSE_ACCESS_DENIED
+                    SavedCourseErrorCode.SAVED_COURSE_ACCESS_DENIED
             );
         }
 
@@ -362,7 +362,7 @@ public class SavedCourseService {
                 )
                 .orElseThrow(() ->
                         new CourseException(
-                                CourseErrorCode.SAVED_COURSE_PLACE_NOT_FOUND
+                                SavedCourseErrorCode.SAVED_COURSE_PLACE_NOT_FOUND
                         )
                 );
 
@@ -385,19 +385,19 @@ public class SavedCourseService {
                 .findSavedCourseDetailById(courseId)
                 .orElseThrow(() ->
                         new CourseException(
-                                CourseErrorCode.SAVED_COURSE_NOT_FOUND
+                                SavedCourseErrorCode.SAVED_COURSE_NOT_FOUND
                         )
                 );
 
         if (!course.getMember().getId().equals(memberId)) {
             throw new CourseException(
-                    CourseErrorCode.SAVED_COURSE_ACCESS_DENIED
+                    SavedCourseErrorCode.SAVED_COURSE_ACCESS_DENIED
             );
         }
 
         if (course.getSourceType() != CourseSourceType.USER_CREATED) {
             throw new CourseException(
-                    CourseErrorCode.SAVED_COURSE_ACCESS_DENIED
+                    SavedCourseErrorCode.SAVED_COURSE_ACCESS_DENIED
             );
         }
 

@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.course.controller;
 
-import com.example.TODAIT__BE.domain.course.code.CourseSuccessCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftSuccessCode;
 import com.example.TODAIT__BE.domain.course.controller.docs.CourseDraftMoodTagControllerDocs;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftMoodTagSaveRequest;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftMoodTagSaveResponse;
@@ -36,7 +36,7 @@ public class CourseDraftMoodTagController implements CourseDraftMoodTagControlle
                 request
         );
         return ResponseEntity
-                .status(CourseSuccessCode.MOOD_TAG_SAVE_OK.getStatus())
-                .body(ApiResponse.onSuccess(CourseSuccessCode.MOOD_TAG_SAVE_OK, result));
+                .status(CourseDraftSuccessCode.MOOD_TAG_SAVE_OK.getStatus())
+                .body(ApiResponse.onSuccess(CourseDraftSuccessCode.MOOD_TAG_SAVE_OK, result));
     }
 }

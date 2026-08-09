@@ -17,7 +17,7 @@ import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
 import com.example.TODAIT__BE.domain.course.entity.CoursePlace;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.SavedCourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
@@ -142,7 +142,7 @@ class SavedCourseServiceTest {
                 .isInstanceOfSatisfying(
                         CourseException.class,
                         exception -> assertThat(exception.getErrorCode())
-                                .isEqualTo(CourseErrorCode.SAVED_COURSE_NOT_FOUND)
+                                .isEqualTo(SavedCourseErrorCode.SAVED_COURSE_NOT_FOUND)
                 );
 
         verify(courseMoodTagRepository, never())
@@ -165,7 +165,7 @@ class SavedCourseServiceTest {
                 .isInstanceOfSatisfying(
                         CourseException.class,
                         exception -> assertThat(exception.getErrorCode())
-                                .isEqualTo(CourseErrorCode.SAVED_COURSE_ACCESS_DENIED)
+                                .isEqualTo(SavedCourseErrorCode.SAVED_COURSE_ACCESS_DENIED)
                 );
 
         verify(courseMoodTagRepository, never())

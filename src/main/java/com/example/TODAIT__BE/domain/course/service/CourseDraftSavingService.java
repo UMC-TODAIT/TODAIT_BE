@@ -7,7 +7,7 @@ import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
@@ -31,12 +31,12 @@ public class CourseDraftSavingService {
     @Transactional
     public CourseDraftSavingEnterResponse enterSaving(Long courseDraftId, Long memberId) {
         CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
-                .orElseThrow(() -> new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
+                .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
 
         courseDraftValidator.validateOwner(courseDraft, memberId);
         courseDraftValidator.validateStatusIn(
                 courseDraft,
-                CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT,
+                CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT,
                 CourseDraftStatus.ORDERING,
                 CourseDraftStatus.SAVING
         );
@@ -68,7 +68,7 @@ public class CourseDraftSavingService {
         if (basePlaces.size() != 1
                 || basePlaces.get(0).getPlace() == null
                 || !Integer.valueOf(BASE_VISIT_ORDER).equals(basePlaces.get(0).getVisitOrder())) {
-            throw new CourseException(CourseErrorCode.COURSE_DRAFT_BASE_PLACE_CONFLICT);
+            throw new CourseException(CourseDraftErrorCode.COURSE_DRAFT_BASE_PLACE_CONFLICT);
         }
 
         List<CourseDraftPlace> selectedPlaces = draftPlaces.stream()
@@ -80,14 +80,14 @@ public class CourseDraftSavingService {
                 .toList();
 
         if (selectedPlaces.isEmpty()) {
-            throw new CourseException(CourseErrorCode.COURSE_DRAFT_SELECTED_PLACE_CONFLICT);
+            throw new CourseException(CourseDraftErrorCode.COURSE_DRAFT_SELECTED_PLACE_CONFLICT);
         }
 
         for (int i = 0; i < selectedPlaces.size(); i++) {
             int expectedOrder = SELECTED_PLACE_START_ORDER + i;
             if (selectedPlaces.get(i).getPlace() == null
                     || !Integer.valueOf(expectedOrder).equals(selectedPlaces.get(i).getVisitOrder())) {
-                throw new CourseException(CourseErrorCode.COURSE_DRAFT_SELECTED_PLACE_CONFLICT);
+                throw new CourseException(CourseDraftErrorCode.COURSE_DRAFT_SELECTED_PLACE_CONFLICT);
             }
         }
     }

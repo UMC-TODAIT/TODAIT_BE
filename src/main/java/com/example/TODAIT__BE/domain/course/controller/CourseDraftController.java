@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.course.controller;
 
-import com.example.TODAIT__BE.domain.course.code.CourseSuccessCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftSuccessCode;
 import com.example.TODAIT__BE.domain.course.controller.docs.CourseDraftControllerDocs;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftCreateResponse;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftService;
@@ -27,7 +27,7 @@ public class CourseDraftController implements CourseDraftControllerDocs {
     ) {
         CourseDraftCreateResponse result = courseDraftService.createCourseDraft(authMember.memberId());
         return ResponseEntity
-                .status(CourseSuccessCode.COURSE_DRAFT_CREATE_OK.getStatus())
-                .body(ApiResponse.onSuccess(CourseSuccessCode.COURSE_DRAFT_CREATE_OK, result));
+                .status(CourseDraftSuccessCode.COURSE_DRAFT_CREATE_OK.getStatus())
+                .body(ApiResponse.onSuccess(CourseDraftSuccessCode.COURSE_DRAFT_CREATE_OK, result));
     }
 }

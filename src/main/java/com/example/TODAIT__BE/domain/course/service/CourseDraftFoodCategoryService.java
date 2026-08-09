@@ -6,7 +6,7 @@ import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftFoodCategory;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
@@ -42,12 +42,12 @@ public class CourseDraftFoodCategoryService {
             CourseDraftFoodCategorySaveRequest request
     ) {
         CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
-                .orElseThrow(() -> new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
+                .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
 
         courseDraftValidator.validateOwner(courseDraft, memberId);
         courseDraftValidator.validateStatusIn(
                 courseDraft,
-                CourseErrorCode.FOOD_CATEGORY_DRAFT_STATUS_CONFLICT,
+                CourseDraftErrorCode.FOOD_CATEGORY_DRAFT_STATUS_CONFLICT,
                 CourseDraftStatus.FOOD_SELECTING,
                 CourseDraftStatus.BASE_PLACE_SELECTING
         );
@@ -55,11 +55,11 @@ public class CourseDraftFoodCategoryService {
         List<Long> foodCategoryIds = request.foodCategoryIds();
 
         if (foodCategoryIds == null || foodCategoryIds.size() < MIN_FOOD_CATEGORY_COUNT) {
-            throw new CourseException(CourseErrorCode.INVALID_FOOD_CATEGORY_COUNT);
+            throw new CourseException(CourseDraftErrorCode.INVALID_FOOD_CATEGORY_COUNT);
         }
 
         if (new HashSet<>(foodCategoryIds).size() != foodCategoryIds.size()) {
-            throw new CourseException(CourseErrorCode.DUPLICATE_FOOD_CATEGORY);
+            throw new CourseException(CourseDraftErrorCode.DUPLICATE_FOOD_CATEGORY);
         }
 
         List<FoodCategory> foodCategories = validateAndGetFoodCategories(foodCategoryIds);

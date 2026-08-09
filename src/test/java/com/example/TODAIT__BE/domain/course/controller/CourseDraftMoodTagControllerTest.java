@@ -13,7 +13,7 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftMoodTagSaveR
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftMoodTagSaveResponse.MoodTagItem;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftMoodTagService;
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;
@@ -96,7 +96,7 @@ class CourseDraftMoodTagControllerTest {
     @Test
     void saveMoodTags_notOwner_returns403() throws Exception {
         given(courseDraftMoodTagService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new CourseException(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED));
+                .willThrow(new CourseException(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/mood-tags", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken()))
@@ -105,13 +105,13 @@ class CourseDraftMoodTagControllerTest {
                                 new CourseDraftMoodTagSaveRequest(List.of(1L, 4L)))))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.isSuccess").value(false))
-                .andExpect(jsonPath("$.code").value(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED.getCode()));
+                .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED.getCode()));
     }
 
     @Test
     void saveMoodTags_draftNotFound_returns404() throws Exception {
         given(courseDraftMoodTagService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
+                .willThrow(new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/mood-tags", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken()))
@@ -119,13 +119,13 @@ class CourseDraftMoodTagControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 new CourseDraftMoodTagSaveRequest(List.of(1L, 4L)))))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.code").value(CourseErrorCode.COURSE_DRAFT_NOT_FOUND.getCode()));
+                .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND.getCode()));
     }
 
     @Test
     void saveMoodTags_unsupportedDraftStatus_returns409() throws Exception {
         given(courseDraftMoodTagService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new CourseException(CourseErrorCode.MOOD_TAG_DRAFT_STATUS_CONFLICT));
+                .willThrow(new CourseException(CourseDraftErrorCode.MOOD_TAG_DRAFT_STATUS_CONFLICT));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/mood-tags", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken()))
@@ -133,14 +133,14 @@ class CourseDraftMoodTagControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 new CourseDraftMoodTagSaveRequest(List.of(1L, 4L)))))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value(CourseErrorCode.MOOD_TAG_DRAFT_STATUS_CONFLICT.getCode()))
+                .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.MOOD_TAG_DRAFT_STATUS_CONFLICT.getCode()))
                 .andExpect(jsonPath("$.message").value("현재 임시 코스 상태에서는 분위기를 저장할 수 없습니다."));
     }
 
     @Test
     void saveMoodTags_lessThanMinimumCount_returns400() throws Exception {
         given(courseDraftMoodTagService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new CourseException(CourseErrorCode.INVALID_MOOD_TAG_COUNT));
+                .willThrow(new CourseException(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/mood-tags", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken()))
@@ -148,13 +148,13 @@ class CourseDraftMoodTagControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 new CourseDraftMoodTagSaveRequest(List.of(1L)))))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(CourseErrorCode.INVALID_MOOD_TAG_COUNT.getCode()));
+                .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT.getCode()));
     }
 
     @Test
     void saveMoodTags_duplicateTag_returns400() throws Exception {
         given(courseDraftMoodTagService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new CourseException(CourseErrorCode.DUPLICATE_MOOD_TAG));
+                .willThrow(new CourseException(CourseDraftErrorCode.DUPLICATE_MOOD_TAG));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/mood-tags", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken()))
@@ -162,7 +162,7 @@ class CourseDraftMoodTagControllerTest {
                         .content(objectMapper.writeValueAsString(
                                 new CourseDraftMoodTagSaveRequest(List.of(1L, 1L)))))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(CourseErrorCode.DUPLICATE_MOOD_TAG.getCode()));
+                .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.DUPLICATE_MOOD_TAG.getCode()));
     }
 
     @Test

@@ -11,7 +11,7 @@ import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
@@ -96,7 +96,7 @@ class CourseDraftSavingServiceTest {
         assertThatThrownBy(() -> courseDraftSavingService.enterSaving(10L, 2L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED);
     }
 
     @ParameterizedTest
@@ -112,7 +112,7 @@ class CourseDraftSavingServiceTest {
         assertThatThrownBy(() -> courseDraftSavingService.enterSaving(10L, 1L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
     }
 
     @Test
@@ -127,7 +127,7 @@ class CourseDraftSavingServiceTest {
         assertThatThrownBy(() -> courseDraftSavingService.enterSaving(10L, 1L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.COURSE_DRAFT_BASE_PLACE_CONFLICT);
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_BASE_PLACE_CONFLICT);
     }
 
     @Test
@@ -142,7 +142,7 @@ class CourseDraftSavingServiceTest {
         assertThatThrownBy(() -> courseDraftSavingService.enterSaving(10L, 1L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.COURSE_DRAFT_SELECTED_PLACE_CONFLICT);
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_SELECTED_PLACE_CONFLICT);
     }
 
     @Test
@@ -158,7 +158,7 @@ class CourseDraftSavingServiceTest {
         assertThatThrownBy(() -> courseDraftSavingService.enterSaving(10L, 1L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.COURSE_DRAFT_SELECTED_PLACE_CONFLICT);
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_SELECTED_PLACE_CONFLICT);
     }
 
     private Member member(Long id) {

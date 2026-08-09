@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.course.controller;
 
-import com.example.TODAIT__BE.domain.course.code.CourseSuccessCode;
+import com.example.TODAIT__BE.domain.course.code.RecommendedCourseSuccessCode;
 import com.example.TODAIT__BE.domain.course.controller.docs.RecommendedCourseControllerDocs;
 import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseDetailResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseSaveResponse;
@@ -39,13 +39,13 @@ public class RecommendedCourseController
 
         return ResponseEntity
                 .status(
-                        CourseSuccessCode
+                        RecommendedCourseSuccessCode
                                 .RECOMMENDED_COURSE_DETAIL_OK
                                 .getStatus()
                 )
                 .body(
                         ApiResponse.onSuccess(
-                                CourseSuccessCode
+                                RecommendedCourseSuccessCode
                                         .RECOMMENDED_COURSE_DETAIL_OK,
                                 result
                         )
@@ -68,13 +68,13 @@ public class RecommendedCourseController
 
         return ResponseEntity
                 .status(
-                        CourseSuccessCode
+                        RecommendedCourseSuccessCode
                                 .RECOMMENDED_COURSE_SAVE_OK
                                 .getStatus()
                 )
                 .body(
                         ApiResponse.onSuccess(
-                                CourseSuccessCode
+                                RecommendedCourseSuccessCode
                                         .RECOMMENDED_COURSE_SAVE_OK,
                                 result
                         )

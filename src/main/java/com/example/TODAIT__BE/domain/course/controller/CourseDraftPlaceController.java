@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.course.controller;
 
-import com.example.TODAIT__BE.domain.course.code.CourseSuccessCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftSuccessCode;
 import com.example.TODAIT__BE.domain.course.controller.docs.CourseDraftPlaceControllerDocs;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftPlaceAddRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.PlaceOrderUpdateRequest;
@@ -37,8 +37,8 @@ public class CourseDraftPlaceController implements CourseDraftPlaceControllerDoc
         CourseDraftPlaceAddResponse result =
                 courseDraftPlaceService.addPlace(courseDraftId, authMember.memberId(), request);
         return ResponseEntity
-                .status(CourseSuccessCode.PLACE_ADD_OK.getStatus())
-                .body(ApiResponse.onSuccess(CourseSuccessCode.PLACE_ADD_OK, result));
+                .status(CourseDraftSuccessCode.PLACE_ADD_OK.getStatus())
+                .body(ApiResponse.onSuccess(CourseDraftSuccessCode.PLACE_ADD_OK, result));
     }
 
     @PatchMapping("/{courseDraftId}/places/order")
@@ -51,7 +51,7 @@ public class CourseDraftPlaceController implements CourseDraftPlaceControllerDoc
         PlaceOrderUpdateResponse result =
                 courseDraftPlaceService.updatePlaceOrder(courseDraftId, authMember.memberId(), request);
         return ResponseEntity
-                .status(CourseSuccessCode.PLACE_ORDER_UPDATE_OK.getStatus())
-                .body(ApiResponse.onSuccess(CourseSuccessCode.PLACE_ORDER_UPDATE_OK, result));
+                .status(CourseDraftSuccessCode.PLACE_ORDER_UPDATE_OK.getStatus())
+                .body(ApiResponse.onSuccess(CourseDraftSuccessCode.PLACE_ORDER_UPDATE_OK, result));
     }
 }

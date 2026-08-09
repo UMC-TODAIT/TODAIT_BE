@@ -3,7 +3,7 @@ package com.example.TODAIT__BE.domain.recommendation.service;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
@@ -401,7 +401,7 @@ class HotPlaceRecommendationServiceTest {
                 .extracting(exception ->
                         ((CourseException) exception).getErrorCode()
                 )
-                .isEqualTo(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED);
 
         verify(candidateLoader, never()).load();
     }
@@ -426,7 +426,7 @@ class HotPlaceRecommendationServiceTest {
                 .extracting(exception ->
                         ((CourseException) exception).getErrorCode()
                 )
-                .isEqualTo(CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
 
         verify(candidateLoader, never()).load();
     }

@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.course.controller;
 
-import com.example.TODAIT__BE.domain.course.code.CourseSuccessCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftSuccessCode;
 import com.example.TODAIT__BE.domain.course.controller.docs.CourseDraftBasePlaceControllerDocs;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftBasePlaceSaveRequest;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftBasePlaceSaveResponse;
@@ -36,7 +36,7 @@ public class CourseDraftBasePlaceController implements CourseDraftBasePlaceContr
                 request
         );
         return ResponseEntity
-                .status(CourseSuccessCode.BASE_PLACE_SAVE_OK.getStatus())
-                .body(ApiResponse.onSuccess(CourseSuccessCode.BASE_PLACE_SAVE_OK, result));
+                .status(CourseDraftSuccessCode.BASE_PLACE_SAVE_OK.getStatus())
+                .body(ApiResponse.onSuccess(CourseDraftSuccessCode.BASE_PLACE_SAVE_OK, result));
     }
 }

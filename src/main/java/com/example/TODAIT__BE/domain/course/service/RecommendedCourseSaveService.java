@@ -9,7 +9,7 @@ import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.RecommendedCourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseFoodCategoryRepository;
@@ -90,7 +90,7 @@ public class RecommendedCourseSaveService {
                 )
                 .orElseThrow(() ->
                         new CourseException(
-                                CourseErrorCode.RECOMMENDED_COURSE_NOT_FOUND
+                                RecommendedCourseErrorCode.RECOMMENDED_COURSE_NOT_FOUND
                         )
                 );
     }
@@ -229,7 +229,7 @@ public class RecommendedCourseSaveService {
 
     private CourseException recommendedCourseNotSavable() {
         return new CourseException(
-                CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE
+                RecommendedCourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE
         );
     }
 

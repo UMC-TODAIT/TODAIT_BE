@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.course.controller;
 
-import com.example.TODAIT__BE.domain.course.code.CourseSuccessCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftSuccessCode;
 import com.example.TODAIT__BE.domain.course.controller.docs.CourseDraftSavingControllerDocs;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftSavingEnterResponse;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftSavingService;
@@ -31,7 +31,7 @@ public class CourseDraftSavingController implements CourseDraftSavingControllerD
                 courseDraftSavingService.enterSaving(courseDraftId, authMember.memberId());
 
         return ResponseEntity
-                .status(CourseSuccessCode.COURSE_DRAFT_SAVING_ENTER_OK.getStatus())
-                .body(ApiResponse.onSuccess(CourseSuccessCode.COURSE_DRAFT_SAVING_ENTER_OK, result));
+                .status(CourseDraftSuccessCode.COURSE_DRAFT_SAVING_ENTER_OK.getStatus())
+                .body(ApiResponse.onSuccess(CourseDraftSuccessCode.COURSE_DRAFT_SAVING_ENTER_OK, result));
     }
 }
