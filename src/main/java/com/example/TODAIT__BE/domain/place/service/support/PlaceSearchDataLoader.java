@@ -21,7 +21,7 @@ public class PlaceSearchDataLoader {
     private final PlaceSourceRepository placeSourceRepository;
     private final PlaceImageRepository placeImageRepository;
 
-    public PlaceSearchData load(
+    public SearchData load(
             List<ExternalPlaceCandidate> candidates
     ) {
         Map<String, Place> registeredPlacesByExternalId =
@@ -34,7 +34,7 @@ public class PlaceSearchDataLoader {
                         .distinct()
                         .toList();
 
-        return new PlaceSearchData(
+        return new SearchData(
                 registeredPlacesByExternalId,
                 findPrimaryImageUrlsByPlaceId(registeredPlaceIds),
                 findOperatorSourcePlaceIds(registeredPlaceIds)
@@ -99,5 +99,12 @@ public class PlaceSearchDataLoader {
                 placeIds,
                 PlaceDataSourceCode.OPERATOR.name()
         );
+    }
+
+    public record SearchData(
+            Map<String, Place> registeredPlacesByExternalId,
+            Map<Long, String> primaryImageUrlsByPlaceId,
+            Set<Long> operatorSourcePlaceIds
+    ) {
     }
 }

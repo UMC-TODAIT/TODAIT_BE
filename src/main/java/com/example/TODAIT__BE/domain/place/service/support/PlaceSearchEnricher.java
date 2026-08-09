@@ -2,25 +2,31 @@ package com.example.TODAIT__BE.domain.place.service.support;
 
 import com.example.TODAIT__BE.domain.place.dto.response.PlaceSearchResponse;
 import com.example.TODAIT__BE.domain.place.entity.Place;
+import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
+import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
 import com.example.TODAIT__BE.domain.place.service.port.ExternalPlaceCandidate;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
+import com.example.TODAIT__BE.domain.taxonomy.repository.AreaRepository;
+import com.example.TODAIT__BE.domain.taxonomy.repository.PlaceCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class PlaceSearchEnricher {
 
-    private final PlaceSearchAreaResolver areaResolver;
-    private final PlaceSearchCategoryResolver categoryResolver;
+    private final AreaRepository areaRepository;
+    private final PlaceCategoryRepository placeCategoryRepository;
     private final PlaceSearchDataLoader dataLoader;
     private final PlaceSearchImageResolver imageResolver;
-    private final PlaceDetailAvailabilityPolicy detailAvailabilityPolicy;
 
     public List<PlaceSearchResponse.PlaceItem> enrich(
             List<ExternalPlaceCandidate> candidates
@@ -29,10 +35,9 @@ public class PlaceSearchEnricher {
             return List.of();
         }
 
-        Map<String, Area> activeAreasByCode = areaResolver.getActiveAreasByCode();
-        Map<String, PlaceCategory> activeCategoriesByCode =
-                categoryResolver.getActiveCategoriesByCode();
-        PlaceSearchData searchData = dataLoader.load(candidates);
+        Map<String, Area> activeAreasByCode = getActiveAreasByCode();
+        Map<String, PlaceCategory> activeCategoriesByCode = getActiveCategoriesByCode();
+        PlaceSearchDataLoader.SearchData searchData = dataLoader.load(candidates);
 
         return candidates.stream()
                 .map(candidate -> toPlaceItem(
@@ -49,10 +54,10 @@ public class PlaceSearchEnricher {
             ExternalPlaceCandidate candidate,
             Map<String, Area> activeAreasByCode,
             Map<String, PlaceCategory> activeCategoriesByCode,
-            PlaceSearchData searchData
+            PlaceSearchDataLoader.SearchData searchData
     ) {
-        Area area = areaResolver.resolve(candidate.areaCode(), activeAreasByCode);
-        PlaceCategory category = categoryResolver.resolve(
+        Area area = resolveArea(candidate.areaCode(), activeAreasByCode);
+        PlaceCategory category = resolveCategory(
                 candidate.placeCategoryCode(),
                 activeCategoriesByCode
         );
@@ -69,10 +74,6 @@ public class PlaceSearchEnricher {
                 registeredPlace,
                 category,
                 searchData.primaryImageUrlsByPlaceId()
-        );
-        boolean detailAvailable = detailAvailabilityPolicy.isAvailable(
-                registeredPlace,
-                searchData.operatorSourcePlaceIds()
         );
 
         return new PlaceSearchResponse.PlaceItem(
@@ -95,8 +96,73 @@ public class PlaceSearchEnricher {
                 isRegistered,
                 imageSelection.imageUrl(),
                 imageSelection.imageType(),
-                detailAvailable
+                isDetailAvailable(registeredPlace, searchData.operatorSourcePlaceIds())
         );
+    }
+
+    private Map<String, Area> getActiveAreasByCode() {
+        return areaRepository
+                .findAllByIsActiveTrueOrderBySortOrderAsc()
+                .stream()
+                .collect(Collectors.toMap(Area::getCode, Function.identity()));
+    }
+
+    private Map<String, PlaceCategory> getActiveCategoriesByCode() {
+        return placeCategoryRepository
+                .findAllByIsActiveTrueOrderBySortOrderAsc()
+                .stream()
+                .collect(Collectors.toMap(PlaceCategory::getCode, Function.identity()));
+    }
+
+    private Area resolveArea(
+            String areaCode,
+            Map<String, Area> activeAreasByCode
+    ) {
+        if (areaCode == null || areaCode.isBlank()) {
+            return null;
+        }
+
+        return activeAreasByCode.get(areaCode.trim());
+    }
+
+    private PlaceCategory resolveCategory(
+            String placeCategoryCode,
+            Map<String, PlaceCategory> activeCategoriesByCode
+    ) {
+        if (placeCategoryCode == null || placeCategoryCode.isBlank()) {
+            return null;
+        }
+
+        return activeCategoriesByCode.get(placeCategoryCode.trim());
+    }
+
+    private boolean isDetailAvailable(
+            Place place,
+            Set<Long> operatorSourcePlaceIds
+    ) {
+        if (place == null) {
+            return false;
+        }
+
+        return operatorSourcePlaceIds.contains(place.getId())
+                && Boolean.TRUE.equals(place.getIsActive())
+                && place.getReviewStatus() == PlaceReviewStatus.APPROVED
+                && place.getExposureStatus() == PlaceExposureStatus.ACTIVE
+                && place.getDeletedAt() == null
+                && hasRequiredDetailData(place);
+    }
+
+    private boolean hasRequiredDetailData(Place place) {
+        return hasText(place.getName())
+                && hasText(place.getAddress())
+                && place.getLatitude() != null
+                && place.getLongitude() != null
+                && place.getArea() != null
+                && place.getPlaceCategory() != null;
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 
     private String emptyToNull(String value) {
