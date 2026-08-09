@@ -2,8 +2,8 @@ package com.example.TODAIT__BE.domain.course.controller;
 
 import com.example.TODAIT__BE.domain.course.code.CourseSaveSuccessCode;
 import com.example.TODAIT__BE.domain.course.controller.docs.CourseSaveControllerDocs;
-import com.example.TODAIT__BE.domain.course.dto.request.CourseSaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseSaveRequest.SaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.SaveResponse;
 import com.example.TODAIT__BE.domain.course.service.CourseSaveService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
@@ -25,12 +25,12 @@ public class CourseSaveController implements CourseSaveControllerDocs {
 
     @PostMapping("/{courseDraftId}/courses")
     @Override
-    public ResponseEntity<ApiResponse<CourseSaveResponse>> saveCourse(
+    public ResponseEntity<ApiResponse<SaveResponse>> saveCourse(
             @PathVariable Long courseDraftId,
             @AuthenticationPrincipal AuthMember authMember,
-            @RequestBody CourseSaveRequest request
+            @RequestBody SaveRequest request
     ) {
-        CourseSaveResponse result = courseSaveService.saveCourse(courseDraftId, authMember.memberId(), request);
+        SaveResponse result = courseSaveService.saveCourse(courseDraftId, authMember.memberId(), request);
         return ResponseEntity
                 .status(CourseSaveSuccessCode.COURSE_SAVE_OK.getStatus())
                 .body(ApiResponse.onSuccess(CourseSaveSuccessCode.COURSE_SAVE_OK, result));

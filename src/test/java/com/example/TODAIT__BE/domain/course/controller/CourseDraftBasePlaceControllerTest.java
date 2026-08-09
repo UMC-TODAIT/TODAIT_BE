@@ -8,12 +8,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftBasePlaceSaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftBasePlaceSaveRequest.ExternalPlace;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftBasePlaceSaveResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftBasePlaceSaveResponse.AreaSummary;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftBasePlaceSaveResponse.BasePlace;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftBasePlaceSaveResponse.CategorySummary;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.BasePlaceSaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.BasePlaceSaveRequest.ExternalPlace;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlaceSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.AreaSummary;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlace;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CategorySummary;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
@@ -95,8 +95,8 @@ class CourseDraftBasePlaceControllerTest {
                 new CategorySummary(2L, "RESTAURANT", "식당"),
                 "양식", "OPERATOR", false, 1, PlaceRole.BASE
         );
-        CourseDraftBasePlaceSaveResponse response =
-                CourseDraftBasePlaceSaveResponse.of(COURSE_DRAFT_ID, CourseDraftStatus.PLACE_SELECTING, basePlace);
+        BasePlaceSaveResponse response =
+                BasePlaceSaveResponse.of(COURSE_DRAFT_ID, CourseDraftStatus.PLACE_SELECTING, basePlace);
 
         given(courseDraftBasePlaceService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willReturn(response);
@@ -105,7 +105,7 @@ class CourseDraftBasePlaceControllerTest {
                         .with(authentication(authMemberToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new CourseDraftBasePlaceSaveRequest(21L, null))))
+                                new BasePlaceSaveRequest(21L, null))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isSuccess").value(true))
                 .andExpect(jsonPath("$.code").value("COURSE200_6"))
@@ -126,8 +126,8 @@ class CourseDraftBasePlaceControllerTest {
                 new CategorySummary(1L, "CAFE", "카페"),
                 "디저트 카페", "KAKAO", true, 1, PlaceRole.BASE
         );
-        CourseDraftBasePlaceSaveResponse response =
-                CourseDraftBasePlaceSaveResponse.of(COURSE_DRAFT_ID, CourseDraftStatus.PLACE_SELECTING, basePlace);
+        BasePlaceSaveResponse response =
+                BasePlaceSaveResponse.of(COURSE_DRAFT_ID, CourseDraftStatus.PLACE_SELECTING, basePlace);
 
         given(courseDraftBasePlaceService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
                 .willReturn(response);
@@ -142,7 +142,7 @@ class CourseDraftBasePlaceControllerTest {
                         .with(authentication(authMemberToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new CourseDraftBasePlaceSaveRequest(null, externalPlace))))
+                                new BasePlaceSaveRequest(null, externalPlace))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result.basePlace.isNewPlace").value(true))
                 .andExpect(jsonPath("$.result.basePlace.sourceType").value("KAKAO"));
@@ -157,7 +157,7 @@ class CourseDraftBasePlaceControllerTest {
                         .with(authentication(authMemberToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new CourseDraftBasePlaceSaveRequest(21L, null))))
+                                new BasePlaceSaveRequest(21L, null))))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED.getCode()));
     }
@@ -171,7 +171,7 @@ class CourseDraftBasePlaceControllerTest {
                         .with(authentication(authMemberToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new CourseDraftBasePlaceSaveRequest(21L, null))))
+                                new BasePlaceSaveRequest(21L, null))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND.getCode()));
     }
@@ -185,7 +185,7 @@ class CourseDraftBasePlaceControllerTest {
                         .with(authentication(authMemberToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new CourseDraftBasePlaceSaveRequest(21L, null))))
+                                new BasePlaceSaveRequest(21L, null))))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.BASE_PLACE_DRAFT_STATUS_CONFLICT.getCode()));
     }
@@ -203,7 +203,7 @@ class CourseDraftBasePlaceControllerTest {
                         .with(authentication(authMemberToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new CourseDraftBasePlaceSaveRequest(21L, externalPlace))))
+                                new BasePlaceSaveRequest(21L, externalPlace))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.BASE_PLACE_SOURCE_CONFLICT.getCode()));
     }
@@ -217,7 +217,7 @@ class CourseDraftBasePlaceControllerTest {
                         .with(authentication(authMemberToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new CourseDraftBasePlaceSaveRequest(null, null))))
+                                new BasePlaceSaveRequest(null, null))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.BASE_PLACE_SOURCE_MISSING.getCode()));
     }
@@ -231,7 +231,7 @@ class CourseDraftBasePlaceControllerTest {
                         .with(authentication(authMemberToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new CourseDraftBasePlaceSaveRequest(999L, null))))
+                                new BasePlaceSaveRequest(999L, null))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("PLACE404"));
     }
@@ -245,7 +245,7 @@ class CourseDraftBasePlaceControllerTest {
                         .with(authentication(authMemberToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new CourseDraftBasePlaceSaveRequest(21L, null))))
+                                new BasePlaceSaveRequest(21L, null))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("PLACE400"));
     }
@@ -263,7 +263,7 @@ class CourseDraftBasePlaceControllerTest {
                         .with(authentication(authMemberToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new CourseDraftBasePlaceSaveRequest(null, externalPlace))))
+                                new BasePlaceSaveRequest(null, externalPlace))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("AREA400"));
     }
@@ -281,7 +281,7 @@ class CourseDraftBasePlaceControllerTest {
                         .with(authentication(authMemberToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new CourseDraftBasePlaceSaveRequest(null, externalPlace))))
+                                new BasePlaceSaveRequest(null, externalPlace))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("PLACE404_1"));
     }

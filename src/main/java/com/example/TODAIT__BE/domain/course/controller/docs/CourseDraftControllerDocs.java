@@ -1,18 +1,18 @@
 package com.example.TODAIT__BE.domain.course.controller.docs;
 
-import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftBasePlaceSaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftFoodCategorySaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftMoodTagSaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftPlaceAddRequest;
-import com.example.TODAIT__BE.domain.course.dto.request.PlaceOrderUpdateRequest;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftBasePlaceSaveResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftCreateResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftFoodCategorySaveResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftMoodTagSaveResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftPlaceAddResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftSavingEnterResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.OrderingEntryResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.PlaceOrderUpdateResponse;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.BasePlaceSaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.FoodCategorySaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.MoodTagSaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceAddRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlaceSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CreateResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.FoodCategorySaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.MoodTagSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.OrderingEntryResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceAddResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceOrderUpdateResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.SavingEnterResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,7 +38,7 @@ public interface CourseDraftControllerDocs {
                     - 인증: Access Token 필요
                     """
     )
-    ResponseEntity<ApiResponse<CourseDraftCreateResponse>>
+    ResponseEntity<ApiResponse<CreateResponse>>
     createCourseDraft(AuthMember authMember);
 
     @Operation(
@@ -52,10 +52,10 @@ public interface CourseDraftControllerDocs {
                     """
     )
     @SecurityRequirement(name = "JWT TOKEN")
-    ResponseEntity<ApiResponse<CourseDraftMoodTagSaveResponse>> saveMoodTags(
+    ResponseEntity<ApiResponse<MoodTagSaveResponse>> saveMoodTags(
             @PathVariable Long courseDraftId,
             AuthMember authMember,
-            CourseDraftMoodTagSaveRequest request
+            MoodTagSaveRequest request
     );
 
     @Operation(
@@ -69,10 +69,10 @@ public interface CourseDraftControllerDocs {
                     """
     )
     @SecurityRequirement(name = "JWT TOKEN")
-    ResponseEntity<ApiResponse<CourseDraftFoodCategorySaveResponse>> saveFoodCategories(
+    ResponseEntity<ApiResponse<FoodCategorySaveResponse>> saveFoodCategories(
             @PathVariable Long courseDraftId,
             AuthMember authMember,
-            CourseDraftFoodCategorySaveRequest request
+            FoodCategorySaveRequest request
     );
 
     @Operation(
@@ -82,10 +82,10 @@ public interface CourseDraftControllerDocs {
                     + "BASE_PLACE_SELECTING 상태에서만 호출 가능하며, 성공 시 PLACE_SELECTING으로 전이합니다."
     )
     @SecurityRequirement(name = "JWT TOKEN")
-    ResponseEntity<ApiResponse<CourseDraftBasePlaceSaveResponse>> saveBasePlace(
+    ResponseEntity<ApiResponse<BasePlaceSaveResponse>> saveBasePlace(
             @PathVariable Long courseDraftId,
             AuthMember authMember,
-            CourseDraftBasePlaceSaveRequest request
+            BasePlaceSaveRequest request
     );
 
     @Operation(
@@ -98,10 +98,10 @@ public interface CourseDraftControllerDocs {
                     - 이미 선택된 카테고리(기준 장소 포함)와 같은 카테고리의 장소는 추가할 수 없습니다.
                     """
     )
-    ResponseEntity<ApiResponse<CourseDraftPlaceAddResponse>> addPlace(
+    ResponseEntity<ApiResponse<PlaceAddResponse>> addPlace(
             Long courseDraftId,
             AuthMember authMember,
-            CourseDraftPlaceAddRequest request
+            PlaceAddRequest request
     );
 
     @Operation(
@@ -146,7 +146,7 @@ public interface CourseDraftControllerDocs {
                     저장 전 기준 장소와 선택 장소 구성이 유효한지 확인합니다.
                     """
     )
-    ResponseEntity<ApiResponse<CourseDraftSavingEnterResponse>> enterSaving(
+    ResponseEntity<ApiResponse<SavingEnterResponse>> enterSaving(
             Long courseDraftId,
             AuthMember authMember
     );

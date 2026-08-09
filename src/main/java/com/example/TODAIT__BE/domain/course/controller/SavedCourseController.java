@@ -2,7 +2,7 @@ package com.example.TODAIT__BE.domain.course.controller;
 
 import com.example.TODAIT__BE.domain.course.code.SavedCourseSuccessCode;
 import com.example.TODAIT__BE.domain.course.controller.docs.SavedCourseControllerDocs;
-import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseOverviewResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.OverviewResponse;
 import com.example.TODAIT__BE.domain.course.service.SavedCourseService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
@@ -12,7 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseDetailResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.DetailResponse;
 import org.springframework.web.bind.annotation.PathVariable;
 import com.example.TODAIT__BE.domain.course.dto.request.SavedCourseMemoUpdateRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.SavedCoursePlaceMemoUpdateRequest;
@@ -30,11 +30,11 @@ public class SavedCourseController implements SavedCourseControllerDocs {
 
     @GetMapping("/me/overview")
     @Override
-    public ResponseEntity<ApiResponse<SavedCourseOverviewResponse>>
+    public ResponseEntity<ApiResponse<OverviewResponse>>
     getSavedCourseOverview(
             @AuthenticationPrincipal AuthMember authMember
     ) {
-        SavedCourseOverviewResponse result =
+        OverviewResponse result =
                 savedCourseService.getSavedCourseOverview(
                         authMember.memberId()
                 );
@@ -56,12 +56,12 @@ public class SavedCourseController implements SavedCourseControllerDocs {
 
     @Override
     @GetMapping("/{courseId}")
-    public ResponseEntity<ApiResponse<SavedCourseDetailResponse>>
+    public ResponseEntity<ApiResponse<DetailResponse>>
     getSavedCourseDetail(
             @AuthenticationPrincipal AuthMember authMember,
             @PathVariable Long courseId
     ) {
-        SavedCourseDetailResponse result =
+        DetailResponse result =
                 savedCourseService.getSavedCourseDetail(
                         authMember.memberId(),
                         courseId

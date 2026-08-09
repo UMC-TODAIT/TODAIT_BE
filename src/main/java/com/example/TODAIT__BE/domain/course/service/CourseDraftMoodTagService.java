@@ -1,7 +1,7 @@
 package com.example.TODAIT__BE.domain.course.service;
 
-import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftMoodTagSaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftMoodTagSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.MoodTagSaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.MoodTagSaveResponse;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftMoodTag;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
@@ -37,10 +37,10 @@ public class CourseDraftMoodTagService {
     private final CourseDraftValidator courseDraftValidator;
 
     @Transactional
-    public CourseDraftMoodTagSaveResponse saveMoodTags(
+    public MoodTagSaveResponse saveMoodTags(
             Long courseDraftId,
             Long memberId,
-            CourseDraftMoodTagSaveRequest request
+            MoodTagSaveRequest request
     ) {
         CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
                 .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
@@ -73,7 +73,7 @@ public class CourseDraftMoodTagService {
             courseDraft.changeStatus(CourseDraftStatus.FOOD_SELECTING);
         }
 
-        return CourseDraftMoodTagSaveResponse.of(
+        return MoodTagSaveResponse.of(
                 courseDraft.getId(),
                 courseDraft.getStatus(),
                 moodTags

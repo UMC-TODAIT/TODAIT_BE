@@ -9,8 +9,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 
-import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftFoodCategorySaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftFoodCategorySaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.FoodCategorySaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.FoodCategorySaveResponse;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftFoodCategory;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
@@ -75,10 +75,10 @@ class CourseDraftFoodCategoryServiceTest {
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft))
                 .willReturn(List.of(oldDraftFoodCategory, keptDraftFoodCategory));
 
-        CourseDraftFoodCategorySaveResponse response = courseDraftFoodCategoryService.saveFoodCategories(
+        FoodCategorySaveResponse response = courseDraftFoodCategoryService.saveFoodCategories(
                 10L,
                 1L,
-                new CourseDraftFoodCategorySaveRequest(List.of(2L, 3L))
+                new FoodCategorySaveRequest(List.of(2L, 3L))
         );
 
         verify(courseDraftRepository).findByIdForUpdate(10L);
@@ -111,10 +111,10 @@ class CourseDraftFoodCategoryServiceTest {
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft))
                 .willReturn(List.of(existingFoodCategory, secondExistingFoodCategory));
 
-        CourseDraftFoodCategorySaveResponse response = courseDraftFoodCategoryService.saveFoodCategories(
+        FoodCategorySaveResponse response = courseDraftFoodCategoryService.saveFoodCategories(
                 10L,
                 1L,
-                new CourseDraftFoodCategorySaveRequest(List.of(1L, 2L))
+                new FoodCategorySaveRequest(List.of(1L, 2L))
         );
 
         verify(courseDraftFoodCategoryRepository).deleteAll(List.of());
@@ -130,7 +130,7 @@ class CourseDraftFoodCategoryServiceTest {
         assertThatThrownBy(() -> courseDraftFoodCategoryService.saveFoodCategories(
                 10L,
                 1L,
-                new CourseDraftFoodCategorySaveRequest(List.of(1L))
+                new FoodCategorySaveRequest(List.of(1L))
         ))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")

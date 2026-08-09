@@ -1,7 +1,7 @@
 package com.example.TODAIT__BE.domain.course.service;
 
-import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftFoodCategorySaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftFoodCategorySaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.FoodCategorySaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.FoodCategorySaveResponse;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftFoodCategory;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
@@ -36,10 +36,10 @@ public class CourseDraftFoodCategoryService {
     private final CourseDraftValidator courseDraftValidator;
 
     @Transactional
-    public CourseDraftFoodCategorySaveResponse saveFoodCategories(
+    public FoodCategorySaveResponse saveFoodCategories(
             Long courseDraftId,
             Long memberId,
-            CourseDraftFoodCategorySaveRequest request
+            FoodCategorySaveRequest request
     ) {
         CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
                 .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
@@ -68,7 +68,7 @@ public class CourseDraftFoodCategoryService {
 
         courseDraft.changeStatus(CourseDraftStatus.BASE_PLACE_SELECTING);
 
-        return CourseDraftFoodCategorySaveResponse.of(
+        return FoodCategorySaveResponse.of(
                 courseDraft.getId(),
                 courseDraft.getStatus(),
                 foodCategories

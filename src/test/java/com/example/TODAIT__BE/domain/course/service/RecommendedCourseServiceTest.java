@@ -7,7 +7,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseDetailResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseResponse.DetailResponse;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
 import com.example.TODAIT__BE.domain.course.entity.CoursePlace;
@@ -106,7 +106,7 @@ class RecommendedCourseServiceTest {
         given(placeImageRepository.findPrimaryImageUrlsByPlaceIds(List.of(21L, 22L)))
                 .willReturn(List.of(selectedPrimaryImage));
 
-        RecommendedCourseDetailResponse response =
+        DetailResponse response =
                 recommendedCourseService.getRecommendedCourseDetail(100L);
 
         assertThat(response.courseId()).isEqualTo(100L);

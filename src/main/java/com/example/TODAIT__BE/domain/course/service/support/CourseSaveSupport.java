@@ -1,8 +1,8 @@
 package com.example.TODAIT__BE.domain.course.service.support;
 
-import com.example.TODAIT__BE.domain.course.dto.response.CourseFoodCategoryResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseMoodTagResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CoursePlaceResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.FoodCategoryItem;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.MoodTagItem;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.CoursePlaceItem;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftFoodCategory;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
@@ -28,36 +28,36 @@ public class CourseSaveSupport {
     private final CourseFoodCategoryRepository courseFoodCategoryRepository;
     private final CoursePlaceRepository coursePlaceRepository;
 
-    public List<CourseMoodTagResponse> saveMoodTags(Course course, List<MoodTag> moodTags) {
-        List<CourseMoodTagResponse> responses = new ArrayList<>();
+    public List<MoodTagItem> saveMoodTags(Course course, List<MoodTag> moodTags) {
+        List<MoodTagItem> responses = new ArrayList<>();
         for (MoodTag moodTag : moodTags) {
             courseMoodTagRepository.save(CourseMoodTag.builder()
                     .course(course)
                     .moodTag(moodTag)
                     .build());
-            responses.add(CourseMoodTagResponse.from(moodTag));
+            responses.add(MoodTagItem.from(moodTag));
         }
         return responses;
     }
 
-    public List<CourseFoodCategoryResponse> saveFoodCategories(
+    public List<FoodCategoryItem> saveFoodCategories(
             Course course,
             List<CourseDraftFoodCategory> draftFoodCategories
     ) {
-        List<CourseFoodCategoryResponse> responses = new ArrayList<>();
+        List<FoodCategoryItem> responses = new ArrayList<>();
         for (CourseDraftFoodCategory draftFoodCategory : draftFoodCategories) {
             FoodCategory foodCategory = draftFoodCategory.getFoodCategory();
             courseFoodCategoryRepository.save(CourseFoodCategory.builder()
                     .course(course)
                     .foodCategory(foodCategory)
                     .build());
-            responses.add(CourseFoodCategoryResponse.from(foodCategory));
+            responses.add(FoodCategoryItem.from(foodCategory));
         }
         return responses;
     }
 
-    public List<CoursePlaceResponse> savePlaces(Course course, List<CourseDraftPlace> draftPlaces) {
-        List<CoursePlaceResponse> responses = new ArrayList<>();
+    public List<CoursePlaceItem> savePlaces(Course course, List<CourseDraftPlace> draftPlaces) {
+        List<CoursePlaceItem> responses = new ArrayList<>();
         for (CourseDraftPlace draftPlace : draftPlaces) {
             Place place = draftPlace.getPlace();
             CoursePlace coursePlace = coursePlaceRepository.save(CoursePlace.builder()
@@ -72,7 +72,7 @@ public class CourseSaveSupport {
                     .categorySnapshot(place.getPlaceCategory().getCode())
                     .memo(draftPlace.getMemo())
                     .build());
-            responses.add(CoursePlaceResponse.from(coursePlace));
+            responses.add(CoursePlaceItem.from(coursePlace));
         }
         return responses;
     }

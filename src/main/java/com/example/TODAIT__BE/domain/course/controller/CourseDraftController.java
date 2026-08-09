@@ -2,19 +2,19 @@ package com.example.TODAIT__BE.domain.course.controller;
 
 import com.example.TODAIT__BE.domain.course.code.CourseDraftSuccessCode;
 import com.example.TODAIT__BE.domain.course.controller.docs.CourseDraftControllerDocs;
-import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftBasePlaceSaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftFoodCategorySaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftMoodTagSaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftPlaceAddRequest;
-import com.example.TODAIT__BE.domain.course.dto.request.PlaceOrderUpdateRequest;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftBasePlaceSaveResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftCreateResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftFoodCategorySaveResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftMoodTagSaveResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftPlaceAddResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftSavingEnterResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.OrderingEntryResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.PlaceOrderUpdateResponse;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.BasePlaceSaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.FoodCategorySaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.MoodTagSaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceAddRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlaceSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CreateResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.FoodCategorySaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.MoodTagSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.OrderingEntryResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceAddResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceOrderUpdateResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.SavingEnterResponse;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftBasePlaceService;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftFoodCategoryService;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftMoodTagService;
@@ -51,10 +51,10 @@ public class CourseDraftController implements CourseDraftControllerDocs {
 
     @PostMapping
     @Override
-    public ResponseEntity<ApiResponse<CourseDraftCreateResponse>> createCourseDraft(
+    public ResponseEntity<ApiResponse<CreateResponse>> createCourseDraft(
             @AuthenticationPrincipal AuthMember authMember
     ) {
-        CourseDraftCreateResponse result = courseDraftService.createCourseDraft(authMember.memberId());
+        CreateResponse result = courseDraftService.createCourseDraft(authMember.memberId());
         return ResponseEntity
                 .status(CourseDraftSuccessCode.COURSE_DRAFT_CREATE_OK.getStatus())
                 .body(ApiResponse.onSuccess(CourseDraftSuccessCode.COURSE_DRAFT_CREATE_OK, result));
@@ -62,12 +62,12 @@ public class CourseDraftController implements CourseDraftControllerDocs {
 
     @PutMapping("/{courseDraftId}/mood-tags")
     @Override
-    public ResponseEntity<ApiResponse<CourseDraftMoodTagSaveResponse>> saveMoodTags(
+    public ResponseEntity<ApiResponse<MoodTagSaveResponse>> saveMoodTags(
             @PathVariable Long courseDraftId,
             @AuthenticationPrincipal AuthMember authMember,
-            @RequestBody CourseDraftMoodTagSaveRequest request
+            @RequestBody MoodTagSaveRequest request
     ) {
-        CourseDraftMoodTagSaveResponse result = courseDraftMoodTagService.saveMoodTags(
+        MoodTagSaveResponse result = courseDraftMoodTagService.saveMoodTags(
                 courseDraftId,
                 authMember.memberId(),
                 request
@@ -79,12 +79,12 @@ public class CourseDraftController implements CourseDraftControllerDocs {
 
     @PutMapping("/{courseDraftId}/food-categories")
     @Override
-    public ResponseEntity<ApiResponse<CourseDraftFoodCategorySaveResponse>> saveFoodCategories(
+    public ResponseEntity<ApiResponse<FoodCategorySaveResponse>> saveFoodCategories(
             @PathVariable Long courseDraftId,
             @AuthenticationPrincipal AuthMember authMember,
-            @RequestBody CourseDraftFoodCategorySaveRequest request
+            @RequestBody FoodCategorySaveRequest request
     ) {
-        CourseDraftFoodCategorySaveResponse result = courseDraftFoodCategoryService.saveFoodCategories(
+        FoodCategorySaveResponse result = courseDraftFoodCategoryService.saveFoodCategories(
                 courseDraftId,
                 authMember.memberId(),
                 request
@@ -96,12 +96,12 @@ public class CourseDraftController implements CourseDraftControllerDocs {
 
     @PatchMapping("/{courseDraftId}/base-place")
     @Override
-    public ResponseEntity<ApiResponse<CourseDraftBasePlaceSaveResponse>> saveBasePlace(
+    public ResponseEntity<ApiResponse<BasePlaceSaveResponse>> saveBasePlace(
             @PathVariable Long courseDraftId,
             @AuthenticationPrincipal AuthMember authMember,
-            @RequestBody CourseDraftBasePlaceSaveRequest request
+            @RequestBody BasePlaceSaveRequest request
     ) {
-        CourseDraftBasePlaceSaveResponse result = courseDraftBasePlaceService.saveBasePlace(
+        BasePlaceSaveResponse result = courseDraftBasePlaceService.saveBasePlace(
                 courseDraftId,
                 authMember.memberId(),
                 request
@@ -113,12 +113,12 @@ public class CourseDraftController implements CourseDraftControllerDocs {
 
     @PostMapping("/{courseDraftId}/places")
     @Override
-    public ResponseEntity<ApiResponse<CourseDraftPlaceAddResponse>> addPlace(
+    public ResponseEntity<ApiResponse<PlaceAddResponse>> addPlace(
             @PathVariable Long courseDraftId,
             @AuthenticationPrincipal AuthMember authMember,
-            @Valid @RequestBody CourseDraftPlaceAddRequest request
+            @Valid @RequestBody PlaceAddRequest request
     ) {
-        CourseDraftPlaceAddResponse result =
+        PlaceAddResponse result =
                 courseDraftPlaceService.addPlace(courseDraftId, authMember.memberId(), request);
         return ResponseEntity
                 .status(CourseDraftSuccessCode.PLACE_ADD_OK.getStatus())
@@ -155,11 +155,11 @@ public class CourseDraftController implements CourseDraftControllerDocs {
 
     @PatchMapping("/{courseDraftId}/saving")
     @Override
-    public ResponseEntity<ApiResponse<CourseDraftSavingEnterResponse>> enterSaving(
+    public ResponseEntity<ApiResponse<SavingEnterResponse>> enterSaving(
             @PathVariable Long courseDraftId,
             @AuthenticationPrincipal AuthMember authMember
     ) {
-        CourseDraftSavingEnterResponse result =
+        SavingEnterResponse result =
                 courseDraftSavingService.enterSaving(courseDraftId, authMember.memberId());
 
         return ResponseEntity

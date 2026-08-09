@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.course.service;
 
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftCreateResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CreateResponse;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
@@ -19,7 +19,7 @@ public class CourseDraftService {
     private final MemberRepository memberRepository;
 
     @Transactional
-    public CourseDraftCreateResponse createCourseDraft(Long memberId) {
+    public CreateResponse createCourseDraft(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() ->
                         new MemberException(
@@ -32,6 +32,6 @@ public class CourseDraftService {
         CourseDraft savedCourseDraft =
                 courseDraftRepository.save(courseDraft);
 
-        return CourseDraftCreateResponse.from(savedCourseDraft);
+        return CreateResponse.from(savedCourseDraft);
     }
 }

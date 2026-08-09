@@ -1,7 +1,7 @@
 package com.example.TODAIT__BE.domain.course.service;
 
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftPlaceResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftSavingEnterResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.DraftPlaceResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.SavingEnterResponse;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
@@ -29,7 +29,7 @@ public class CourseDraftSavingService {
     private final CourseDraftValidator courseDraftValidator;
 
     @Transactional
-    public CourseDraftSavingEnterResponse enterSaving(Long courseDraftId, Long memberId) {
+    public SavingEnterResponse enterSaving(Long courseDraftId, Long memberId) {
         CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
                 .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
 
@@ -49,11 +49,11 @@ public class CourseDraftSavingService {
             courseDraft.changeStatus(CourseDraftStatus.SAVING);
         }
 
-        List<CourseDraftPlaceResponse> routePreview = draftPlaces.stream()
-                .map(CourseDraftPlaceResponse::from)
+        List<DraftPlaceResponse> routePreview = draftPlaces.stream()
+                .map(DraftPlaceResponse::from)
                 .toList();
 
-        return CourseDraftSavingEnterResponse.of(
+        return SavingEnterResponse.of(
                 courseDraft.getId(),
                 courseDraft.getStatus(),
                 routePreview

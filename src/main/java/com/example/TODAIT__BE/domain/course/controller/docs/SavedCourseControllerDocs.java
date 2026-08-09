@@ -1,12 +1,12 @@
 package com.example.TODAIT__BE.domain.course.controller.docs;
 
-import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseOverviewResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.OverviewResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
-import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseDetailResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.DetailResponse;
 import org.springframework.web.bind.annotation.PathVariable;
 import com.example.TODAIT__BE.domain.course.dto.request.SavedCourseMemoUpdateRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.SavedCoursePlaceMemoUpdateRequest;
@@ -28,7 +28,7 @@ public interface SavedCourseControllerDocs {
                     - 조회수 기준 인기 코스
                     """
     )
-    ResponseEntity<ApiResponse<SavedCourseOverviewResponse>>
+    ResponseEntity<ApiResponse<OverviewResponse>>
     getSavedCourseOverview(AuthMember authMember);
 
     @Operation(
@@ -39,7 +39,7 @@ public interface SavedCourseControllerDocs {
                     소유자가 아닌 코스는 조회할 수 없습니다.
                     """
     )
-    ResponseEntity<ApiResponse<SavedCourseDetailResponse>>
+    ResponseEntity<ApiResponse<DetailResponse>>
     getSavedCourseDetail(
             AuthMember authMember,
             @PathVariable Long courseId

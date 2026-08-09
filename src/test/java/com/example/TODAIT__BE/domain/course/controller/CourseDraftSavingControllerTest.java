@@ -7,8 +7,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftPlaceResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftSavingEnterResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.DraftPlaceResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.SavingEnterResponse;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
@@ -76,12 +76,12 @@ class CourseDraftSavingControllerTest {
 
     @Test
     void enterSaving_success() throws Exception {
-        CourseDraftSavingEnterResponse response = new CourseDraftSavingEnterResponse(
+        SavingEnterResponse response = new SavingEnterResponse(
                 COURSE_DRAFT_ID,
                 CourseDraftStatus.SAVING,
                 2,
                 List.of(
-                        new CourseDraftPlaceResponse(
+                        new DraftPlaceResponse(
                                 100L,
                                 1000L,
                                 PlaceRole.BASE,
@@ -91,7 +91,7 @@ class CourseDraftSavingControllerTest {
                                 37.0,
                                 127.0
                         ),
-                        new CourseDraftPlaceResponse(
+                        new DraftPlaceResponse(
                                 101L,
                                 1001L,
                                 PlaceRole.SELECTED,

@@ -8,9 +8,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftMoodTagSaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftMoodTagSaveResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftMoodTagSaveResponse.MoodTagItem;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.MoodTagSaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.MoodTagSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.MoodTagItem;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
@@ -83,7 +83,7 @@ class CourseDraftMoodTagControllerTest {
 
     @Test
     void saveMoodTags_success() throws Exception {
-        CourseDraftMoodTagSaveResponse response = new CourseDraftMoodTagSaveResponse(
+        MoodTagSaveResponse response = new MoodTagSaveResponse(
                 COURSE_DRAFT_ID,
                 CourseDraftStatus.FOOD_SELECTING,
                 List.of(
@@ -98,7 +98,7 @@ class CourseDraftMoodTagControllerTest {
                         .with(authentication(authMemberToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new CourseDraftMoodTagSaveRequest(List.of(1L, 4L)))))
+                                new MoodTagSaveRequest(List.of(1L, 4L)))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isSuccess").value(true))
                 .andExpect(jsonPath("$.code").value("COURSE200_1"))
@@ -120,7 +120,7 @@ class CourseDraftMoodTagControllerTest {
                         .with(authentication(authMemberToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new CourseDraftMoodTagSaveRequest(List.of(1L, 4L)))))
+                                new MoodTagSaveRequest(List.of(1L, 4L)))))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.isSuccess").value(false))
                 .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED.getCode()));
@@ -135,7 +135,7 @@ class CourseDraftMoodTagControllerTest {
                         .with(authentication(authMemberToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new CourseDraftMoodTagSaveRequest(List.of(1L, 4L)))))
+                                new MoodTagSaveRequest(List.of(1L, 4L)))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND.getCode()));
     }
@@ -149,7 +149,7 @@ class CourseDraftMoodTagControllerTest {
                         .with(authentication(authMemberToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new CourseDraftMoodTagSaveRequest(List.of(1L, 4L)))))
+                                new MoodTagSaveRequest(List.of(1L, 4L)))))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.MOOD_TAG_DRAFT_STATUS_CONFLICT.getCode()))
                 .andExpect(jsonPath("$.message").value("현재 임시 코스 상태에서는 분위기를 저장할 수 없습니다."));
@@ -164,7 +164,7 @@ class CourseDraftMoodTagControllerTest {
                         .with(authentication(authMemberToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new CourseDraftMoodTagSaveRequest(List.of(1L)))))
+                                new MoodTagSaveRequest(List.of(1L)))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT.getCode()));
     }
@@ -178,7 +178,7 @@ class CourseDraftMoodTagControllerTest {
                         .with(authentication(authMemberToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new CourseDraftMoodTagSaveRequest(List.of(1L, 1L)))))
+                                new MoodTagSaveRequest(List.of(1L, 1L)))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(CourseDraftErrorCode.DUPLICATE_MOOD_TAG.getCode()));
     }
@@ -192,7 +192,7 @@ class CourseDraftMoodTagControllerTest {
                         .with(authentication(authMemberToken()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
-                                new CourseDraftMoodTagSaveRequest(List.of(999L, 1L)))))
+                                new MoodTagSaveRequest(List.of(999L, 1L)))))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("MOOD_TAG404"));
     }

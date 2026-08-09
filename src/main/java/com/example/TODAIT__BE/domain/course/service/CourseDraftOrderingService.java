@@ -1,7 +1,7 @@
 package com.example.TODAIT__BE.domain.course.service;
 
-import com.example.TODAIT__BE.domain.course.dto.response.OrderingEntryPlaceResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.OrderingEntryResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.OrderingEntryPlaceResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.OrderingEntryResponse;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;

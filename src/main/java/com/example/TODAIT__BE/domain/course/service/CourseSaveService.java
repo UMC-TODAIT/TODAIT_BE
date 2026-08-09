@@ -1,10 +1,10 @@
 package com.example.TODAIT__BE.domain.course.service;
 
-import com.example.TODAIT__BE.domain.course.dto.request.CourseSaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseFoodCategoryResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseMoodTagResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CoursePlaceResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseSaveRequest.SaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.FoodCategoryItem;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.MoodTagItem;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.CoursePlaceItem;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.SaveResponse;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftFoodCategory;
@@ -55,7 +55,7 @@ public class CourseSaveService {
     private final CourseSaveSupport courseSaveSupport;
 
     @Transactional
-    public CourseSaveResponse saveCourse(Long courseDraftId, Long memberId, CourseSaveRequest request) {
+    public SaveResponse saveCourse(Long courseDraftId, Long memberId, SaveRequest request) {
         CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
                 .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
 
@@ -88,15 +88,15 @@ public class CourseSaveService {
                 .sourceType(CourseSourceType.USER_CREATED)
                 .build());
 
-        List<CourseMoodTagResponse> moodTagResponses = courseSaveSupport.saveMoodTags(course, moodTags);
-        List<CourseFoodCategoryResponse> foodCategoryResponses =
+        List<MoodTagItem> moodTagResponses = courseSaveSupport.saveMoodTags(course, moodTags);
+        List<FoodCategoryItem> foodCategoryResponses =
                 courseSaveSupport.saveFoodCategories(course, draftFoodCategories);
-        List<CoursePlaceResponse> placeResponses = courseSaveSupport.savePlaces(course, draftPlaces);
+        List<CoursePlaceItem> placeResponses = courseSaveSupport.savePlaces(course, draftPlaces);
 
         courseDraft.completeWithCourse(course);
         courseDraftRepository.save(courseDraft);
 
-        return CourseSaveResponse.of(course, moodTagResponses, foodCategoryResponses, placeResponses);
+        return SaveResponse.of(course, moodTagResponses, foodCategoryResponses, placeResponses);
     }
 
     private String validateAndNormalizeTitle(String rawTitle) {

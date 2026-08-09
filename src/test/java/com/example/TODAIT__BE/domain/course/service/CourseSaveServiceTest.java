@@ -10,8 +10,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.example.TODAIT__BE.domain.course.dto.request.CourseSaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseSaveRequest.SaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.SaveResponse;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftFoodCategory;
@@ -122,7 +122,7 @@ class CourseSaveServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 2L, request))
                 .isInstanceOf(CourseException.class)
@@ -137,7 +137,7 @@ class CourseSaveServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.COMPLETED);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
@@ -163,7 +163,7 @@ class CourseSaveServiceTest {
                 .build();
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
@@ -186,7 +186,7 @@ class CourseSaveServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), status);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
@@ -204,7 +204,7 @@ class CourseSaveServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest(" ", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest(" ", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
@@ -219,7 +219,7 @@ class CourseSaveServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest("a".repeat(256), "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("a".repeat(256), "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
@@ -234,7 +234,7 @@ class CourseSaveServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", null);
+        SaveRequest request = new SaveRequest("제목", "메모", null);
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
@@ -249,7 +249,7 @@ class CourseSaveServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
@@ -264,7 +264,7 @@ class CourseSaveServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
@@ -279,7 +279,7 @@ class CourseSaveServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 1L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 1L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
@@ -296,7 +296,7 @@ class CourseSaveServiceTest {
         MoodTag hip = moodTag(1L, "HIP", "힙한");
         given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L))).willReturn(List.of(hip));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
@@ -314,7 +314,7 @@ class CourseSaveServiceTest {
         // id 2 exists but is inactive, so the active-only query excludes it from the result
         given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L))).willReturn(List.of(hip));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
@@ -333,7 +333,7 @@ class CourseSaveServiceTest {
         given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L))).willReturn(List.of(hip, calm));
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft)).willReturn(List.of());
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
@@ -362,7 +362,7 @@ class CourseSaveServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(selectedOnly));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
@@ -394,7 +394,7 @@ class CourseSaveServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(baseOnly));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
@@ -469,9 +469,9 @@ class CourseSaveServiceTest {
         given(courseFoodCategoryRepository.save(any(CourseFoodCategory.class))).willAnswer(invocation -> invocation.getArgument(0));
         given(coursePlaceRepository.save(any(CoursePlace.class))).willAnswer(invocation -> invocation.getArgument(0));
 
-        CourseSaveRequest request = new CourseSaveRequest("  course title  ", "  ", List.of(4L, 1L));
+        SaveRequest request = new SaveRequest("  course title  ", "  ", List.of(4L, 1L));
 
-        CourseSaveResponse response = courseSaveService.saveCourse(10L, 1L, request);
+        SaveResponse response = courseSaveService.saveCourse(10L, 1L, request);
 
         assertThat(response.title()).isEqualTo("course title");
         assertThat(response.memo()).isNull();

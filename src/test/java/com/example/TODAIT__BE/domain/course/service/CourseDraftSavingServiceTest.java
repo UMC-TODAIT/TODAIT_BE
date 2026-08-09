@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftSavingEnterResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.SavingEnterResponse;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
@@ -56,7 +56,7 @@ class CourseDraftSavingServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base, selected));
 
-        CourseDraftSavingEnterResponse response = courseDraftSavingService.enterSaving(10L, 1L);
+        SavingEnterResponse response = courseDraftSavingService.enterSaving(10L, 1L);
 
         assertThat(draft.getStatus()).isEqualTo(CourseDraftStatus.SAVING);
         assertThat(response.courseDraftId()).isEqualTo(10L);
@@ -77,7 +77,7 @@ class CourseDraftSavingServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base, selected));
 
-        CourseDraftSavingEnterResponse response = courseDraftSavingService.enterSaving(10L, 1L);
+        SavingEnterResponse response = courseDraftSavingService.enterSaving(10L, 1L);
 
         assertThat(draft.getStatus()).isEqualTo(CourseDraftStatus.SAVING);
         assertThat(response.courseDraftId()).isEqualTo(10L);

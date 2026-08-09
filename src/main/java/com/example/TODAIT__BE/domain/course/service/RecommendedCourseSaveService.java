@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.course.service;
 
-import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseResponse.SaveResponse;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseFoodCategory;
 import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
@@ -42,7 +42,7 @@ public class RecommendedCourseSaveService {
     private final CourseSaveSupport courseSaveSupport;
 
     @Transactional
-    public RecommendedCourseSaveResponse saveRecommendedCourse(
+    public SaveResponse saveRecommendedCourse(
             Long sourceCourseId,
             Long memberId
     ) {
@@ -74,7 +74,7 @@ public class RecommendedCourseSaveService {
         courseSaveSupport.copyMoodTags(sourceMoodTags, savedCourse);
         courseSaveSupport.copyFoodCategories(sourceFoodCategories, savedCourse);
 
-        return RecommendedCourseSaveResponse.of(
+        return SaveResponse.of(
                 sourceCourseId,
                 savedCourse,
                 sourcePlaces.size()

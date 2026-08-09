@@ -10,7 +10,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseResponse.SaveResponse;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseFoodCategory;
 import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
@@ -108,7 +108,7 @@ class RecommendedCourseSaveServiceTest {
         given(courseFoodCategoryRepository.saveAll(anyList()))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
-        RecommendedCourseSaveResponse response =
+        SaveResponse response =
                 recommendedCourseSaveService.saveRecommendedCourse(10L, 1L);
 
         assertThat(response.sourceCourseId()).isEqualTo(10L);

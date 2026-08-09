@@ -2,8 +2,8 @@ package com.example.TODAIT__BE.domain.course.controller;
 
 import com.example.TODAIT__BE.domain.course.code.RecommendedCourseSuccessCode;
 import com.example.TODAIT__BE.domain.course.controller.docs.RecommendedCourseControllerDocs;
-import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseDetailResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseResponse.DetailResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseResponse.SaveResponse;
 import com.example.TODAIT__BE.domain.course.service.RecommendedCourseSaveService;
 import com.example.TODAIT__BE.domain.course.service.RecommendedCourseService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
@@ -29,11 +29,11 @@ public class RecommendedCourseController
 
     @Override
     @GetMapping("/{courseId}")
-    public ResponseEntity<ApiResponse<RecommendedCourseDetailResponse>>
+    public ResponseEntity<ApiResponse<DetailResponse>>
     getRecommendedCourseDetail(
             @PathVariable Long courseId
     ) {
-        RecommendedCourseDetailResponse result =
+        DetailResponse result =
                 recommendedCourseService
                         .getRecommendedCourseDetail(courseId);
 
@@ -54,12 +54,12 @@ public class RecommendedCourseController
 
     @Override
     @PostMapping("/{courseId}/save")
-    public ResponseEntity<ApiResponse<RecommendedCourseSaveResponse>>
+    public ResponseEntity<ApiResponse<SaveResponse>>
     saveRecommendedCourse(
             @PathVariable Long courseId,
             @AuthenticationPrincipal AuthMember authMember
     ) {
-        RecommendedCourseSaveResponse result =
+        SaveResponse result =
                 recommendedCourseSaveService
                         .saveRecommendedCourse(
                                 courseId,

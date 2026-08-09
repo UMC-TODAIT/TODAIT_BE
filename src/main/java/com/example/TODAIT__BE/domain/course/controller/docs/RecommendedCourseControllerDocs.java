@@ -1,7 +1,7 @@
 package com.example.TODAIT__BE.domain.course.controller.docs;
 
-import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseDetailResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseResponse.DetailResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseResponse.SaveResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,7 +24,7 @@ public interface RecommendedCourseControllerDocs {
                     - 방문 장소 목록
                     """
     )
-    ResponseEntity<ApiResponse<RecommendedCourseDetailResponse>>
+    ResponseEntity<ApiResponse<DetailResponse>>
     getRecommendedCourseDetail(Long courseId);
 
     @Operation(
@@ -37,7 +37,7 @@ public interface RecommendedCourseControllerDocs {
                     - 중복 저장: 같은 추천 코스를 여러 번 저장 가능
                     """
     )
-    ResponseEntity<ApiResponse<RecommendedCourseSaveResponse>>
+    ResponseEntity<ApiResponse<SaveResponse>>
     saveRecommendedCourse(
             Long courseId,
             AuthMember authMember

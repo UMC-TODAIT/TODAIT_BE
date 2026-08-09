@@ -9,8 +9,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 
-import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftMoodTagSaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftMoodTagSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.MoodTagSaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.MoodTagSaveResponse;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftMoodTag;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
@@ -74,10 +74,10 @@ class CourseDraftMoodTagServiceTest {
         given(courseDraftMoodTagRepository.findByCourseDraft(draft))
                 .willReturn(List.of(oldDraftMoodTag, keptDraftMoodTag));
 
-        CourseDraftMoodTagSaveResponse response = courseDraftMoodTagService.saveMoodTags(
+        MoodTagSaveResponse response = courseDraftMoodTagService.saveMoodTags(
                 10L,
                 1L,
-                new CourseDraftMoodTagSaveRequest(List.of(2L, 3L))
+                new MoodTagSaveRequest(List.of(2L, 3L))
         );
 
         verify(courseDraftRepository).findByIdForUpdate(10L);
@@ -109,10 +109,10 @@ class CourseDraftMoodTagServiceTest {
         given(courseDraftMoodTagRepository.findByCourseDraft(draft))
                 .willReturn(List.of(existingMoodTag, secondExistingMoodTag));
 
-        CourseDraftMoodTagSaveResponse response = courseDraftMoodTagService.saveMoodTags(
+        MoodTagSaveResponse response = courseDraftMoodTagService.saveMoodTags(
                 10L,
                 1L,
-                new CourseDraftMoodTagSaveRequest(List.of(1L, 2L))
+                new MoodTagSaveRequest(List.of(1L, 2L))
         );
 
         verify(courseDraftMoodTagRepository).deleteAll(List.of());
@@ -128,7 +128,7 @@ class CourseDraftMoodTagServiceTest {
         assertThatThrownBy(() -> courseDraftMoodTagService.saveMoodTags(
                 10L,
                 1L,
-                new CourseDraftMoodTagSaveRequest(List.of(1L))
+                new MoodTagSaveRequest(List.of(1L))
         ))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
@@ -146,7 +146,7 @@ class CourseDraftMoodTagServiceTest {
         assertThatThrownBy(() -> courseDraftMoodTagService.saveMoodTags(
                 10L,
                 1L,
-                new CourseDraftMoodTagSaveRequest(List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L))
+                new MoodTagSaveRequest(List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L))
         ))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
@@ -164,7 +164,7 @@ class CourseDraftMoodTagServiceTest {
         assertThatThrownBy(() -> courseDraftMoodTagService.saveMoodTags(
                 10L,
                 1L,
-                new CourseDraftMoodTagSaveRequest(List.of(1L, 2L))
+                new MoodTagSaveRequest(List.of(1L, 2L))
         ))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")

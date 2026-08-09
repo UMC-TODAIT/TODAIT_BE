@@ -1,7 +1,7 @@
 package com.example.TODAIT__BE.domain.course.controller.docs;
 
-import com.example.TODAIT__BE.domain.course.dto.request.CourseSaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseSaveRequest.SaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.SaveResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,9 +20,9 @@ public interface CourseSaveControllerDocs {
                     - 저장 결과: 사용자 개인 저장 코스
                     """
     )
-    ResponseEntity<ApiResponse<CourseSaveResponse>> saveCourse(
+    ResponseEntity<ApiResponse<SaveResponse>> saveCourse(
             Long courseDraftId,
             AuthMember authMember,
-            CourseSaveRequest request
+            SaveRequest request
     );
 }

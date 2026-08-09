@@ -1,9 +1,9 @@
 package com.example.TODAIT__BE.domain.course.service;
 
-import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftBasePlaceSaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftBasePlaceSaveRequest.ExternalPlace;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftBasePlaceSaveResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftBasePlaceSaveResponse.BasePlace;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.BasePlaceSaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.BasePlaceSaveRequest.ExternalPlace;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlaceSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlace;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
@@ -60,10 +60,10 @@ public class CourseDraftBasePlaceService {
     private final CourseDraftValidator courseDraftValidator;
 
     @Transactional
-    public CourseDraftBasePlaceSaveResponse saveBasePlace(
+    public BasePlaceSaveResponse saveBasePlace(
             Long courseDraftId,
             Long memberId,
-            CourseDraftBasePlaceSaveRequest request
+            BasePlaceSaveRequest request
     ) {
         CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
                 .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
@@ -87,10 +87,10 @@ public class CourseDraftBasePlaceService {
 
         BasePlace basePlaceResponse =
                 BasePlace.of(baseDraftPlace, resolvedPlace.sourceType(), resolvedPlace.isNewPlace());
-        return CourseDraftBasePlaceSaveResponse.of(courseDraft.getId(), courseDraft.getStatus(), basePlaceResponse);
+        return BasePlaceSaveResponse.of(courseDraft.getId(), courseDraft.getStatus(), basePlaceResponse);
     }
 
-    private void validateExactlyOneSource(CourseDraftBasePlaceSaveRequest request) {
+    private void validateExactlyOneSource(BasePlaceSaveRequest request) {
         boolean hasPlaceId = request.placeId() != null;
         boolean hasExternalPlace = request.externalPlace() != null;
 

@@ -1,11 +1,11 @@
 package com.example.TODAIT__BE.domain.course.service;
 
-import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftPlaceAddRequest;
-import com.example.TODAIT__BE.domain.course.dto.request.PlaceOrderUpdateRequest;
-import com.example.TODAIT__BE.domain.course.dto.request.PlaceOrderUpdateRequest.PlaceOrderItem;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftPlaceAddResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftPlaceResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.PlaceOrderUpdateResponse;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceAddRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest.PlaceOrderItem;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceAddResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.DraftPlaceResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceOrderUpdateResponse;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
@@ -69,16 +69,16 @@ public class CourseDraftPlaceService {
 
         updateVisitOrders(targetPlaces, placeOrders);
 
-        List<CourseDraftPlaceResponse> responses = allPlaces.stream()
+        List<DraftPlaceResponse> responses = allPlaces.stream()
                 .sorted(Comparator.comparing(CourseDraftPlace::getVisitOrder))
-                .map(CourseDraftPlaceResponse::from)
+                .map(DraftPlaceResponse::from)
                 .toList();
 
         return PlaceOrderUpdateResponse.of(courseDraft.getId(), responses);
     }
 
     @Transactional
-    public CourseDraftPlaceAddResponse addPlace(Long courseDraftId, Long memberId, CourseDraftPlaceAddRequest request) {
+    public PlaceAddResponse addPlace(Long courseDraftId, Long memberId, PlaceAddRequest request) {
         CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
                 .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
 
@@ -131,7 +131,7 @@ public class CourseDraftPlaceService {
                 .count() + 1;
         int totalPlaceCount = existingPlaces.size() + 1;
 
-        return CourseDraftPlaceAddResponse.of(
+        return PlaceAddResponse.of(
                 courseDraft.getId(), courseDraft.getStatus(), savedPlace, selectedPlaceCount, totalPlaceCount
         );
     }
