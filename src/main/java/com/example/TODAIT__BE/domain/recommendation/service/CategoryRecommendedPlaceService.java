@@ -418,12 +418,15 @@ public class CategoryRecommendedPlaceService {
             EvaluatedNearBasePlace evaluated =
                     selectedPlaces.get(index);
 
+            List<String> recommendationReasons =
+                    evaluated.recommendationReasons();
+
             String reasonText =
-                    evaluated.recommendationReasons().isEmpty()
+                    recommendationReasons.isEmpty()
                             ? null
                             : String.join(
                                     " ",
-                                    evaluated.recommendationReasons()
+                                    recommendationReasons
                             );
 
             RecommendationResult result =
