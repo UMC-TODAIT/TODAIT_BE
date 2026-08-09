@@ -19,6 +19,12 @@ import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftBasePlaceService;
+import com.example.TODAIT__BE.domain.course.service.CourseDraftFoodCategoryService;
+import com.example.TODAIT__BE.domain.course.service.CourseDraftMoodTagService;
+import com.example.TODAIT__BE.domain.course.service.CourseDraftOrderingService;
+import com.example.TODAIT__BE.domain.course.service.CourseDraftPlaceService;
+import com.example.TODAIT__BE.domain.course.service.CourseDraftSavingService;
+import com.example.TODAIT__BE.domain.course.service.CourseDraftService;
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.domain.place.exception.PlaceException;
 import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
@@ -42,7 +48,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = CourseDraftBasePlaceController.class)
+@WebMvcTest(controllers = CourseDraftController.class)
 @Import(CourseDraftBasePlaceControllerTest.TestSecurityConfig.class)
 class CourseDraftBasePlaceControllerTest {
 
@@ -56,6 +62,18 @@ class CourseDraftBasePlaceControllerTest {
 
     @MockitoBean
     private CourseDraftBasePlaceService courseDraftBasePlaceService;
+    @MockitoBean
+    private CourseDraftService courseDraftService;
+    @MockitoBean
+    private CourseDraftMoodTagService courseDraftMoodTagService;
+    @MockitoBean
+    private CourseDraftFoodCategoryService courseDraftFoodCategoryService;
+    @MockitoBean
+    private CourseDraftPlaceService courseDraftPlaceService;
+    @MockitoBean
+    private CourseDraftOrderingService courseDraftOrderingService;
+    @MockitoBean
+    private CourseDraftSavingService courseDraftSavingService;
 
     @TestConfiguration
     @EnableWebSecurity

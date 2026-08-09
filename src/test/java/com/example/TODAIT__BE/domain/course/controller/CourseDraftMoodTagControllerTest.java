@@ -14,7 +14,13 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftMoodTagSaveR
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
+import com.example.TODAIT__BE.domain.course.service.CourseDraftBasePlaceService;
+import com.example.TODAIT__BE.domain.course.service.CourseDraftFoodCategoryService;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftMoodTagService;
+import com.example.TODAIT__BE.domain.course.service.CourseDraftOrderingService;
+import com.example.TODAIT__BE.domain.course.service.CourseDraftPlaceService;
+import com.example.TODAIT__BE.domain.course.service.CourseDraftSavingService;
+import com.example.TODAIT__BE.domain.course.service.CourseDraftService;
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
@@ -36,7 +42,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = CourseDraftMoodTagController.class)
+@WebMvcTest(controllers = CourseDraftController.class)
 @Import(CourseDraftMoodTagControllerTest.TestSecurityConfig.class)
 class CourseDraftMoodTagControllerTest {
 
@@ -50,6 +56,18 @@ class CourseDraftMoodTagControllerTest {
 
     @MockitoBean
     private CourseDraftMoodTagService courseDraftMoodTagService;
+    @MockitoBean
+    private CourseDraftService courseDraftService;
+    @MockitoBean
+    private CourseDraftFoodCategoryService courseDraftFoodCategoryService;
+    @MockitoBean
+    private CourseDraftBasePlaceService courseDraftBasePlaceService;
+    @MockitoBean
+    private CourseDraftPlaceService courseDraftPlaceService;
+    @MockitoBean
+    private CourseDraftOrderingService courseDraftOrderingService;
+    @MockitoBean
+    private CourseDraftSavingService courseDraftSavingService;
 
     @TestConfiguration
     @EnableWebSecurity
