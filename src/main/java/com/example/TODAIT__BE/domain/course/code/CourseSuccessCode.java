@@ -52,6 +52,12 @@ public enum CourseSuccessCode implements BaseSuccessCode {
             "저장 코스 상세 조회 성공"
     ),
 
+    SAVED_COURSE_DELETE_OK(
+            HttpStatus.OK,
+            "COURSE200_7",
+            "저장 코스 삭제 성공"
+    ),
+
     BASE_PLACE_SAVE_OK(
             HttpStatus.OK,
             "COURSE200_6",
