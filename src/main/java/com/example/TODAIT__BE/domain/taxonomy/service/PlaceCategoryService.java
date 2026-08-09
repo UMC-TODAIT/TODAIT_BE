@@ -1,7 +1,7 @@
 package com.example.TODAIT__BE.domain.taxonomy.service;
 
 import com.example.TODAIT__BE.domain.taxonomy.dto.response.PlaceCategoryListResponse;
-import com.example.TODAIT__BE.domain.taxonomy.dto.response.PlaceCategoryResponse;
+import com.example.TODAIT__BE.domain.taxonomy.dto.response.PlaceCategoryListResponse.PlaceCategoryResponse;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import com.example.TODAIT__BE.domain.taxonomy.repository.PlaceCategoryRepository;
 import lombok.RequiredArgsConstructor;

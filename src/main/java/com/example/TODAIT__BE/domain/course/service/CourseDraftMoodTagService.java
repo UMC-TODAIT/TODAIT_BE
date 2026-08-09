@@ -9,7 +9,7 @@ import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
-import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomyErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.domain.taxonomy.repository.MoodTagRepository;
@@ -86,7 +86,7 @@ public class CourseDraftMoodTagService {
     private List<MoodTag> validateAndGetMoodTags(List<Long> moodTagIds) {
         List<MoodTag> foundMoodTags = moodTagRepository.findAllById(moodTagIds);
         if (foundMoodTags.size() != moodTagIds.size()) {
-            throw new TaxonomyException(TaxonomyErrorCode.MOOD_TAG_NOT_FOUND);
+            throw new TaxonomyException(MoodTagErrorCode.MOOD_TAG_NOT_FOUND);
         }
 
         Map<Long, MoodTag> moodTagsById = foundMoodTags.stream()

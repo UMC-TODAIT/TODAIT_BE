@@ -25,7 +25,8 @@ import com.example.TODAIT__BE.domain.place.repository.PlaceSourceRepository;
 import com.example.TODAIT__BE.domain.place.service.ExternalPlaceRegistrationService;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
-import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomyErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.AreaErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.PlaceCategoryErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.domain.taxonomy.repository.AreaRepository;
 import com.example.TODAIT__BE.domain.taxonomy.repository.PlaceCategoryRepository;
@@ -140,11 +141,11 @@ public class CourseDraftBasePlaceService {
 
         Area area = areaRepository.findByCode(externalPlace.areaCode())
                 .filter(Area::getIsActive)
-                .orElseThrow(() -> new TaxonomyException(TaxonomyErrorCode.AREA_NOT_SUPPORTED));
+                .orElseThrow(() -> new TaxonomyException(AreaErrorCode.AREA_NOT_SUPPORTED));
 
         PlaceCategory placeCategory = placeCategoryRepository.findByCode(externalPlace.categoryCode())
                 .filter(PlaceCategory::getIsActive)
-                .orElseThrow(() -> new TaxonomyException(TaxonomyErrorCode.PLACE_CATEGORY_NOT_SUPPORTED));
+                .orElseThrow(() -> new TaxonomyException(PlaceCategoryErrorCode.PLACE_CATEGORY_NOT_SUPPORTED));
 
         Optional<PlaceSource> existingSource =
                 placeSourceRepository.findByDataSourceAndSourcePlaceId(dataSource, externalPlace.sourcePlaceId());

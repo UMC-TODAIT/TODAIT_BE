@@ -16,7 +16,7 @@ import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftMoodTagService;
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
-import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomyErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -168,7 +168,7 @@ class CourseDraftMoodTagControllerTest {
     @Test
     void saveMoodTags_moodTagNotFound_returns404() throws Exception {
         given(courseDraftMoodTagService.saveMoodTags(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new TaxonomyException(TaxonomyErrorCode.MOOD_TAG_NOT_FOUND));
+                .willThrow(new TaxonomyException(MoodTagErrorCode.MOOD_TAG_NOT_FOUND));
 
         mockMvc.perform(put("/api/course-drafts/{courseDraftId}/mood-tags", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken()))

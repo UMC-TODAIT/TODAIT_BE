@@ -32,7 +32,7 @@ import com.example.TODAIT__BE.domain.place.repository.PlaceDataSourceRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceSourceRepository;
 import com.example.TODAIT__BE.domain.place.service.ExternalPlaceRegistrationService;
-import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomyErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.AreaErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
@@ -469,7 +469,7 @@ class CourseDraftBasePlaceServiceTest {
         ))
                 .isInstanceOf(TaxonomyException.class)
                 .extracting("errorCode")
-                .isEqualTo(TaxonomyErrorCode.AREA_NOT_SUPPORTED);
+                .isEqualTo(AreaErrorCode.AREA_NOT_SUPPORTED);
     }
 
     private CourseDraft draft(CourseDraftStatus status) {
