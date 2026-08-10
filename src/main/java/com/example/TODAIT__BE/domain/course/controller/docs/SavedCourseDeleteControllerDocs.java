@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @Tag(
         name = "COURSE",
@@ -40,6 +41,6 @@ public interface SavedCourseDeleteControllerDocs {
                     example = "10",
                     required = true
             )
-            Long courseId
+            @PathVariable Long courseId
     );
 }
