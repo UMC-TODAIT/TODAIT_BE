@@ -14,7 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseDetailResponse;
 import org.springframework.web.bind.annotation.PathVariable;
-
+import com.example.TODAIT__BE.domain.course.dto.request.SavedCourseMemoUpdateRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.SavedCoursePlaceMemoUpdateRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseMemoUpdateResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCoursePlaceMemoUpdateResponse;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequiredArgsConstructor
@@ -69,4 +74,55 @@ public class SavedCourseController implements SavedCourseControllerDocs {
                 )
         );
     }
+
+    @Override
+    @PatchMapping("/{courseId}/memo")
+    public ResponseEntity<ApiResponse<SavedCourseMemoUpdateResponse>>
+    updateSavedCourseMemo(
+            @AuthenticationPrincipal AuthMember authMember,
+            @PathVariable Long courseId,
+            @RequestBody SavedCourseMemoUpdateRequest request
+    ) {
+        SavedCourseMemoUpdateResponse result =
+                savedCourseService.updateSavedCourseMemo(
+                        authMember.memberId(),
+                        courseId,
+                        request
+                );
+
+        return ResponseEntity.ok(
+                ApiResponse.onSuccess(
+                        CourseSuccessCode.SAVED_COURSE_MEMO_UPDATE_OK,
+                        result
+                )
+        );
+    }
+
+    @Override
+    @PatchMapping("/{courseId}/places/{coursePlaceId}/memo")
+    public ResponseEntity<ApiResponse<SavedCoursePlaceMemoUpdateResponse>>
+    updateSavedCoursePlaceMemo(
+            @AuthenticationPrincipal AuthMember authMember,
+            @PathVariable Long courseId,
+            @PathVariable Long coursePlaceId,
+            @RequestBody SavedCoursePlaceMemoUpdateRequest request
+    ) {
+        SavedCoursePlaceMemoUpdateResponse result =
+                savedCourseService.updateSavedCoursePlaceMemo(
+                        authMember.memberId(),
+                        courseId,
+                        coursePlaceId,
+                        request
+                );
+
+        return ResponseEntity.ok(
+                ApiResponse.onSuccess(
+                        CourseSuccessCode.SAVED_COURSE_PLACE_MEMO_UPDATE_OK,
+                        result
+                )
+        );
+    }
+
+
+
 }

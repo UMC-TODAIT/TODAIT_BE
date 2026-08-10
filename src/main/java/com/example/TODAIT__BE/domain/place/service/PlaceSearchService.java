@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.place.service;
 
-import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceSearchErrorCode;
 import com.example.TODAIT__BE.domain.place.dto.response.PlaceSearchResponse;
 import com.example.TODAIT__BE.domain.place.exception.PlaceException;
 import com.example.TODAIT__BE.domain.place.service.port.ExternalPlaceCandidate;
@@ -83,7 +83,7 @@ public class PlaceSearchService {
     private String validateAndNormalizeQuery(String query) {
         if (query == null || query.isBlank()) {
             throw new PlaceException(
-                    PlaceErrorCode.INVALID_PLACE_SEARCH_QUERY
+                    PlaceSearchErrorCode.INVALID_PLACE_SEARCH_QUERY
             );
         }
 
@@ -91,13 +91,13 @@ public class PlaceSearchService {
 
         if (normalizedQuery.length() < MIN_QUERY_LENGTH) {
             throw new PlaceException(
-                    PlaceErrorCode.PLACE_SEARCH_QUERY_TOO_SHORT
+                    PlaceSearchErrorCode.PLACE_SEARCH_QUERY_TOO_SHORT
             );
         }
 
         if (normalizedQuery.length() > MAX_QUERY_LENGTH) {
             throw new PlaceException(
-                    PlaceErrorCode.PLACE_SEARCH_QUERY_TOO_LONG
+                    PlaceSearchErrorCode.PLACE_SEARCH_QUERY_TOO_LONG
             );
         }
 

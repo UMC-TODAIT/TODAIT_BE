@@ -72,4 +72,9 @@ public class Course extends BaseEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    public void softDelete(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
+    public void updateMemo(String memo) {this.memo = memo;}
 }

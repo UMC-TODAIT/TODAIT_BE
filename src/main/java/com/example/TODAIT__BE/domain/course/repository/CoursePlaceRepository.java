@@ -80,4 +80,9 @@ public interface CoursePlaceRepository extends JpaRepository<CoursePlace, Long> 
 
             Pageable pageable
     );
+
+    Optional<CoursePlace> findByIdAndCourseId(
+            Long coursePlaceId,
+            Long courseId
+    );
 }

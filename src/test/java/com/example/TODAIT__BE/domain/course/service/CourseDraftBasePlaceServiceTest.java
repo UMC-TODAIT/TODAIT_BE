@@ -27,12 +27,13 @@ import com.example.TODAIT__BE.domain.place.entity.PlaceSource;
 import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
 import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
 import com.example.TODAIT__BE.domain.place.exception.PlaceException;
-import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
+import com.example.TODAIT__BE.domain.place.code.ExternalPlaceRegistrationErrorCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceDetailErrorCode;
 import com.example.TODAIT__BE.domain.place.repository.PlaceDataSourceRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceSourceRepository;
 import com.example.TODAIT__BE.domain.place.service.ExternalPlaceRegistrationService;
-import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomyErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.AreaErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
@@ -266,7 +267,7 @@ class CourseDraftBasePlaceServiceTest {
         ))
                 .isInstanceOf(PlaceException.class)
                 .extracting("errorCode")
-                .isEqualTo(PlaceErrorCode.PLACE_NOT_AVAILABLE);
+                .isEqualTo(ExternalPlaceRegistrationErrorCode.PLACE_NOT_AVAILABLE);
 
         verify(externalPlaceRegistrationService, never()).register(
                 any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
@@ -379,7 +380,7 @@ class CourseDraftBasePlaceServiceTest {
         ))
                 .isInstanceOf(PlaceException.class)
                 .extracting("errorCode")
-                .isEqualTo(PlaceErrorCode.PLACE_NOT_FOUND);
+                .isEqualTo(PlaceDetailErrorCode.PLACE_NOT_FOUND);
     }
 
     @Test
@@ -405,7 +406,7 @@ class CourseDraftBasePlaceServiceTest {
         ))
                 .isInstanceOf(PlaceException.class)
                 .extracting("errorCode")
-                .isEqualTo(PlaceErrorCode.PLACE_NOT_AVAILABLE);
+                .isEqualTo(ExternalPlaceRegistrationErrorCode.PLACE_NOT_AVAILABLE);
     }
 
     @Test
@@ -432,7 +433,7 @@ class CourseDraftBasePlaceServiceTest {
         ))
                 .isInstanceOf(PlaceException.class)
                 .extracting("errorCode")
-                .isEqualTo(PlaceErrorCode.PLACE_NOT_AVAILABLE);
+                .isEqualTo(ExternalPlaceRegistrationErrorCode.PLACE_NOT_AVAILABLE);
     }
 
     @Test
@@ -449,7 +450,7 @@ class CourseDraftBasePlaceServiceTest {
         ))
                 .isInstanceOf(PlaceException.class)
                 .extracting("errorCode")
-                .isEqualTo(PlaceErrorCode.INVALID_PLACE_COORDINATE);
+                .isEqualTo(ExternalPlaceRegistrationErrorCode.INVALID_PLACE_COORDINATE);
     }
 
     @Test
@@ -469,7 +470,7 @@ class CourseDraftBasePlaceServiceTest {
         ))
                 .isInstanceOf(TaxonomyException.class)
                 .extracting("errorCode")
-                .isEqualTo(TaxonomyErrorCode.AREA_NOT_SUPPORTED);
+                .isEqualTo(AreaErrorCode.AREA_NOT_SUPPORTED);
     }
 
     private CourseDraft draft(CourseDraftStatus status) {

@@ -14,7 +14,8 @@ import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
-import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
+import com.example.TODAIT__BE.domain.place.code.ExternalPlaceRegistrationErrorCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceDetailErrorCode;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
 import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
@@ -90,7 +91,7 @@ public class CourseDraftPlaceService {
         CourseDraftPlace basePlace = validateBasePlaceIntegrity(existingPlaces);
 
         Place place = placeRepository.findById(request.placeId())
-                .orElseThrow(() -> new PlaceException(PlaceErrorCode.PLACE_NOT_FOUND));
+                .orElseThrow(() -> new PlaceException(PlaceDetailErrorCode.PLACE_NOT_FOUND));
         validateAvailablePlace(place);
 
         if (place.getId().equals(basePlace.getPlace().getId())) {
@@ -157,7 +158,7 @@ public class CourseDraftPlaceService {
                 && place.getLongitude() != null;
 
         if (!available) {
-            throw new PlaceException(PlaceErrorCode.PLACE_NOT_AVAILABLE);
+            throw new PlaceException(ExternalPlaceRegistrationErrorCode.PLACE_NOT_AVAILABLE);
         }
     }
 
