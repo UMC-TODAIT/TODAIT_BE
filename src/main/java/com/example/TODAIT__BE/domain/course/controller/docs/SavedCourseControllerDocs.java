@@ -15,7 +15,6 @@ import com.example.TODAIT__BE.domain.course.dto.response.SavedCoursePlaceMemoUpd
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestBody;
 
 @Tag(name = "COURSE", description = "임시 코스 및 저장 코스 API")
 public interface SavedCourseControllerDocs {
