@@ -132,6 +132,7 @@ class ApiResponseCodeContractTest {
             entry("CourseSuccessCode.RECOMMENDED_COURSE_DETAIL_OK", "COURSE200_3"),
             entry("CourseSuccessCode.SAVED_COURSE_OVERVIEW_OK", "COURSE200_4"),
             entry("CourseSuccessCode.SAVED_COURSE_DETAIL_OK", "COURSE200_5"),
+            entry("CourseSuccessCode.SAVED_COURSE_DELETE_OK", "COURSE200_7"),
             entry("CourseSuccessCode.RECOMMENDED_COURSE_SAVE_OK", "COURSE202"),
             entry("CourseSuccessCode.COURSE_DRAFT_SAVING_ENTER_OK", "COURSE200_8"),
             entry("CourseErrorCode.COURSE_DRAFT_NOT_FOUND", "COURSE_DRAFT404"),
