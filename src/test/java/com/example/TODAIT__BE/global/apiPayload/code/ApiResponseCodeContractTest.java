@@ -15,8 +15,12 @@ import com.example.TODAIT__BE.domain.member.code.OAuthErrorCode;
 import com.example.TODAIT__BE.domain.member.code.OAuthSuccessCode;
 import com.example.TODAIT__BE.domain.member.code.PasswordResetErrorCode;
 import com.example.TODAIT__BE.domain.member.code.PasswordResetSuccessCode;
-import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
-import com.example.TODAIT__BE.domain.place.code.PlaceSuccessCode;
+import com.example.TODAIT__BE.domain.place.code.ExternalPlaceRegistrationErrorCode;
+import com.example.TODAIT__BE.domain.place.code.ExternalPlaceRegistrationSuccessCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceDetailErrorCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceDetailSuccessCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceSearchErrorCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceSearchSuccessCode;
 import com.example.TODAIT__BE.domain.recommendation.code.RecommendationErrorCode;
 import com.example.TODAIT__BE.domain.recommendation.code.RecommendationSuccessCode;
 import com.example.TODAIT__BE.domain.taxonomy.code.AreaErrorCode;
@@ -53,8 +57,12 @@ class ApiResponseCodeContractTest {
             new CodeEnum(PasswordResetErrorCode.class, Set.of("AUTH")),
             new CodeEnum(CourseSuccessCode.class, Set.of("COURSE")),
             new CodeEnum(CourseErrorCode.class, Set.of("COURSE")),
-            new CodeEnum(PlaceSuccessCode.class, Set.of("PLACE")),
-            new CodeEnum(PlaceErrorCode.class, Set.of("PLACE")),
+            new CodeEnum(PlaceSearchSuccessCode.class, Set.of("PLACE")),
+            new CodeEnum(PlaceSearchErrorCode.class, Set.of("PLACE")),
+            new CodeEnum(PlaceDetailSuccessCode.class, Set.of("PLACE")),
+            new CodeEnum(PlaceDetailErrorCode.class, Set.of("PLACE")),
+            new CodeEnum(ExternalPlaceRegistrationSuccessCode.class, Set.of("PLACE")),
+            new CodeEnum(ExternalPlaceRegistrationErrorCode.class, Set.of("PLACE")),
             new CodeEnum(RecommendationSuccessCode.class, Set.of("RECOMMENDATION")),
             new CodeEnum(RecommendationErrorCode.class, Set.of("RECOMMENDATION")),
             new CodeEnum(PlaceCategorySuccessCode.class, Set.of("TAXONOMY")),
@@ -176,18 +184,19 @@ class ApiResponseCodeContractTest {
             entry("CourseErrorCode.COURSE_MOOD_TAG_NOT_FOUND", "COURSE_MOOD404"),
             entry("CourseSuccessCode.BASE_PLACE_SAVE_OK", "COURSE200_6"),
             entry("CourseSuccessCode.PLACE_ADD_OK", "COURSE201_1"),
-            entry("PlaceSuccessCode.PLACE_SEARCH_OK", "PLACE200"),
-            entry("PlaceSuccessCode.PLACE_DETAIL_OK", "PLACE200_1"),
-            entry("PlaceErrorCode.INVALID_PLACE_SEARCH_QUERY", "PLACE400_1"),
-            entry("PlaceErrorCode.PLACE_SEARCH_QUERY_TOO_SHORT", "PLACE400_2"),
-            entry("PlaceErrorCode.PLACE_SEARCH_QUERY_TOO_LONG", "PLACE400_3"),
-            entry("PlaceErrorCode.PLACE_NOT_EXPOSED", "PLACE400_4"),
-            entry("PlaceErrorCode.PLACE_NOT_FOUND", "PLACE404"),
-            entry("PlaceErrorCode.KAKAO_LOCAL_API_RATE_LIMIT_EXCEEDED", "PLACE429_1"),
-            entry("PlaceErrorCode.KAKAO_LOCAL_API_REQUEST_FAILED", "PLACE502_1"),
-            entry("PlaceErrorCode.PLACE_NOT_AVAILABLE", "PLACE400"),
-            entry("PlaceErrorCode.INVALID_PLACE_COORDINATE", "PLACE400_5"),
-            entry("PlaceErrorCode.DATA_SOURCE_NOT_FOUND", "PLACE404_1"),
+            entry("PlaceSearchSuccessCode.PLACE_SEARCH_OK", "PLACE200"),
+            entry("PlaceDetailSuccessCode.PLACE_DETAIL_OK", "PLACE200_1"),
+            entry("ExternalPlaceRegistrationSuccessCode.EXTERNAL_PLACE_REGISTERED", "PLACE201"),
+            entry("PlaceSearchErrorCode.INVALID_PLACE_SEARCH_QUERY", "PLACE400_1"),
+            entry("PlaceSearchErrorCode.PLACE_SEARCH_QUERY_TOO_SHORT", "PLACE400_2"),
+            entry("PlaceSearchErrorCode.PLACE_SEARCH_QUERY_TOO_LONG", "PLACE400_3"),
+            entry("PlaceDetailErrorCode.PLACE_NOT_EXPOSED", "PLACE400_4"),
+            entry("PlaceDetailErrorCode.PLACE_NOT_FOUND", "PLACE404"),
+            entry("PlaceSearchErrorCode.KAKAO_LOCAL_API_RATE_LIMIT_EXCEEDED", "PLACE429_1"),
+            entry("PlaceSearchErrorCode.KAKAO_LOCAL_API_REQUEST_FAILED", "PLACE502_1"),
+            entry("ExternalPlaceRegistrationErrorCode.PLACE_NOT_AVAILABLE", "PLACE400"),
+            entry("ExternalPlaceRegistrationErrorCode.INVALID_PLACE_COORDINATE", "PLACE400_5"),
+            entry("ExternalPlaceRegistrationErrorCode.DATA_SOURCE_NOT_FOUND", "PLACE404_1"),
             entry("RecommendationSuccessCode.HOME_RECOMMENDED_COURSE_LIST_OK", "RECOMMENDATION200"),
             entry("RecommendationSuccessCode.CATEGORY_RECOMMENDED_PLACE_LIST_OK", "RECOMMENDATION202"),
             entry("RecommendationSuccessCode.HOT_PLACE_LIST_OK", "RECOMMENDATION200_2"),

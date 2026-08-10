@@ -18,7 +18,8 @@ import com.example.TODAIT__BE.domain.place.entity.PlaceSource;
 import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
 import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
 import com.example.TODAIT__BE.domain.place.exception.PlaceException;
-import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
+import com.example.TODAIT__BE.domain.place.code.ExternalPlaceRegistrationErrorCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceDetailErrorCode;
 import com.example.TODAIT__BE.domain.place.repository.PlaceDataSourceRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceSourceRepository;
@@ -103,7 +104,7 @@ public class CourseDraftBasePlaceService {
 
     private ResolvedPlace resolveFromInternalPlace(Long placeId) {
         Place place = placeRepository.findById(placeId)
-                .orElseThrow(() -> new PlaceException(PlaceErrorCode.PLACE_NOT_FOUND));
+                .orElseThrow(() -> new PlaceException(PlaceDetailErrorCode.PLACE_NOT_FOUND));
 
         validateAvailablePlace(place);
 
@@ -128,7 +129,7 @@ public class CourseDraftBasePlaceService {
                 && place.getLongitude() != null;
 
         if (!available) {
-            throw new PlaceException(PlaceErrorCode.PLACE_NOT_AVAILABLE);
+            throw new PlaceException(ExternalPlaceRegistrationErrorCode.PLACE_NOT_AVAILABLE);
         }
     }
 
@@ -137,7 +138,7 @@ public class CourseDraftBasePlaceService {
         validateCoordinates(externalPlace.latitude(), externalPlace.longitude());
 
         PlaceDataSource dataSource = dataSourceRepository.findByCodeAndIsActiveTrue(externalPlace.dataSourceCode())
-                .orElseThrow(() -> new PlaceException(PlaceErrorCode.DATA_SOURCE_NOT_FOUND));
+                .orElseThrow(() -> new PlaceException(ExternalPlaceRegistrationErrorCode.DATA_SOURCE_NOT_FOUND));
 
         Area area = areaRepository.findByCode(externalPlace.areaCode())
                 .filter(Area::getIsActive)
@@ -212,7 +213,7 @@ public class CourseDraftBasePlaceService {
                 && longitude >= MIN_LONGITUDE && longitude <= MAX_LONGITUDE;
 
         if (!valid) {
-            throw new PlaceException(PlaceErrorCode.INVALID_PLACE_COORDINATE);
+            throw new PlaceException(ExternalPlaceRegistrationErrorCode.INVALID_PLACE_COORDINATE);
         }
     }
 
