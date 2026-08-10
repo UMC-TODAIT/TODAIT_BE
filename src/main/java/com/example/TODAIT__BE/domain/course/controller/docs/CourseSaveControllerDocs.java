@@ -7,6 +7,7 @@ import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @Tag(name = "COURSE", description = "임시 코스 및 저장 코스 API")
 public interface CourseSaveControllerDocs {
@@ -21,7 +22,7 @@ public interface CourseSaveControllerDocs {
                     """
     )
     ResponseEntity<ApiResponse<SaveResponse>> saveCourse(
-            Long courseDraftId,
+            @PathVariable Long courseDraftId,
             AuthMember authMember,
             SaveRequest request
     );

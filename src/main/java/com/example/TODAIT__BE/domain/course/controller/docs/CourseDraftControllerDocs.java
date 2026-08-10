@@ -99,7 +99,7 @@ public interface CourseDraftControllerDocs {
                     """
     )
     ResponseEntity<ApiResponse<PlaceAddResponse>> addPlace(
-            Long courseDraftId,
+            @PathVariable Long courseDraftId,
             AuthMember authMember,
             PlaceAddRequest request
     );
@@ -118,7 +118,7 @@ public interface CourseDraftControllerDocs {
                     """
     )
     ResponseEntity<ApiResponse<OrderingEntryResponse>> enterOrdering(
-            Long courseDraftId,
+            @PathVariable Long courseDraftId,
             AuthMember authMember
     );
 
@@ -133,7 +133,7 @@ public interface CourseDraftControllerDocs {
                     """
     )
     ResponseEntity<ApiResponse<PlaceOrderUpdateResponse>> updatePlaceOrder(
-            Long courseDraftId,
+            @PathVariable Long courseDraftId,
             AuthMember authMember,
             PlaceOrderUpdateRequest request
     );
@@ -147,7 +147,7 @@ public interface CourseDraftControllerDocs {
                     """
     )
     ResponseEntity<ApiResponse<SavingEnterResponse>> enterSaving(
-            Long courseDraftId,
+            @PathVariable Long courseDraftId,
             AuthMember authMember
     );
 }

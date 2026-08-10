@@ -7,6 +7,7 @@ import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @Tag(
         name = "COURSE",
@@ -25,7 +26,7 @@ public interface RecommendedCourseControllerDocs {
                     """
     )
     ResponseEntity<ApiResponse<DetailResponse>>
-    getRecommendedCourseDetail(Long courseId);
+    getRecommendedCourseDetail(@PathVariable Long courseId);
 
     @Operation(
             summary = "[추천 코스] 추천 코스를 내 코스로 저장",
@@ -39,7 +40,7 @@ public interface RecommendedCourseControllerDocs {
     )
     ResponseEntity<ApiResponse<SaveResponse>>
     saveRecommendedCourse(
-            Long courseId,
+            @PathVariable Long courseId,
             AuthMember authMember
     );
 }
