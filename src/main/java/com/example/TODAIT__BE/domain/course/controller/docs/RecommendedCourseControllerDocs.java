@@ -5,6 +5,8 @@ import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseRespon
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,9 +40,11 @@ public interface RecommendedCourseControllerDocs {
                     - 중복 저장: 같은 추천 코스를 여러 번 저장 가능
                     """
     )
+    @SecurityRequirement(name = "JWT TOKEN")
     ResponseEntity<ApiResponse<SaveResponse>>
     saveRecommendedCourse(
             @PathVariable Long courseId,
+            @Parameter(hidden = true)
             AuthMember authMember
     );
 }

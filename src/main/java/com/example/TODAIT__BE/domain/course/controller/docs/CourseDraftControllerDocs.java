@@ -16,10 +16,12 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.Sav
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Tag(
         name = "COURSE",
@@ -38,8 +40,12 @@ public interface CourseDraftControllerDocs {
                     - 인증: Access Token 필요
                     """
     )
+    @SecurityRequirement(name = "JWT TOKEN")
     ResponseEntity<ApiResponse<CreateResponse>>
-    createCourseDraft(AuthMember authMember);
+    createCourseDraft(
+            @Parameter(hidden = true)
+            AuthMember authMember
+    );
 
     @Operation(
             summary = "[분위기 선택] 분위기 태그 저장",
@@ -54,7 +60,9 @@ public interface CourseDraftControllerDocs {
     @SecurityRequirement(name = "JWT TOKEN")
     ResponseEntity<ApiResponse<MoodTagSaveResponse>> saveMoodTags(
             @PathVariable Long courseDraftId,
+            @Parameter(hidden = true)
             AuthMember authMember,
+            @RequestBody
             MoodTagSaveRequest request
     );
 
@@ -71,7 +79,9 @@ public interface CourseDraftControllerDocs {
     @SecurityRequirement(name = "JWT TOKEN")
     ResponseEntity<ApiResponse<FoodCategorySaveResponse>> saveFoodCategories(
             @PathVariable Long courseDraftId,
+            @Parameter(hidden = true)
             AuthMember authMember,
+            @RequestBody
             FoodCategorySaveRequest request
     );
 
@@ -84,7 +94,9 @@ public interface CourseDraftControllerDocs {
     @SecurityRequirement(name = "JWT TOKEN")
     ResponseEntity<ApiResponse<BasePlaceSaveResponse>> saveBasePlace(
             @PathVariable Long courseDraftId,
+            @Parameter(hidden = true)
             AuthMember authMember,
+            @RequestBody
             BasePlaceSaveRequest request
     );
 
@@ -98,9 +110,12 @@ public interface CourseDraftControllerDocs {
                     - 이미 선택된 카테고리(기준 장소 포함)와 같은 카테고리의 장소는 추가할 수 없습니다.
                     """
     )
+    @SecurityRequirement(name = "JWT TOKEN")
     ResponseEntity<ApiResponse<PlaceAddResponse>> addPlace(
             @PathVariable Long courseDraftId,
+            @Parameter(hidden = true)
             AuthMember authMember,
+            @RequestBody
             PlaceAddRequest request
     );
 
@@ -117,8 +132,10 @@ public interface CourseDraftControllerDocs {
                     - 실제 순서 변경: 선택 장소 순서 변경 API 사용
                     """
     )
+    @SecurityRequirement(name = "JWT TOKEN")
     ResponseEntity<ApiResponse<OrderingEntryResponse>> enterOrdering(
             @PathVariable Long courseDraftId,
+            @Parameter(hidden = true)
             AuthMember authMember
     );
 
@@ -132,9 +149,12 @@ public interface CourseDraftControllerDocs {
                     - 성공 후 draftStatus는 ORDERING입니다.
                     """
     )
+    @SecurityRequirement(name = "JWT TOKEN")
     ResponseEntity<ApiResponse<PlaceOrderUpdateResponse>> updatePlaceOrder(
             @PathVariable Long courseDraftId,
+            @Parameter(hidden = true)
             AuthMember authMember,
+            @RequestBody
             PlaceOrderUpdateRequest request
     );
 
@@ -146,8 +166,10 @@ public interface CourseDraftControllerDocs {
                     저장 전 기준 장소와 선택 장소 구성이 유효한지 확인합니다.
                     """
     )
+    @SecurityRequirement(name = "JWT TOKEN")
     ResponseEntity<ApiResponse<SavingEnterResponse>> enterSaving(
             @PathVariable Long courseDraftId,
+            @Parameter(hidden = true)
             AuthMember authMember
     );
 }

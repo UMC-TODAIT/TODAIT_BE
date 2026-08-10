@@ -5,9 +5,12 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.Save
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Tag(name = "COURSE", description = "임시 코스 및 저장 코스 API")
 public interface CourseSaveControllerDocs {
@@ -21,9 +24,12 @@ public interface CourseSaveControllerDocs {
                     - 저장 결과: 사용자 개인 저장 코스
                     """
     )
+    @SecurityRequirement(name = "JWT TOKEN")
     ResponseEntity<ApiResponse<SaveResponse>> saveCourse(
             @PathVariable Long courseDraftId,
+            @Parameter(hidden = true)
             AuthMember authMember,
+            @RequestBody
             SaveRequest request
     );
 }
