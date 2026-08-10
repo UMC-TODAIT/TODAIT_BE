@@ -27,6 +27,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.dto.request.SavedCourseMemoUpdateRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.SavedCoursePlaceMemoUpdateRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseMemoUpdateResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCoursePlaceMemoUpdateResponse;
+import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 
 @Service
 public class SavedCourseService {
@@ -315,6 +320,96 @@ public class SavedCourseService {
                 name,
                 coursePlace.getVisitOrder()
         );
+    }
+
+    @Transactional
+    public SavedCourseMemoUpdateResponse updateSavedCourseMemo(
+            Long memberId,
+            Long courseId,
+            SavedCourseMemoUpdateRequest request
+    ) {
+        Course course = getEditableSavedCourse(
+                memberId,
+                courseId
+        );
+
+        String normalizedMemo = normalizeMemo(request.memo());
+
+        course.updateMemo(normalizedMemo);
+
+        return SavedCourseMemoUpdateResponse.of(
+                course.getId(),
+                normalizedMemo
+        );
+    }
+
+    @Transactional
+    public SavedCoursePlaceMemoUpdateResponse updateSavedCoursePlaceMemo(
+            Long memberId,
+            Long courseId,
+            Long coursePlaceId,
+            SavedCoursePlaceMemoUpdateRequest request
+    ) {
+        getEditableSavedCourse(
+                memberId,
+                courseId
+        );
+
+        CoursePlace coursePlace = coursePlaceRepository
+                .findByIdAndCourseId(
+                        coursePlaceId,
+                        courseId
+                )
+                .orElseThrow(() ->
+                        new CourseException(
+                                CourseErrorCode.SAVED_COURSE_PLACE_NOT_FOUND
+                        )
+                );
+
+        String normalizedMemo = normalizeMemo(request.memo());
+
+        coursePlace.updateMemo(normalizedMemo);
+
+        return SavedCoursePlaceMemoUpdateResponse.of(
+                courseId,
+                coursePlace.getId(),
+                normalizedMemo
+        );
+    }
+
+    private Course getEditableSavedCourse(
+            Long memberId,
+            Long courseId
+    ) {
+        Course course = courseRepository
+                .findSavedCourseDetailById(courseId)
+                .orElseThrow(() ->
+                        new CourseException(
+                                CourseErrorCode.SAVED_COURSE_NOT_FOUND
+                        )
+                );
+
+        if (!course.getMember().getId().equals(memberId)) {
+            throw new CourseException(
+                    CourseErrorCode.SAVED_COURSE_ACCESS_DENIED
+            );
+        }
+
+        if (course.getSourceType() != CourseSourceType.USER_CREATED) {
+            throw new CourseException(
+                    CourseErrorCode.SAVED_COURSE_ACCESS_DENIED
+            );
+        }
+
+        return course;
+    }
+
+    private String normalizeMemo(String memo) {
+        if (memo == null || memo.isBlank()) {
+            return null;
+        }
+
+        return memo.trim();
     }
 
     private boolean hasText(String value) {
