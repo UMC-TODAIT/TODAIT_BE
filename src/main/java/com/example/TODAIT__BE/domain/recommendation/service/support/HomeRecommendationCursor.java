@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.recommendation.service.support;
 
-import com.example.TODAIT__BE.domain.recommendation.code.RecommendationErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.HomeRecommendationErrorCode;
 import com.example.TODAIT__BE.domain.recommendation.exception.RecommendationException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -55,7 +55,7 @@ public record HomeRecommendationCursor(
             return new HomeRecommendationCursor(rotationDate, offset);
         } catch (RuntimeException e) {
             throw new RecommendationException(
-                    RecommendationErrorCode.INVALID_CURSOR,
+                    HomeRecommendationErrorCode.INVALID_CURSOR,
                     e
             );
         }

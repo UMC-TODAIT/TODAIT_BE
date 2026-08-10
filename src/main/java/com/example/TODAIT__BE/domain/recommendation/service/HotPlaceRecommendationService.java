@@ -7,7 +7,8 @@ import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
-import com.example.TODAIT__BE.domain.recommendation.code.RecommendationErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.HotPlaceRecommendationErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.RecommendationLogErrorCode;
 import com.example.TODAIT__BE.domain.recommendation.dto.response.HotPlaceRecommendationResponse;
 import com.example.TODAIT__BE.domain.recommendation.entity.RecommendationLog;
 import com.example.TODAIT__BE.domain.recommendation.entity.RecommendationResult;
@@ -15,13 +16,11 @@ import com.example.TODAIT__BE.domain.recommendation.enums.RecommendationType;
 import com.example.TODAIT__BE.domain.recommendation.exception.RecommendationException;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationLogRepository;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationResultRepository;
-import com.example.TODAIT__BE.domain.recommendation.service.support.EvaluatedHotPlace;
-import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceCandidateData;
 import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceCandidateLoader;
+import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceCandidateLoader.CandidateData;
 import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceRankingPolicy;
-import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceRecommendationReasonResolver;
+import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceRankingPolicy.EvaluatedPlace;
 import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceRecommendationResponseAssembler;
-import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceRequestContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
@@ -45,7 +44,6 @@ public class HotPlaceRecommendationService {
     private final CourseDraftFoodCategoryRepository courseDraftFoodCategoryRepository;
     private final HotPlaceCandidateLoader candidateLoader;
     private final HotPlaceRankingPolicy rankingPolicy;
-    private final HotPlaceRecommendationReasonResolver reasonResolver;
     private final RecommendationLogRepository recommendationLogRepository;
     private final ObjectMapper objectMapper;
     private final RecommendationResultRepository recommendationResultRepository;
@@ -79,10 +77,10 @@ public class HotPlaceRecommendationService {
         Set<Long> selectedFoodCategoryIds =
                 getSelectedFoodCategoryIds(courseDraft.getId());
 
-        HotPlaceCandidateData candidateData =
+        CandidateData candidateData =
                 candidateLoader.load();
 
-        List<EvaluatedHotPlace> evaluatedHotPlaces =
+        List<EvaluatedPlace> evaluatedHotPlaces =
                 rankingPolicy.evaluateAndSort(
                         candidateData,
                         selectedMoodTagIds,
@@ -92,7 +90,7 @@ public class HotPlaceRecommendationService {
                         locationAvailable
                 );
 
-        List<EvaluatedHotPlace> selectedPlaces =
+        List<EvaluatedPlace> selectedPlaces =
                 evaluatedHotPlaces.stream()
                         .limit(resolvedSize)
                         .toList();
@@ -128,7 +126,7 @@ public class HotPlaceRecommendationService {
 
         if (size < MIN_SIZE || size > MAX_SIZE) {
             throw new RecommendationException(
-                    RecommendationErrorCode.INVALID_HOT_PLACE_SIZE
+                    HotPlaceRecommendationErrorCode.INVALID_HOT_PLACE_SIZE
             );
         }
 
@@ -144,7 +142,7 @@ public class HotPlaceRecommendationService {
 
         if (latitudeMissing != longitudeMissing) {
             throw new RecommendationException(
-                    RecommendationErrorCode.INCOMPLETE_COORDINATES
+                    HotPlaceRecommendationErrorCode.INCOMPLETE_COORDINATES
             );
         }
 
@@ -164,7 +162,7 @@ public class HotPlaceRecommendationService {
 
         if (invalidNumber || invalidLatitude || invalidLongitude) {
             throw new RecommendationException(
-                    RecommendationErrorCode.INVALID_COORDINATES
+                    HotPlaceRecommendationErrorCode.INVALID_COORDINATES
             );
         }
 
@@ -278,7 +276,7 @@ public class HotPlaceRecommendationService {
             );
         } catch (JsonProcessingException exception) {
             throw new RecommendationException(
-                    RecommendationErrorCode
+                    RecommendationLogErrorCode
                             .REQUEST_CONTEXT_SERIALIZATION_FAILED,
                     exception
             );
@@ -287,7 +285,7 @@ public class HotPlaceRecommendationService {
 
     private List<RecommendationResult> saveRecommendationResults(
             RecommendationLog recommendationLog,
-            List<EvaluatedHotPlace> selectedPlaces,
+            List<EvaluatedPlace> selectedPlaces,
             boolean locationAvailable
     ) {
         if (selectedPlaces.isEmpty()) {
@@ -303,13 +301,13 @@ public class HotPlaceRecommendationService {
              index < selectedPlaces.size();
              index++) {
 
-            EvaluatedHotPlace evaluated =
+            EvaluatedPlace evaluated =
                     selectedPlaces.get(index);
 
             int rank = index + 1;
 
             String recommendationReason =
-                    reasonResolver.resolve(
+                    resolveRecommendationReason(
                             evaluated,
                             locationAvailable
                     );
@@ -332,5 +330,53 @@ public class HotPlaceRecommendationService {
         recommendationResultRepository.saveAll(results);
 
         return results;
+    }
+
+    private String resolveRecommendationReason(
+            EvaluatedPlace evaluated,
+            boolean locationAvailable
+    ) {
+        if (locationAvailable
+                && Boolean.TRUE.equals(evaluated.nearby())) {
+            return "현재 위치와 가까워요.";
+        }
+
+        if (evaluated.matchedMoodCount() > 0) {
+            return "선택한 분위기와 잘 어울려요.";
+        }
+
+        if (evaluated.matchedFoodCount() != null
+                && evaluated.matchedFoodCount() > 0) {
+            return "원하는 음식 취향과 잘 맞아요.";
+        }
+
+        if (evaluated.place().getArea() != null
+                && evaluated.place().getArea().getName() != null
+                && !evaluated.place().getArea().getName().isBlank()) {
+            return evaluated.place().getArea().getName()
+                    + " 추천 장소예요.";
+        }
+
+        if (evaluated.place().getDefaultRecommendReason() != null
+                && !evaluated.place().getDefaultRecommendReason().isBlank()) {
+            return evaluated.place().getDefaultRecommendReason();
+        }
+
+        return "지금 가기 좋은 추천 장소예요.";
+    }
+
+    private record HotPlaceRequestContext(
+            boolean locationAvailable,
+            int nearbyDistanceMeters,
+            Set<Long> selectedMoodTagIds,
+            Set<Long> selectedFoodCategoryIds,
+            int limit,
+            String policyVersion
+    ) {
+        private HotPlaceRequestContext {
+            selectedMoodTagIds = Set.copyOf(selectedMoodTagIds);
+            selectedFoodCategoryIds =
+                    Set.copyOf(selectedFoodCategoryIds);
+        }
     }
 }

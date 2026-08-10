@@ -8,15 +8,14 @@ import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
 import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
 import com.example.TODAIT__BE.domain.place.repository.PlaceRepository;
-import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendedPlaceListResponse;
-import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendedPlaceResponse;
-import com.example.TODAIT__BE.domain.recommendation.dto.response.RecommendedPlaceAreaResponse;
-import com.example.TODAIT__BE.domain.recommendation.dto.response.RecommendedPlaceCategoryResponse;
+import com.example.TODAIT__BE.domain.recommendation.code.HomeRecommendationErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.RecommendedPlaceErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.RecommendationLogErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendationResponse;
 import com.example.TODAIT__BE.domain.recommendation.entity.RecommendationLog;
 import com.example.TODAIT__BE.domain.recommendation.entity.RecommendationResult;
 import com.example.TODAIT__BE.domain.recommendation.enums.RecommendationType;
 import com.example.TODAIT__BE.domain.recommendation.exception.RecommendationException;
-import com.example.TODAIT__BE.domain.recommendation.code.RecommendationErrorCode;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationLogRepository;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationResultRepository;
 import com.example.TODAIT__BE.domain.recommendation.service.support.HomeRecommendationCursor;
@@ -74,7 +73,7 @@ public class HomeRecommendedPlaceService {
     }
 
     @Transactional
-    public HomeRecommendedPlaceListResponse getHomeRecommendedPlaces(
+    public HomeRecommendationResponse.PlaceList getHomeRecommendedPlaces(
             Long memberId,
             String cursorParam,
             Integer sizeParam,
@@ -154,7 +153,7 @@ public class HomeRecommendedPlaceService {
         /*
          * 6. 응답 DTO 및 추천 결과 저장
          */
-        List<HomeRecommendedPlaceResponse> placeResponses =
+        List<HomeRecommendationResponse.PlaceItem> placeResponses =
                 buildResponsesAndSaveResults(
                         pagePlaces,
                         recommendationLog,
@@ -162,7 +161,7 @@ public class HomeRecommendedPlaceService {
                         from
                 );
 
-        return new HomeRecommendedPlaceListResponse(
+        return new HomeRecommendationResponse.PlaceList(
                 recommendationLog.getId(),
                 size,
                 locationAvailable,
@@ -179,7 +178,7 @@ public class HomeRecommendedPlaceService {
 
         if (sizeParam < MIN_SIZE || sizeParam > MAX_SIZE) {
             throw new RecommendationException(
-                    RecommendationErrorCode.INVALID_PLACE_SIZE
+                    RecommendedPlaceErrorCode.INVALID_PLACE_SIZE
             );
         }
 
@@ -198,7 +197,7 @@ public class HomeRecommendedPlaceService {
 
         if (onlyLatitude || onlyLongitude) {
             throw new RecommendationException(
-                    RecommendationErrorCode.INVALID_LOCATION_PAIR
+                    HomeRecommendationErrorCode.INVALID_LOCATION_PAIR
             );
         }
 
@@ -220,7 +219,7 @@ public class HomeRecommendedPlaceService {
                 || invalidLatitude
                 || invalidLongitude) {
             throw new RecommendationException(
-                    RecommendationErrorCode.INVALID_LOCATION_RANGE
+                    HomeRecommendationErrorCode.INVALID_LOCATION_RANGE
             );
         }
     }
@@ -438,7 +437,7 @@ public class HomeRecommendedPlaceService {
         );
     }
 
-    private List<HomeRecommendedPlaceResponse>
+    private List<HomeRecommendationResponse.PlaceItem>
     buildResponsesAndSaveResults(
             List<RankedPlace> pagePlaces,
             RecommendationLog recommendationLog,
@@ -449,7 +448,7 @@ public class HomeRecommendedPlaceService {
             return List.of();
         }
 
-        List<HomeRecommendedPlaceResponse> responses =
+        List<HomeRecommendationResponse.PlaceItem> responses =
                 new ArrayList<>(pagePlaces.size());
 
         List<RecommendationResult> results =
@@ -496,27 +495,27 @@ public class HomeRecommendedPlaceService {
         return responses;
     }
 
-    private HomeRecommendedPlaceResponse toResponse(
+    private HomeRecommendationResponse.PlaceItem toResponse(
             Place place,
             RankedPlace rankedPlace,
             int rank,
             String recommendationReason
     ) {
-        RecommendedPlaceAreaResponse areaResponse =
-                new RecommendedPlaceAreaResponse(
+        HomeRecommendationResponse.PlaceArea areaResponse =
+                new HomeRecommendationResponse.PlaceArea(
                         place.getArea().getId(),
                         place.getArea().getCode(),
                         place.getArea().getName()
                 );
 
-        RecommendedPlaceCategoryResponse categoryResponse =
-                new RecommendedPlaceCategoryResponse(
+        HomeRecommendationResponse.PlaceCategory categoryResponse =
+                new HomeRecommendationResponse.PlaceCategory(
                         place.getPlaceCategory().getId(),
                         place.getPlaceCategory().getCode(),
                         place.getPlaceCategory().getName()
                 );
 
-        return new HomeRecommendedPlaceResponse(
+        return new HomeRecommendationResponse.PlaceItem(
                 place.getId(),
                 place.getName(),
                 place.getAddress(),
@@ -617,7 +616,7 @@ public class HomeRecommendedPlaceService {
             return objectMapper.writeValueAsString(context);
         } catch (JsonProcessingException exception) {
             throw new RecommendationException(
-                    RecommendationErrorCode.REQUEST_CONTEXT_SERIALIZATION_FAILED,
+                    RecommendationLogErrorCode.REQUEST_CONTEXT_SERIALIZATION_FAILED,
                     exception
             );
         }

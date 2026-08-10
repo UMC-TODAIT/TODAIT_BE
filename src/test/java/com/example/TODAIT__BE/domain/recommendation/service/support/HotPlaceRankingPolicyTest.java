@@ -38,8 +38,8 @@ class HotPlaceRankingPolicyTest {
                 LocalDateTime.of(2026, 8, 1, 9, 0)
         );
 
-        HotPlaceCandidateData candidateData =
-                new HotPlaceCandidateData(
+        HotPlaceCandidateLoader.CandidateData candidateData =
+                new HotPlaceCandidateLoader.CandidateData(
                         List.of(noMatch, preferenceMatch),
                         Map.of(
                                 1L, Set.of(10L, 11L),
@@ -51,7 +51,7 @@ class HotPlaceRankingPolicyTest {
                         )
                 );
 
-        List<EvaluatedHotPlace> result =
+        List<HotPlaceRankingPolicy.EvaluatedPlace> result =
                 rankingPolicy.evaluateAndSort(
                         candidateData,
                         Set.of(10L, 11L),
@@ -91,8 +91,8 @@ class HotPlaceRankingPolicyTest {
                 LocalDateTime.of(2026, 8, 1, 9, 0)
         );
 
-        HotPlaceCandidateData candidateData =
-                new HotPlaceCandidateData(
+        HotPlaceCandidateLoader.CandidateData candidateData =
+                new HotPlaceCandidateLoader.CandidateData(
                         List.of(farButPreferenceMatch, nearby),
                         Map.of(
                                 1L, Set.of(),
@@ -104,7 +104,7 @@ class HotPlaceRankingPolicyTest {
                         )
                 );
 
-        List<EvaluatedHotPlace> result =
+        List<HotPlaceRankingPolicy.EvaluatedPlace> result =
                 rankingPolicy.evaluateAndSort(
                         candidateData,
                         Set.of(10L, 11L),
@@ -135,14 +135,14 @@ class HotPlaceRankingPolicyTest {
                 LocalDateTime.of(2026, 8, 1, 10, 0)
         );
 
-        HotPlaceCandidateData candidateData =
-                new HotPlaceCandidateData(
+        HotPlaceCandidateLoader.CandidateData candidateData =
+                new HotPlaceCandidateLoader.CandidateData(
                         List.of(activity),
                         Map.of(1L, Set.of(10L)),
                         Map.of(1L, Set.of(20L))
                 );
 
-        EvaluatedHotPlace result =
+        HotPlaceRankingPolicy.EvaluatedPlace result =
                 rankingPolicy.evaluateAndSort(
                         candidateData,
                         Set.of(10L),
