@@ -1,6 +1,7 @@
 package com.example.TODAIT__BE.domain.place.controller;
 
-import com.example.TODAIT__BE.domain.place.code.PlaceSuccessCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceDetailSuccessCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceSearchSuccessCode;
 import com.example.TODAIT__BE.domain.place.controller.docs.PlaceControllerDocs;
 import com.example.TODAIT__BE.domain.place.dto.response.PlaceDetailResponse;
 import com.example.TODAIT__BE.domain.place.dto.response.PlaceSearchResponse;
@@ -37,13 +38,13 @@ public class PlaceController implements PlaceControllerDocs {
 
         return ResponseEntity
                 .status(
-                        PlaceSuccessCode
+                        PlaceSearchSuccessCode
                                 .PLACE_SEARCH_OK
                                 .getStatus()
                 )
                 .body(
                         ApiResponse.onSuccess(
-                                PlaceSuccessCode.PLACE_SEARCH_OK,
+                                PlaceSearchSuccessCode.PLACE_SEARCH_OK,
                                 result
                         )
                 );
@@ -56,7 +57,7 @@ public class PlaceController implements PlaceControllerDocs {
     ) {
         PlaceDetailResponse result = placeService.getPlaceDetail(placeId);
         return ResponseEntity
-                .status(PlaceSuccessCode.PLACE_DETAIL_OK.getStatus())
-                .body(ApiResponse.onSuccess(PlaceSuccessCode.PLACE_DETAIL_OK, result));
+                .status(PlaceDetailSuccessCode.PLACE_DETAIL_OK.getStatus())
+                .body(ApiResponse.onSuccess(PlaceDetailSuccessCode.PLACE_DETAIL_OK, result));
     }
 }

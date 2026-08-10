@@ -21,7 +21,8 @@ import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftService;
 import com.example.TODAIT__BE.domain.member.enums.MemberRole;
 import com.example.TODAIT__BE.domain.place.exception.PlaceException;
-import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
+import com.example.TODAIT__BE.domain.place.code.ExternalPlaceRegistrationErrorCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceDetailErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.code.AreaErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
@@ -207,7 +208,7 @@ class CourseDraftBasePlaceControllerTest {
     @Test
     void saveBasePlace_placeNotFound_returns404() throws Exception {
         given(courseDraftService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new PlaceException(PlaceErrorCode.PLACE_NOT_FOUND));
+                .willThrow(new PlaceException(PlaceDetailErrorCode.PLACE_NOT_FOUND));
 
         mockMvc.perform(patch("/api/course-drafts/{courseDraftId}/base-place", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken()))
@@ -221,7 +222,7 @@ class CourseDraftBasePlaceControllerTest {
     @Test
     void saveBasePlace_placeNotAvailable_returns400() throws Exception {
         given(courseDraftService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new PlaceException(PlaceErrorCode.PLACE_NOT_AVAILABLE));
+                .willThrow(new PlaceException(ExternalPlaceRegistrationErrorCode.PLACE_NOT_AVAILABLE));
 
         mockMvc.perform(patch("/api/course-drafts/{courseDraftId}/base-place", COURSE_DRAFT_ID)
                         .with(authentication(authMemberToken()))
@@ -253,7 +254,7 @@ class CourseDraftBasePlaceControllerTest {
     @Test
     void saveBasePlace_dataSourceNotFound_returns404() throws Exception {
         given(courseDraftService.saveBasePlace(eq(COURSE_DRAFT_ID), eq(MEMBER_ID), any()))
-                .willThrow(new PlaceException(PlaceErrorCode.DATA_SOURCE_NOT_FOUND));
+                .willThrow(new PlaceException(ExternalPlaceRegistrationErrorCode.DATA_SOURCE_NOT_FOUND));
 
         ExternalPlace externalPlace = new ExternalPlace(
                 "UNKNOWN_SOURCE", "1", "n", "a", null, 0.0, 0.0, "YEONNAM", "CAFE", null, null, null

@@ -1,5 +1,7 @@
 package com.example.TODAIT__BE.domain.recommendation.service;
 
+import com.example.TODAIT__BE.domain.recommendation.code.RecommendedPlaceErrorCode;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,16 +26,14 @@ import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepositor
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.place.entity.Place;
-import com.example.TODAIT__BE.domain.recommendation.code.RecommendationErrorCode;
 import com.example.TODAIT__BE.domain.recommendation.dto.response.CategoryRecommendedPlaceResponse;
 import com.example.TODAIT__BE.domain.recommendation.entity.RecommendationLog;
 import com.example.TODAIT__BE.domain.recommendation.exception.RecommendationException;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationLogRepository;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationResultRepository;
-import com.example.TODAIT__BE.domain.recommendation.service.support.NearBasePlaceCandidateData;
 import com.example.TODAIT__BE.domain.recommendation.service.support.NearBasePlaceCandidateLoader;
+import com.example.TODAIT__BE.domain.recommendation.service.support.NearBasePlaceCandidateLoader.CandidateData;
 import com.example.TODAIT__BE.domain.recommendation.service.support.NearBasePlaceRankingPolicy;
-import com.example.TODAIT__BE.domain.recommendation.service.support.NearBasePlaceReasonResolver;
 import com.example.TODAIT__BE.domain.recommendation.service.support.NearBasePlaceRecommendationSelection;
 import com.example.TODAIT__BE.domain.recommendation.service.support.NearBasePlaceResponseAssembler;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
@@ -92,9 +92,6 @@ class CategoryRecommendedPlaceServiceTest {
     private RecommendationResultRepository recommendationResultRepository;
 
     @Mock
-    private NearBasePlaceReasonResolver reasonResolver;
-
-    @Mock
     private NearBasePlaceResponseAssembler responseAssembler;
 
     private CategoryRecommendedPlaceService service;
@@ -113,7 +110,6 @@ class CategoryRecommendedPlaceServiceTest {
                 recommendationLogRepository,
                 recommendationResultRepository,
                 new ObjectMapper(),
-                reasonResolver,
                 responseAssembler
         );
     }
@@ -132,7 +128,7 @@ class CategoryRecommendedPlaceServiceTest {
                         RecommendationException.class,
                         exception -> assertThat(exception.getErrorCode())
                                 .isEqualTo(
-                                        RecommendationErrorCode.INVALID_PLACE_SIZE
+                                        RecommendedPlaceErrorCode.INVALID_PLACE_SIZE
                                 )
                 );
 
@@ -148,7 +144,7 @@ class CategoryRecommendedPlaceServiceTest {
                         RecommendationException.class,
                         exception -> assertThat(exception.getErrorCode())
                                 .isEqualTo(
-                                        RecommendationErrorCode.INVALID_PLACE_SIZE
+                                        RecommendedPlaceErrorCode.INVALID_PLACE_SIZE
                                 )
                 );
 
@@ -302,8 +298,8 @@ class CategoryRecommendedPlaceServiceTest {
                 .findFoodCategoryIdsByCourseDraftId(COURSE_DRAFT_ID))
                 .willReturn(List.of(1L));
 
-        NearBasePlaceCandidateData candidateData =
-                new NearBasePlaceCandidateData(
+        CandidateData candidateData =
+                new CandidateData(
                         List.of(),
                         java.util.Map.of(),
                         java.util.Map.of()
@@ -444,8 +440,8 @@ class CategoryRecommendedPlaceServiceTest {
                 .findFoodCategoryIdsByCourseDraftId(COURSE_DRAFT_ID))
                 .willReturn(List.of(1L));
 
-        NearBasePlaceCandidateData candidateData =
-                new NearBasePlaceCandidateData(
+        CandidateData candidateData =
+                new CandidateData(
                         List.of(firstPlace, secondPlace),
                         java.util.Map.of(),
                         java.util.Map.of()
@@ -500,9 +496,6 @@ class CategoryRecommendedPlaceServiceTest {
 
         given(recommendationLogRepository.save(any(RecommendationLog.class)))
                 .willReturn(savedLog);
-
-        given(reasonResolver.resolve(any()))
-                .willReturn(List.of("추천 이유"));
 
         CategoryRecommendedPlaceResponse response =
                 mock(CategoryRecommendedPlaceResponse.class);

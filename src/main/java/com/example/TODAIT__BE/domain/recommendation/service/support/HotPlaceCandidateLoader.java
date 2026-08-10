@@ -28,7 +28,7 @@ public class HotPlaceCandidateLoader {
     private final PlaceMoodTagRepository placeMoodTagRepository;
     private final PlaceFoodCategoryRepository placeFoodCategoryRepository;
 
-    public HotPlaceCandidateData load() {
+    public CandidateData load() {
         List<Place> places =
                 coursePlaceRepository.findHotPlaceCandidates(
                         CourseVisibility.RECOMMENDED,
@@ -39,7 +39,7 @@ public class HotPlaceCandidateLoader {
                 );
 
         if (places.isEmpty()) {
-            return new HotPlaceCandidateData(
+            return new CandidateData(
                     List.of(),
                     Map.of(),
                     Map.of()
@@ -57,7 +57,7 @@ public class HotPlaceCandidateLoader {
         Map<Long, Set<Long>> foodCategoryIdsByPlaceId =
                 loadFoodCategoryIdsByPlaceId(placeIds);
 
-        return new HotPlaceCandidateData(
+        return new CandidateData(
                 places,
                 moodTagIdsByPlaceId,
                 foodCategoryIdsByPlaceId
@@ -112,5 +112,12 @@ public class HotPlaceCandidateLoader {
         }
 
         return foodCategoryIdsByPlaceId;
+    }
+
+    public record CandidateData(
+            List<Place> places,
+            Map<Long, Set<Long>> moodTagIdsByPlaceId,
+            Map<Long, Set<Long>> foodCategoryIdsByPlaceId
+    ) {
     }
 }

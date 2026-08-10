@@ -1,9 +1,8 @@
 package com.example.TODAIT__BE.domain.recommendation.controller;
 
-import com.example.TODAIT__BE.domain.recommendation.code.RecommendationSuccessCode;
+import com.example.TODAIT__BE.domain.recommendation.code.HomeRecommendationSuccessCode;
 import com.example.TODAIT__BE.domain.recommendation.controller.docs.HomeRecommendationControllerDocs;
-import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendedCourseListResponse;
-import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendedPlaceListResponse;
+import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendationResponse;
 import com.example.TODAIT__BE.domain.recommendation.service.HomeRecommendedCourseService;
 import com.example.TODAIT__BE.domain.recommendation.service.HomeRecommendedPlaceService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
@@ -27,13 +26,13 @@ public class HomeRecommendationController
 
     @GetMapping("/recommended-courses")
     @Override
-    public ResponseEntity<ApiResponse<HomeRecommendedCourseListResponse>>
+    public ResponseEntity<ApiResponse<HomeRecommendationResponse.CourseList>>
     getHomeRecommendedCourses(
             @AuthenticationPrincipal AuthMember authMember,
             @RequestParam(required = false) String cursor,
             @RequestParam(required = false) Integer size
     ) {
-        HomeRecommendedCourseListResponse result =
+        HomeRecommendationResponse.CourseList result =
                 homeRecommendedCourseService.getHomeRecommendedCourses(
                         authMember.memberId(),
                         cursor,
@@ -42,13 +41,13 @@ public class HomeRecommendationController
 
         return ResponseEntity
                 .status(
-                        RecommendationSuccessCode
+                        HomeRecommendationSuccessCode
                                 .HOME_RECOMMENDED_COURSE_LIST_OK
                                 .getStatus()
                 )
                 .body(
                         ApiResponse.onSuccess(
-                                RecommendationSuccessCode
+                                HomeRecommendationSuccessCode
                                         .HOME_RECOMMENDED_COURSE_LIST_OK,
                                 result
                         )
@@ -57,7 +56,7 @@ public class HomeRecommendationController
 
     @GetMapping("/recommended-places")
     @Override
-    public ResponseEntity<ApiResponse<HomeRecommendedPlaceListResponse>>
+    public ResponseEntity<ApiResponse<HomeRecommendationResponse.PlaceList>>
     getHomeRecommendedPlaces(
             @AuthenticationPrincipal AuthMember authMember,
             @RequestParam(required = false) String cursor,
@@ -65,7 +64,7 @@ public class HomeRecommendationController
             @RequestParam(required = false) Double latitude,
             @RequestParam(required = false) Double longitude
     ) {
-        HomeRecommendedPlaceListResponse result =
+        HomeRecommendationResponse.PlaceList result =
                 homeRecommendedPlaceService.getHomeRecommendedPlaces(
                         authMember.memberId(),
                         cursor,
@@ -76,13 +75,13 @@ public class HomeRecommendationController
 
         return ResponseEntity
                 .status(
-                        RecommendationSuccessCode
+                        HomeRecommendationSuccessCode
                                 .HOME_RECOMMENDED_PLACE_LIST_OK
                                 .getStatus()
                 )
                 .body(
                         ApiResponse.onSuccess(
-                                RecommendationSuccessCode
+                                HomeRecommendationSuccessCode
                                         .HOME_RECOMMENDED_PLACE_LIST_OK,
                                 result
                         )

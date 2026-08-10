@@ -27,7 +27,7 @@ public class NearBasePlaceCandidateLoader {
     private final PlaceMoodTagRepository placeMoodTagRepository;
     private final PlaceFoodCategoryRepository placeFoodCategoryRepository;
 
-    public NearBasePlaceCandidateData load(
+    public CandidateData load(
             List<String> areaCodes,
             String placeCategoryCode,
             Set<Long> excludedPlaceIds
@@ -86,7 +86,7 @@ public class NearBasePlaceCandidateLoader {
         Map<Long, Set<Long>> foodCategoryIdsByPlaceId =
                 loadFoodCategoryIds(candidateIds);
 
-        return new NearBasePlaceCandidateData(
+        return new CandidateData(
                 candidates,
                 moodTagIdsByPlaceId,
                 foodCategoryIdsByPlaceId
@@ -138,11 +138,18 @@ public class NearBasePlaceCandidateLoader {
         return result;
     }
 
-    private NearBasePlaceCandidateData emptyData() {
-        return new NearBasePlaceCandidateData(
+    private CandidateData emptyData() {
+        return new CandidateData(
                 List.of(),
                 Map.of(),
                 Map.of()
         );
+    }
+
+    public record CandidateData(
+            List<Place> places,
+            Map<Long, Set<Long>> moodTagIdsByPlaceId,
+            Map<Long, Set<Long>> foodCategoryIdsByPlaceId
+    ) {
     }
 }

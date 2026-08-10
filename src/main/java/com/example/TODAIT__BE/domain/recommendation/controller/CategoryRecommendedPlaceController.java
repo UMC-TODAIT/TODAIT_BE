@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.recommendation.controller;
 
-import com.example.TODAIT__BE.domain.recommendation.code.RecommendationSuccessCode;
+import com.example.TODAIT__BE.domain.recommendation.code.CategoryRecommendedPlaceSuccessCode;
 import com.example.TODAIT__BE.domain.recommendation.controller.docs.CategoryRecommendedPlaceControllerDocs;
 import com.example.TODAIT__BE.domain.recommendation.dto.response.CategoryRecommendedPlaceResponse;
 import com.example.TODAIT__BE.domain.recommendation.service.CategoryRecommendedPlaceService;
@@ -42,13 +42,13 @@ public class CategoryRecommendedPlaceController
 
         return ResponseEntity
                 .status(
-                        RecommendationSuccessCode
+                        CategoryRecommendedPlaceSuccessCode
                                 .CATEGORY_RECOMMENDED_PLACE_LIST_OK
                                 .getStatus()
                 )
                 .body(
                         ApiResponse.onSuccess(
-                                RecommendationSuccessCode
+                                CategoryRecommendedPlaceSuccessCode
                                         .CATEGORY_RECOMMENDED_PLACE_LIST_OK,
                                 result
                         )

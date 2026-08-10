@@ -1,9 +1,8 @@
 package com.example.TODAIT__BE.infra.kakao.local;
 
-import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceSearchErrorCode;
 import com.example.TODAIT__BE.domain.place.exception.PlaceException;
 import com.example.TODAIT__BE.infra.kakao.local.dto.KakaoKeywordSearchResponse;
-
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -26,7 +25,6 @@ public class KakaoLocalClient {
     public KakaoLocalClient(
             @Qualifier("kakaoRequestFactory")
             ClientHttpRequestFactory kakaoRequestFactory,
-
             @Value("${app.kakao.local.rest-api-key}")
             String restApiKey
     ) {
@@ -34,7 +32,6 @@ public class KakaoLocalClient {
                 .baseUrl(BASE_URL)
                 .requestFactory(kakaoRequestFactory)
                 .build();
-
         this.restApiKey = restApiKey;
     }
 
@@ -44,54 +41,31 @@ public class KakaoLocalClient {
             int size
     ) {
         try {
-            KakaoKeywordSearchResponse.Result response =
-                    restClient.get()
-                            .uri(uriBuilder -> uriBuilder
-                                    .path("/v2/local/search/keyword.json")
-                                    .queryParam("query", query)
-                                    .queryParam("page", page)
-                                    .queryParam("size", size)
-                                    .queryParam("sort", "accuracy")
-                                    .build()
-                            )
-                            .header(
-                                    "Authorization",
-                                    KAKAO_AUTH_PREFIX + restApiKey
-                            )
-                            .retrieve()
-                            .body(
-                                    KakaoKeywordSearchResponse
-                                            .Result.class
-                            );
+            KakaoKeywordSearchResponse.Result response = restClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/v2/local/search/keyword.json")
+                            .queryParam("query", query)
+                            .queryParam("page", page)
+                            .queryParam("size", size)
+                            .queryParam("sort", "accuracy")
+                            .build())
+                    .header("Authorization", KAKAO_AUTH_PREFIX + restApiKey)
+                    .retrieve()
+                    .body(KakaoKeywordSearchResponse.Result.class);
 
             if (response == null) {
-                throw new PlaceException(
-                        PlaceErrorCode
-                                .KAKAO_LOCAL_API_REQUEST_FAILED
-                );
+                throw new PlaceException(PlaceSearchErrorCode.KAKAO_LOCAL_API_REQUEST_FAILED);
             }
 
             return response;
-
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
-                throw new PlaceException(
-                        PlaceErrorCode
-                                .KAKAO_LOCAL_API_RATE_LIMIT_EXCEEDED
-                );
+                throw new PlaceException(PlaceSearchErrorCode.KAKAO_LOCAL_API_RATE_LIMIT_EXCEEDED);
             }
 
-            throw new PlaceException(
-                    PlaceErrorCode
-                            .KAKAO_LOCAL_API_REQUEST_FAILED
-            );
-
+            throw new PlaceException(PlaceSearchErrorCode.KAKAO_LOCAL_API_REQUEST_FAILED);
         } catch (HttpServerErrorException | ResourceAccessException exception) {
-            throw new PlaceException(
-                    PlaceErrorCode
-                            .KAKAO_LOCAL_API_REQUEST_FAILED
-            );
+            throw new PlaceException(PlaceSearchErrorCode.KAKAO_LOCAL_API_REQUEST_FAILED);
         }
     }
-
 }

@@ -21,10 +21,19 @@ import com.example.TODAIT__BE.domain.member.code.OAuthErrorCode;
 import com.example.TODAIT__BE.domain.member.code.OAuthSuccessCode;
 import com.example.TODAIT__BE.domain.member.code.PasswordResetErrorCode;
 import com.example.TODAIT__BE.domain.member.code.PasswordResetSuccessCode;
-import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
-import com.example.TODAIT__BE.domain.place.code.PlaceSuccessCode;
-import com.example.TODAIT__BE.domain.recommendation.code.RecommendationErrorCode;
-import com.example.TODAIT__BE.domain.recommendation.code.RecommendationSuccessCode;
+import com.example.TODAIT__BE.domain.place.code.ExternalPlaceRegistrationErrorCode;
+import com.example.TODAIT__BE.domain.place.code.ExternalPlaceRegistrationSuccessCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceDetailErrorCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceDetailSuccessCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceSearchErrorCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceSearchSuccessCode;
+import com.example.TODAIT__BE.domain.recommendation.code.CategoryRecommendedPlaceSuccessCode;
+import com.example.TODAIT__BE.domain.recommendation.code.HomeRecommendationErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.HomeRecommendationSuccessCode;
+import com.example.TODAIT__BE.domain.recommendation.code.HotPlaceRecommendationErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.HotPlaceRecommendationSuccessCode;
+import com.example.TODAIT__BE.domain.recommendation.code.RecommendationLogErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.RecommendedPlaceErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.code.AreaErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;
@@ -65,10 +74,19 @@ class ApiResponseCodeContractTest {
             new CodeEnum(RecommendedCourseErrorCode.class, Set.of("COURSE")),
             new CodeEnum(SavedCourseSuccessCode.class, Set.of("COURSE")),
             new CodeEnum(SavedCourseErrorCode.class, Set.of("COURSE")),
-            new CodeEnum(PlaceSuccessCode.class, Set.of("PLACE")),
-            new CodeEnum(PlaceErrorCode.class, Set.of("PLACE")),
-            new CodeEnum(RecommendationSuccessCode.class, Set.of("RECOMMENDATION")),
-            new CodeEnum(RecommendationErrorCode.class, Set.of("RECOMMENDATION")),
+            new CodeEnum(PlaceSearchSuccessCode.class, Set.of("PLACE")),
+            new CodeEnum(PlaceSearchErrorCode.class, Set.of("PLACE")),
+            new CodeEnum(PlaceDetailSuccessCode.class, Set.of("PLACE")),
+            new CodeEnum(PlaceDetailErrorCode.class, Set.of("PLACE")),
+            new CodeEnum(ExternalPlaceRegistrationSuccessCode.class, Set.of("PLACE")),
+            new CodeEnum(ExternalPlaceRegistrationErrorCode.class, Set.of("PLACE")),
+            new CodeEnum(HomeRecommendationSuccessCode.class, Set.of("RECOMMENDATION")),
+            new CodeEnum(HotPlaceRecommendationSuccessCode.class, Set.of("RECOMMENDATION")),
+            new CodeEnum(CategoryRecommendedPlaceSuccessCode.class, Set.of("RECOMMENDATION")),
+            new CodeEnum(HomeRecommendationErrorCode.class, Set.of("RECOMMENDATION")),
+            new CodeEnum(HotPlaceRecommendationErrorCode.class, Set.of("RECOMMENDATION")),
+            new CodeEnum(RecommendedPlaceErrorCode.class, Set.of("RECOMMENDATION")),
+            new CodeEnum(RecommendationLogErrorCode.class, Set.of("RECOMMENDATION")),
             new CodeEnum(PlaceCategorySuccessCode.class, Set.of("TAXONOMY")),
             new CodeEnum(MoodTagErrorCode.class, Set.of("MOOD_TAG")),
             new CodeEnum(FoodCategoryErrorCode.class, Set.of("FOOD_CATEGORY")),
@@ -182,39 +200,38 @@ class ApiResponseCodeContractTest {
             entry("CourseSaveErrorCode.COURSE_DRAFT_ALREADY_COMPLETED", "COURSE_DRAFT_COMPLETED409"),
             entry("CourseSaveErrorCode.INVALID_COURSE_TITLE", "COURSE_TITLE400"),
             entry("CourseSaveErrorCode.FOOD_CATEGORY_NOT_SELECTED", "COURSE_FOOD400"),
-            entry("CourseSaveErrorCode.COURSE_MOOD_TAG_NOT_FOUND", "COURSE_MOOD404"),
-            entry("CourseSaveErrorCode.COURSE_FOOD_CATEGORY_NOT_FOUND", "COURSE_FOOD404"),
             entry("RecommendedCourseErrorCode.RECOMMENDED_COURSE_NOT_FOUND", "COURSE404"),
             entry("RecommendedCourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE", "COURSE400_5"),
             entry("SavedCourseErrorCode.SAVED_COURSE_ACCESS_DENIED", "COURSE403_2"),
             entry("SavedCourseErrorCode.SAVED_COURSE_NOT_FOUND", "COURSE404_1"),
             entry("SavedCourseErrorCode.SAVED_COURSE_PLACE_NOT_FOUND", "COURSE_PLACE404_1"),
-            entry("PlaceSuccessCode.PLACE_SEARCH_OK", "PLACE200"),
-            entry("PlaceSuccessCode.PLACE_DETAIL_OK", "PLACE200_1"),
-            entry("PlaceErrorCode.INVALID_PLACE_SEARCH_QUERY", "PLACE400_1"),
-            entry("PlaceErrorCode.PLACE_SEARCH_QUERY_TOO_SHORT", "PLACE400_2"),
-            entry("PlaceErrorCode.PLACE_SEARCH_QUERY_TOO_LONG", "PLACE400_3"),
-            entry("PlaceErrorCode.PLACE_NOT_EXPOSED", "PLACE400_4"),
-            entry("PlaceErrorCode.PLACE_NOT_FOUND", "PLACE404"),
-            entry("PlaceErrorCode.KAKAO_LOCAL_API_RATE_LIMIT_EXCEEDED", "PLACE429_1"),
-            entry("PlaceErrorCode.KAKAO_LOCAL_API_REQUEST_FAILED", "PLACE502_1"),
-            entry("PlaceErrorCode.PLACE_NOT_AVAILABLE", "PLACE400"),
-            entry("PlaceErrorCode.INVALID_PLACE_COORDINATE", "PLACE400_5"),
-            entry("PlaceErrorCode.DATA_SOURCE_NOT_FOUND", "PLACE404_1"),
-            entry("RecommendationSuccessCode.HOME_RECOMMENDED_COURSE_LIST_OK", "RECOMMENDATION200"),
-            entry("RecommendationSuccessCode.CATEGORY_RECOMMENDED_PLACE_LIST_OK", "RECOMMENDATION202"),
-            entry("RecommendationSuccessCode.HOT_PLACE_LIST_OK", "RECOMMENDATION200_2"),
-            entry("RecommendationSuccessCode.HOME_RECOMMENDED_PLACE_LIST_OK", "RECOMMENDATION201"),
-            entry("RecommendationErrorCode.INVALID_PAGE", "RECOMMENDATION400_1"),
-            entry("RecommendationErrorCode.INVALID_SIZE", "RECOMMENDATION400_2"),
-            entry("RecommendationErrorCode.INVALID_HOT_PLACE_SIZE", "RECOMMENDATION400_3"),
-            entry("RecommendationErrorCode.INCOMPLETE_COORDINATES", "RECOMMENDATION400_4"),
-            entry("RecommendationErrorCode.INVALID_COORDINATES", "RECOMMENDATION400_5"),
-            entry("RecommendationErrorCode.INVALID_PLACE_SIZE", "RECOMMENDATION400_6"),
-            entry("RecommendationErrorCode.INVALID_LOCATION_PAIR", "RECOMMENDATION400_7"),
-            entry("RecommendationErrorCode.INVALID_LOCATION_RANGE", "RECOMMENDATION400_8"),
-            entry("RecommendationErrorCode.INVALID_CURSOR", "RECOMMENDATION400_9"),
-            entry("RecommendationErrorCode.REQUEST_CONTEXT_SERIALIZATION_FAILED", "RECOMMENDATION500_1"),
+            entry("PlaceSearchSuccessCode.PLACE_SEARCH_OK", "PLACE200"),
+            entry("PlaceDetailSuccessCode.PLACE_DETAIL_OK", "PLACE200_1"),
+            entry("ExternalPlaceRegistrationSuccessCode.EXTERNAL_PLACE_REGISTERED", "PLACE201"),
+            entry("PlaceSearchErrorCode.INVALID_PLACE_SEARCH_QUERY", "PLACE400_1"),
+            entry("PlaceSearchErrorCode.PLACE_SEARCH_QUERY_TOO_SHORT", "PLACE400_2"),
+            entry("PlaceSearchErrorCode.PLACE_SEARCH_QUERY_TOO_LONG", "PLACE400_3"),
+            entry("PlaceDetailErrorCode.PLACE_NOT_EXPOSED", "PLACE400_4"),
+            entry("PlaceDetailErrorCode.PLACE_NOT_FOUND", "PLACE404"),
+            entry("PlaceSearchErrorCode.KAKAO_LOCAL_API_RATE_LIMIT_EXCEEDED", "PLACE429_1"),
+            entry("PlaceSearchErrorCode.KAKAO_LOCAL_API_REQUEST_FAILED", "PLACE502_1"),
+            entry("ExternalPlaceRegistrationErrorCode.PLACE_NOT_AVAILABLE", "PLACE400"),
+            entry("ExternalPlaceRegistrationErrorCode.INVALID_PLACE_COORDINATE", "PLACE400_5"),
+            entry("ExternalPlaceRegistrationErrorCode.DATA_SOURCE_NOT_FOUND", "PLACE404_1"),
+            entry("HomeRecommendationSuccessCode.HOME_RECOMMENDED_COURSE_LIST_OK", "RECOMMENDATION200"),
+            entry("CategoryRecommendedPlaceSuccessCode.CATEGORY_RECOMMENDED_PLACE_LIST_OK", "RECOMMENDATION202"),
+            entry("HotPlaceRecommendationSuccessCode.HOT_PLACE_LIST_OK", "RECOMMENDATION200_2"),
+            entry("HomeRecommendationSuccessCode.HOME_RECOMMENDED_PLACE_LIST_OK", "RECOMMENDATION201"),
+            entry("HomeRecommendationErrorCode.INVALID_PAGE", "RECOMMENDATION400_1"),
+            entry("HomeRecommendationErrorCode.INVALID_SIZE", "RECOMMENDATION400_2"),
+            entry("HotPlaceRecommendationErrorCode.INVALID_HOT_PLACE_SIZE", "RECOMMENDATION400_3"),
+            entry("HotPlaceRecommendationErrorCode.INCOMPLETE_COORDINATES", "RECOMMENDATION400_4"),
+            entry("HotPlaceRecommendationErrorCode.INVALID_COORDINATES", "RECOMMENDATION400_5"),
+            entry("RecommendedPlaceErrorCode.INVALID_PLACE_SIZE", "RECOMMENDATION400_6"),
+            entry("HomeRecommendationErrorCode.INVALID_LOCATION_PAIR", "RECOMMENDATION400_7"),
+            entry("HomeRecommendationErrorCode.INVALID_LOCATION_RANGE", "RECOMMENDATION400_8"),
+            entry("HomeRecommendationErrorCode.INVALID_CURSOR", "RECOMMENDATION400_9"),
+            entry("RecommendationLogErrorCode.REQUEST_CONTEXT_SERIALIZATION_FAILED", "RECOMMENDATION500_1"),
             entry("PlaceCategorySuccessCode.PLACE_CATEGORY_LIST_OK", "TAXONOMY200"),
             entry("MoodTagErrorCode.MOOD_TAG_NOT_FOUND", "MOOD_TAG404"),
             entry("FoodCategoryErrorCode.FOOD_CATEGORY_NOT_FOUND", "FOOD_CATEGORY404"),

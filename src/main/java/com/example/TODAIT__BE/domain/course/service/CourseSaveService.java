@@ -23,7 +23,10 @@ import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
 import com.example.TODAIT__BE.domain.course.service.support.CourseSaveSupport;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.place.entity.Place;
+import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
+import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.domain.taxonomy.repository.MoodTagRepository;
 import java.util.Collections;
 import java.util.Comparator;
@@ -125,7 +128,7 @@ public class CourseSaveService {
 
         List<MoodTag> foundMoodTags = moodTagRepository.findByIdInAndIsActiveTrue(moodTagIds);
         if (foundMoodTags.size() != moodTagIds.size()) {
-            throw new CourseException(CourseSaveErrorCode.COURSE_MOOD_TAG_NOT_FOUND);
+            throw new TaxonomyException(MoodTagErrorCode.MOOD_TAG_NOT_FOUND);
         }
 
         Map<Long, MoodTag> moodTagsById = foundMoodTags.stream()
@@ -140,7 +143,7 @@ public class CourseSaveService {
                 .map(CourseDraftFoodCategory::getFoodCategory)
                 .anyMatch(foodCategory -> foodCategory == null || !Boolean.TRUE.equals(foodCategory.getIsActive()));
         if (hasUnavailableFoodCategory) {
-            throw new CourseException(CourseSaveErrorCode.COURSE_FOOD_CATEGORY_NOT_FOUND);
+            throw new TaxonomyException(FoodCategoryErrorCode.FOOD_CATEGORY_NOT_FOUND);
         }
     }
 

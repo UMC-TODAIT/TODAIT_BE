@@ -1,5 +1,7 @@
 package com.example.TODAIT__BE.domain.recommendation.service;
 
+import com.example.TODAIT__BE.domain.recommendation.code.RecommendationLogErrorCode;
+
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
@@ -9,7 +11,7 @@ import com.example.TODAIT__BE.domain.course.repository.CourseDraftMoodTagReposit
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.place.entity.Place;
-import com.example.TODAIT__BE.domain.recommendation.code.RecommendationErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.HotPlaceRecommendationErrorCode;
 import com.example.TODAIT__BE.domain.recommendation.dto.response.HotPlaceRecommendationResponse;
 import com.example.TODAIT__BE.domain.recommendation.entity.RecommendationLog;
 import com.example.TODAIT__BE.domain.recommendation.entity.RecommendationResult;
@@ -17,11 +19,10 @@ import com.example.TODAIT__BE.domain.recommendation.enums.RecommendationType;
 import com.example.TODAIT__BE.domain.recommendation.exception.RecommendationException;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationLogRepository;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationResultRepository;
-import com.example.TODAIT__BE.domain.recommendation.service.support.EvaluatedHotPlace;
-import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceCandidateData;
 import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceCandidateLoader;
+import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceCandidateLoader.CandidateData;
 import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceRankingPolicy;
-import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceRecommendationReasonResolver;
+import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceRankingPolicy.EvaluatedPlace;
 import com.example.TODAIT__BE.domain.recommendation.service.support.HotPlaceRecommendationResponseAssembler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,8 +67,6 @@ class HotPlaceRecommendationServiceTest {
     @Mock
     private HotPlaceRankingPolicy rankingPolicy;
     @Mock
-    private HotPlaceRecommendationReasonResolver reasonResolver;
-    @Mock
     private RecommendationLogRepository recommendationLogRepository;
     @Mock
     private RecommendationResultRepository recommendationResultRepository;
@@ -84,7 +83,6 @@ class HotPlaceRecommendationServiceTest {
                 courseDraftFoodCategoryRepository,
                 candidateLoader,
                 rankingPolicy,
-                reasonResolver,
                 recommendationLogRepository,
                 new ObjectMapper(),
                 recommendationResultRepository,
@@ -105,15 +103,15 @@ class HotPlaceRecommendationServiceTest {
         Place place = mock(Place.class);
         given(place.getId()).willReturn(100L);
 
-        HotPlaceCandidateData candidateData =
-                new HotPlaceCandidateData(
+        CandidateData candidateData =
+                new CandidateData(
                         List.of(place),
                         Map.of(),
                         Map.of()
                 );
 
-        EvaluatedHotPlace evaluated =
-                new EvaluatedHotPlace(
+        EvaluatedPlace evaluated =
+                new EvaluatedPlace(
                         place,
                         120,
                         true,
@@ -147,8 +145,6 @@ class HotPlaceRecommendationServiceTest {
                 eq(126.9230),
                 eq(true)
         )).willReturn(List.of(evaluated));
-        given(reasonResolver.resolve(evaluated, true))
-                .willReturn("현재 위치와 가까워요.");
         given(responseAssembler.assemble(
                 any(RecommendationLog.class),
                 eq(courseDraft),
@@ -205,8 +201,8 @@ class HotPlaceRecommendationServiceTest {
                 MEMBER_ID,
                 CourseDraftStatus.BASE_PLACE_SELECTING
         );
-        HotPlaceCandidateData candidateData =
-                new HotPlaceCandidateData(
+        CandidateData candidateData =
+                new CandidateData(
                         List.of(),
                         Map.of(),
                         Map.of()
@@ -275,7 +271,7 @@ class HotPlaceRecommendationServiceTest {
                                 .getErrorCode()
                 )
                 .isEqualTo(
-                        RecommendationErrorCode.INVALID_HOT_PLACE_SIZE
+                        HotPlaceRecommendationErrorCode.INVALID_HOT_PLACE_SIZE
                 );
 
         verify(courseDraftRepository, never()).findById(any());
@@ -296,7 +292,7 @@ class HotPlaceRecommendationServiceTest {
                                 .getErrorCode()
                 )
                 .isEqualTo(
-                        RecommendationErrorCode.INCOMPLETE_COORDINATES
+                        HotPlaceRecommendationErrorCode.INCOMPLETE_COORDINATES
                 );
 
         verify(courseDraftRepository, never()).findById(any());
@@ -317,7 +313,7 @@ class HotPlaceRecommendationServiceTest {
                                 .getErrorCode()
                 )
                 .isEqualTo(
-                        RecommendationErrorCode.INVALID_COORDINATES
+                        HotPlaceRecommendationErrorCode.INVALID_COORDINATES
                 );
 
         verify(courseDraftRepository, never()).findById(any());
@@ -345,7 +341,7 @@ class HotPlaceRecommendationServiceTest {
                                     .getErrorCode()
                     )
                     .isEqualTo(
-                            RecommendationErrorCode.INVALID_COORDINATES
+                            HotPlaceRecommendationErrorCode.INVALID_COORDINATES
                     );
         }
 
@@ -374,7 +370,7 @@ class HotPlaceRecommendationServiceTest {
                                     .getErrorCode()
                     )
                     .isEqualTo(
-                            RecommendationErrorCode.INVALID_COORDINATES
+                            HotPlaceRecommendationErrorCode.INVALID_COORDINATES
                     );
         }
 
@@ -438,8 +434,8 @@ class HotPlaceRecommendationServiceTest {
                 MEMBER_ID,
                 CourseDraftStatus.BASE_PLACE_SELECTING
         );
-        HotPlaceCandidateData candidateData =
-                new HotPlaceCandidateData(
+        CandidateData candidateData =
+                new CandidateData(
                         List.of(),
                         Map.of(),
                         Map.of()
@@ -456,7 +452,6 @@ class HotPlaceRecommendationServiceTest {
                         courseDraftFoodCategoryRepository,
                         candidateLoader,
                         rankingPolicy,
-                        reasonResolver,
                         recommendationLogRepository,
                         failingObjectMapper,
                         recommendationResultRepository,
@@ -497,8 +492,7 @@ class HotPlaceRecommendationServiceTest {
                                 .getErrorCode()
                 )
                 .isEqualTo(
-                        RecommendationErrorCode
-                                .REQUEST_CONTEXT_SERIALIZATION_FAILED
+                        RecommendationLogErrorCode.REQUEST_CONTEXT_SERIALIZATION_FAILED
                 );
 
         verify(recommendationLogRepository, never())

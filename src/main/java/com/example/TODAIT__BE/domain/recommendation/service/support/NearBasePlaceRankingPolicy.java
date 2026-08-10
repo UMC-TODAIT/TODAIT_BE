@@ -1,6 +1,7 @@
 package com.example.TODAIT__BE.domain.recommendation.service.support;
 
 import com.example.TODAIT__BE.domain.place.entity.Place;
+import com.example.TODAIT__BE.domain.recommendation.service.support.NearBasePlaceCandidateLoader.CandidateData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +26,7 @@ public class NearBasePlaceRankingPolicy {
     private static final double EARTH_RADIUS_METERS = 6_371_000.0;
 
     public NearBasePlaceRecommendationSelection evaluateAndSelect(
-            NearBasePlaceCandidateData candidateData,
+            CandidateData candidateData,
             Place basePlace,
             Set<Long> selectedMoodTagIds,
             Set<Long> selectedFoodCategoryIds,
@@ -49,7 +50,7 @@ public class NearBasePlaceRankingPolicy {
     }
 
     private List<EvaluatedNearBasePlace> evaluate(
-            NearBasePlaceCandidateData candidateData,
+            CandidateData candidateData,
             Place basePlace,
             Set<Long> selectedMoodTagIds,
             Set<Long> selectedFoodCategoryIds,

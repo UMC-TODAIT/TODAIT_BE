@@ -35,7 +35,8 @@ import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
-import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
+import com.example.TODAIT__BE.domain.place.code.ExternalPlaceRegistrationErrorCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceDetailErrorCode;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.entity.PlaceDataSource;
 import com.example.TODAIT__BE.domain.place.entity.PlaceSource;
@@ -249,7 +250,7 @@ public class CourseDraftService {
         CourseDraftPlace basePlace = validateBasePlaceIntegrity(existingPlaces);
 
         Place place = placeRepository.findById(request.placeId())
-                .orElseThrow(() -> new PlaceException(PlaceErrorCode.PLACE_NOT_FOUND));
+                .orElseThrow(() -> new PlaceException(PlaceDetailErrorCode.PLACE_NOT_FOUND));
         validateSelectedPlaceAvailable(place);
 
         if (place.getId().equals(basePlace.getPlace().getId())) {
@@ -480,7 +481,7 @@ public class CourseDraftService {
 
     private ResolvedPlace resolveFromInternalPlace(Long placeId) {
         Place place = placeRepository.findById(placeId)
-                .orElseThrow(() -> new PlaceException(PlaceErrorCode.PLACE_NOT_FOUND));
+                .orElseThrow(() -> new PlaceException(PlaceDetailErrorCode.PLACE_NOT_FOUND));
 
         validatePlaceAvailable(place);
 
@@ -496,7 +497,7 @@ public class CourseDraftService {
         validateCoordinates(externalPlace.latitude(), externalPlace.longitude());
 
         PlaceDataSource dataSource = dataSourceRepository.findByCodeAndIsActiveTrue(externalPlace.dataSourceCode())
-                .orElseThrow(() -> new PlaceException(PlaceErrorCode.DATA_SOURCE_NOT_FOUND));
+                .orElseThrow(() -> new PlaceException(ExternalPlaceRegistrationErrorCode.DATA_SOURCE_NOT_FOUND));
 
         Area area = areaRepository.findByCode(externalPlace.areaCode())
                 .filter(Area::getIsActive)
@@ -571,7 +572,7 @@ public class CourseDraftService {
                 && longitude >= MIN_LONGITUDE && longitude <= MAX_LONGITUDE;
 
         if (!valid) {
-            throw new PlaceException(PlaceErrorCode.INVALID_PLACE_COORDINATE);
+            throw new PlaceException(ExternalPlaceRegistrationErrorCode.INVALID_PLACE_COORDINATE);
         }
     }
 
@@ -607,7 +608,7 @@ public class CourseDraftService {
         validatePlaceAvailable(place);
         PlaceCategory placeCategory = place.getPlaceCategory();
         if (!PlaceCategoryDefaultImage.isSupported(placeCategory.getCode())) {
-            throw new PlaceException(PlaceErrorCode.PLACE_NOT_AVAILABLE);
+            throw new PlaceException(ExternalPlaceRegistrationErrorCode.PLACE_NOT_AVAILABLE);
         }
     }
 
@@ -625,7 +626,7 @@ public class CourseDraftService {
                 && place.getLongitude() != null;
 
         if (!available) {
-            throw new PlaceException(PlaceErrorCode.PLACE_NOT_AVAILABLE);
+            throw new PlaceException(ExternalPlaceRegistrationErrorCode.PLACE_NOT_AVAILABLE);
         }
     }
 

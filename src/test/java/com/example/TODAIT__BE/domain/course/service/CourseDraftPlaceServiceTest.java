@@ -21,7 +21,8 @@ import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepositor
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.member.entity.Member;
-import com.example.TODAIT__BE.domain.place.code.PlaceErrorCode;
+import com.example.TODAIT__BE.domain.place.code.ExternalPlaceRegistrationErrorCode;
+import com.example.TODAIT__BE.domain.place.code.PlaceDetailErrorCode;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
 import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
@@ -378,7 +379,7 @@ class CourseDraftPlaceServiceTest {
         assertThatThrownBy(() -> courseDraftService.addPlace(10L, 1L, new PlaceAddRequest(99L)))
                 .isInstanceOf(PlaceException.class)
                 .extracting("errorCode")
-                .isEqualTo(PlaceErrorCode.PLACE_NOT_FOUND);
+                .isEqualTo(PlaceDetailErrorCode.PLACE_NOT_FOUND);
     }
 
     @Test
@@ -407,7 +408,7 @@ class CourseDraftPlaceServiceTest {
         assertThatThrownBy(() -> courseDraftService.addPlace(10L, 1L, new PlaceAddRequest(32L)))
                 .isInstanceOf(PlaceException.class)
                 .extracting("errorCode")
-                .isEqualTo(PlaceErrorCode.PLACE_NOT_AVAILABLE);
+                .isEqualTo(ExternalPlaceRegistrationErrorCode.PLACE_NOT_AVAILABLE);
     }
 
     @Test
@@ -425,7 +426,7 @@ class CourseDraftPlaceServiceTest {
         assertThatThrownBy(() -> courseDraftService.addPlace(10L, 1L, new PlaceAddRequest(32L)))
                 .isInstanceOf(PlaceException.class)
                 .extracting("errorCode")
-                .isEqualTo(PlaceErrorCode.PLACE_NOT_AVAILABLE);
+                .isEqualTo(ExternalPlaceRegistrationErrorCode.PLACE_NOT_AVAILABLE);
     }
 
     @Test

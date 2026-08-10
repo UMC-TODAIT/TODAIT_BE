@@ -1,5 +1,7 @@
 package com.example.TODAIT__BE.domain.recommendation.service;
 
+import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendationResponse;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -16,12 +18,12 @@ import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
 import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
 import com.example.TODAIT__BE.domain.place.repository.PlaceRepository;
-import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendedPlaceListResponse;
-import com.example.TODAIT__BE.domain.recommendation.dto.response.HomeRecommendedPlaceResponse;
 import com.example.TODAIT__BE.domain.recommendation.entity.RecommendationLog;
 import com.example.TODAIT__BE.domain.recommendation.entity.RecommendationResult;
 import com.example.TODAIT__BE.domain.recommendation.exception.RecommendationException;
-import com.example.TODAIT__BE.domain.recommendation.code.RecommendationErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.HomeRecommendationErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.RecommendationLogErrorCode;
+import com.example.TODAIT__BE.domain.recommendation.code.RecommendedPlaceErrorCode;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationLogRepository;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationResultRepository;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
@@ -118,7 +120,7 @@ class HomeRecommendedPlaceServiceTest {
                 nearPlace100
         ));
 
-        HomeRecommendedPlaceListResponse response =
+        HomeRecommendationResponse.PlaceList response =
                 service.getHomeRecommendedPlaces(
                         MEMBER_ID,
                         null,
@@ -130,15 +132,15 @@ class HomeRecommendedPlaceServiceTest {
         assertThat(response.locationAvailable()).isTrue();
 
         assertThat(response.places())
-                .extracting(HomeRecommendedPlaceResponse::placeId)
+                .extracting(HomeRecommendationResponse.PlaceItem::placeId)
                 .containsExactly(3L, 2L, 1L);
 
         assertThat(response.places())
-                .extracting(HomeRecommendedPlaceResponse::isNearby)
+                .extracting(HomeRecommendationResponse.PlaceItem::isNearby)
                 .containsExactly(true, true, false);
 
         assertThat(response.places())
-                .extracting(HomeRecommendedPlaceResponse::rank)
+                .extracting(HomeRecommendationResponse.PlaceItem::rank)
                 .containsExactly(1, 2, 3);
 
         ArgumentCaptor<List<RecommendationResult>> captor =
@@ -170,7 +172,7 @@ class HomeRecommendedPlaceServiceTest {
 
         givenCandidates(List.of(boundaryPlace));
 
-        HomeRecommendedPlaceListResponse response =
+        HomeRecommendationResponse.PlaceList response =
                 service.getHomeRecommendedPlaces(
                         MEMBER_ID,
                         null,
@@ -179,7 +181,7 @@ class HomeRecommendedPlaceServiceTest {
                         USER_LONGITUDE
                 );
 
-        HomeRecommendedPlaceResponse place =
+        HomeRecommendationResponse.PlaceItem place =
                 response.places().get(0);
 
         assertThat(place.distanceMeters()).isEqualTo(500);
@@ -208,7 +210,7 @@ class HomeRecommendedPlaceServiceTest {
                 yeonnam1
         ));
 
-        HomeRecommendedPlaceListResponse response =
+        HomeRecommendationResponse.PlaceList response =
                 service.getHomeRecommendedPlaces(
                         MEMBER_ID,
                         null,
@@ -220,7 +222,7 @@ class HomeRecommendedPlaceServiceTest {
         assertThat(response.locationAvailable()).isFalse();
 
         assertThat(response.places())
-                .extracting(HomeRecommendedPlaceResponse::placeId)
+                .extracting(HomeRecommendationResponse.PlaceItem::placeId)
                 .containsExactly(
                         1L,
                         3L,
@@ -250,7 +252,7 @@ class HomeRecommendedPlaceServiceTest {
 
         givenCandidates(candidates);
 
-        HomeRecommendedPlaceListResponse firstResponse =
+        HomeRecommendationResponse.PlaceList firstResponse =
                 service.getHomeRecommendedPlaces(
                         MEMBER_ID,
                         null,
@@ -258,7 +260,7 @@ class HomeRecommendedPlaceServiceTest {
                         null,
                         null
                 );
-        HomeRecommendedPlaceListResponse secondResponse =
+        HomeRecommendationResponse.PlaceList secondResponse =
                 service.getHomeRecommendedPlaces(
                         MEMBER_ID,
                         firstResponse.nextCursor(),
@@ -279,11 +281,11 @@ class HomeRecommendedPlaceServiceTest {
         assertThat(secondResponse.size()).isEqualTo(2);
 
         assertThat(secondResponse.places())
-                .extracting(HomeRecommendedPlaceResponse::placeId)
+                .extracting(HomeRecommendationResponse.PlaceItem::placeId)
                 .containsExactly(5L, 2L);
 
         assertThat(secondResponse.places())
-                .extracting(HomeRecommendedPlaceResponse::rank)
+                .extracting(HomeRecommendationResponse.PlaceItem::rank)
                 .containsExactly(3, 4);
     }
 
@@ -291,7 +293,7 @@ class HomeRecommendedPlaceServiceTest {
     void savesLogAndDoesNotSaveResultsWhenCandidatesAreEmpty() {
         givenCandidates(List.of());
 
-        HomeRecommendedPlaceListResponse response =
+        HomeRecommendationResponse.PlaceList response =
                 service.getHomeRecommendedPlaces(
                         MEMBER_ID,
                         null,
@@ -327,8 +329,8 @@ class HomeRecommendedPlaceServiceTest {
                         RecommendationException.class,
                         exception -> assertThat(exception.getErrorCode())
                                 .isEqualTo(
-                                        RecommendationErrorCode
-                                                .INVALID_LOCATION_RANGE
+                                HomeRecommendationErrorCode
+                                        .INVALID_LOCATION_RANGE
                                 )
                 );
 
@@ -358,8 +360,8 @@ class HomeRecommendedPlaceServiceTest {
                         RecommendationException.class,
                         exception -> assertThat(exception.getErrorCode())
                                 .isEqualTo(
-                                        RecommendationErrorCode
-                                                .INVALID_LOCATION_RANGE
+                                HomeRecommendationErrorCode
+                                        .INVALID_LOCATION_RANGE
                                 )
                 );
 
@@ -376,8 +378,8 @@ class HomeRecommendedPlaceServiceTest {
                         RecommendationException.class,
                         exception -> assertThat(exception.getErrorCode())
                                 .isEqualTo(
-                                        RecommendationErrorCode
-                                                .INVALID_LOCATION_RANGE
+                                HomeRecommendationErrorCode
+                                        .INVALID_LOCATION_RANGE
                                 )
                 );
     }
@@ -444,8 +446,7 @@ class HomeRecommendedPlaceServiceTest {
                         ((RecommendationException) exception).getErrorCode()
                 )
                 .isEqualTo(
-                        RecommendationErrorCode
-                                .REQUEST_CONTEXT_SERIALIZATION_FAILED
+                        RecommendationLogErrorCode.REQUEST_CONTEXT_SERIALIZATION_FAILED
                 );
 
         verify(recommendationLogRepository, never())
@@ -467,7 +468,7 @@ class HomeRecommendedPlaceServiceTest {
                         RecommendationException.class,
                         exception -> assertThat(exception.getErrorCode())
                                 .isEqualTo(
-                                        RecommendationErrorCode.INVALID_CURSOR
+                                        HomeRecommendationErrorCode.INVALID_CURSOR
                                 )
                 )
                 .hasCauseInstanceOf(IllegalArgumentException.class);
@@ -497,7 +498,7 @@ class HomeRecommendedPlaceServiceTest {
                         RecommendationException.class,
                         exception -> assertThat(exception.getErrorCode())
                                 .isEqualTo(
-                                        RecommendationErrorCode.INVALID_CURSOR
+                                        HomeRecommendationErrorCode.INVALID_CURSOR
                                 )
                 )
                 .hasCauseInstanceOf(IllegalArgumentException.class);

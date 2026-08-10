@@ -39,6 +39,9 @@ import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
+import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.domain.taxonomy.repository.MoodTagRepository;
 import java.util.List;
 import java.util.Map;
@@ -305,9 +308,9 @@ class CourseSaveServiceTest {
         SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
-                .isInstanceOf(CourseException.class)
+                .isInstanceOf(TaxonomyException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseSaveErrorCode.COURSE_MOOD_TAG_NOT_FOUND);
+                .isEqualTo(MoodTagErrorCode.MOOD_TAG_NOT_FOUND);
 
         verify(courseRepository, never()).save(any());
     }
@@ -323,9 +326,9 @@ class CourseSaveServiceTest {
         SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
-                .isInstanceOf(CourseException.class)
+                .isInstanceOf(TaxonomyException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseSaveErrorCode.COURSE_MOOD_TAG_NOT_FOUND);
+                .isEqualTo(MoodTagErrorCode.MOOD_TAG_NOT_FOUND);
 
         verify(courseRepository, never()).save(any());
     }
@@ -367,9 +370,9 @@ class CourseSaveServiceTest {
         SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
-                .isInstanceOf(CourseException.class)
+                .isInstanceOf(TaxonomyException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseSaveErrorCode.COURSE_FOOD_CATEGORY_NOT_FOUND);
+                .isEqualTo(FoodCategoryErrorCode.FOOD_CATEGORY_NOT_FOUND);
 
         verify(courseRepository, never()).save(any());
     }
