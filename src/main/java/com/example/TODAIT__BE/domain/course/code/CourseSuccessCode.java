@@ -36,6 +36,18 @@ public enum CourseSuccessCode implements BaseSuccessCode {
             "COURSE200_8",
             "임시 코스 저장 화면 진입 성공"),
 
+    SAVED_COURSE_MEMO_UPDATE_OK(
+            HttpStatus.OK,
+            "COURSE200_10",
+            "저장 코스 메모 수정 성공"
+    ),
+
+    SAVED_COURSE_PLACE_MEMO_UPDATE_OK(
+            HttpStatus.OK,
+            "COURSE200_11",
+            "저장 코스 장소 메모 수정 성공"
+    ),
+
     RECOMMENDED_COURSE_DETAIL_OK(HttpStatus.OK,
             "COURSE200_3",
             "추천 코스 상세 조회 성공"),

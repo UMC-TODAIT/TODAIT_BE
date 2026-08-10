@@ -73,4 +73,8 @@ public class CoursePlace {
 
     @Column
     private String memo;
+
+    public void updateMemo(String memo) {
+        this.memo = memo;
+    }
 }

@@ -75,4 +75,6 @@ public class Course extends BaseEntity {
     public void softDelete(LocalDateTime deletedAt) {
         this.deletedAt = deletedAt;
     }
+
+    public void updateMemo(String memo) {this.memo = memo;}
 }

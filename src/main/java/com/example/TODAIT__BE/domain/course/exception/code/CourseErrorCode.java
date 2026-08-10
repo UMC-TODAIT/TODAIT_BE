@@ -44,6 +44,7 @@ public enum CourseErrorCode implements BaseErrorCode {
     BASE_PLACE_RESELECT_CONFLICT(HttpStatus.CONFLICT, "COURSE_PLACE409_4", "기준 장소는 다시 추가할 수 없습니다."),
     SELECTED_PLACE_DUPLICATE(HttpStatus.CONFLICT, "COURSE_PLACE409_5", "이미 선택한 장소입니다."),
     SELECTED_PLACE_CATEGORY_DUPLICATE(HttpStatus.CONFLICT, "COURSE_PLACE409_6", "카테고리별로 하나의 장소만 선택할 수 있습니다."),
+    SAVED_COURSE_PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "COURSE_PLACE404_1", "저장 코스의 장소를 찾을 수 없습니다."),
     COURSE_MOOD_TAG_NOT_FOUND(HttpStatus.NOT_FOUND, "COURSE_MOOD404", "존재하지 않는 분위기 태그가 포함되어 있습니다.");
 
     private final HttpStatus status;
