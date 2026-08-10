@@ -20,7 +20,7 @@ import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRe
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.member.entity.Member;
-import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomyErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.domain.taxonomy.repository.FoodCategoryRepository;
@@ -166,7 +166,7 @@ class CourseDraftFoodCategoryServiceTest {
         ))
                 .isInstanceOf(TaxonomyException.class)
                 .extracting("errorCode")
-                .isEqualTo(TaxonomyErrorCode.FOOD_CATEGORY_NOT_FOUND);
+                .isEqualTo(FoodCategoryErrorCode.FOOD_CATEGORY_NOT_FOUND);
 
         verify(courseDraftFoodCategoryRepository, never()).findByCourseDraft(any());
     }

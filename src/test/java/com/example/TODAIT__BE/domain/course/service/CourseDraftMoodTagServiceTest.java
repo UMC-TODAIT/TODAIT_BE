@@ -20,7 +20,7 @@ import com.example.TODAIT__BE.domain.course.repository.CourseDraftMoodTagReposit
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.member.entity.Member;
-import com.example.TODAIT__BE.domain.taxonomy.code.TaxonomyErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.domain.taxonomy.repository.MoodTagRepository;
@@ -201,7 +201,7 @@ class CourseDraftMoodTagServiceTest {
         ))
                 .isInstanceOf(TaxonomyException.class)
                 .extracting("errorCode")
-                .isEqualTo(TaxonomyErrorCode.MOOD_TAG_NOT_FOUND);
+                .isEqualTo(MoodTagErrorCode.MOOD_TAG_NOT_FOUND);
 
         verify(courseDraftMoodTagRepository, never()).findByCourseDraft(any());
     }
