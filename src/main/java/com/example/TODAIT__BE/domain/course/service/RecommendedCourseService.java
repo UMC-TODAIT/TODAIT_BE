@@ -1,16 +1,16 @@
 package com.example.TODAIT__BE.domain.course.service;
 
-import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseDetailResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCoursePlaceResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.RepresentativeMoodTagResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.RepresentativeSubCategoryResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseResponse.DetailResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseResponse.PlaceResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseResponse.RepresentativeMoodTag;
+import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseResponse.RepresentativeSubCategory;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
 import com.example.TODAIT__BE.domain.course.entity.CoursePlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.RecommendedCourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
@@ -44,7 +44,7 @@ public class RecommendedCourseService {
     }
 
     @Transactional(readOnly = true)
-    public RecommendedCourseDetailResponse getRecommendedCourseDetail(
+    public DetailResponse getRecommendedCourseDetail(
             Long courseId
     ) {
         Course course = courseRepository
@@ -55,24 +55,24 @@ public class RecommendedCourseService {
                 )
                 .orElseThrow(() ->
                         new CourseException(
-                                CourseErrorCode.RECOMMENDED_COURSE_NOT_FOUND
+                                RecommendedCourseErrorCode.RECOMMENDED_COURSE_NOT_FOUND
                         )
                 );
 
-        RepresentativeMoodTagResponse representativeMoodTag =
+        RepresentativeMoodTag representativeMoodTag =
                 getRepresentativeMoodTag(courseId);
 
         List<CoursePlace> coursePlaces =
                 coursePlaceRepository
                         .findAllByCourseIdOrderByVisitOrderAsc(courseId);
 
-        RepresentativeSubCategoryResponse representativePlaceCategory =
+        RepresentativeSubCategory representativePlaceCategory =
                 getRepresentativeSubCategory(coursePlaces);
 
         Map<Long, String> primaryImageUrlByPlaceId =
                 getPrimaryImageUrlByPlaceId(coursePlaces);
 
-        List<RecommendedCoursePlaceResponse> places =
+        List<PlaceResponse> places =
                 coursePlaces.stream()
                         .map(coursePlace ->
                                 toPlaceResponse(
@@ -82,7 +82,7 @@ public class RecommendedCourseService {
                         )
                         .toList();
 
-        return new RecommendedCourseDetailResponse(
+        return new DetailResponse(
                 course.getId(),
                 course.getTitle(),
                 representativeMoodTag,
@@ -92,7 +92,7 @@ public class RecommendedCourseService {
         );
     }
 
-    private RepresentativeMoodTagResponse getRepresentativeMoodTag(
+    private RepresentativeMoodTag getRepresentativeMoodTag(
             Long courseId
     ) {
         return courseMoodTagRepository
@@ -102,17 +102,17 @@ public class RecommendedCourseService {
                 .orElse(null);
     }
 
-    private RepresentativeMoodTagResponse toMoodTagResponse(
+    private RepresentativeMoodTag toMoodTagResponse(
             MoodTag moodTag
     ) {
-        return new RepresentativeMoodTagResponse(
+        return new RepresentativeMoodTag(
                 moodTag.getId(),
                 moodTag.getCode(),
                 moodTag.getName()
         );
     }
 
-    private RepresentativeSubCategoryResponse getRepresentativeSubCategory(
+    private RepresentativeSubCategory getRepresentativeSubCategory(
             List<CoursePlace> coursePlaces
     ) {
         return coursePlaces.stream()
@@ -124,7 +124,7 @@ public class RecommendedCourseService {
                 .map(Place::getSubCategory)
                 .filter(this::hasText)
                 .map(subCategory ->
-                        new RepresentativeSubCategoryResponse(
+                        new RepresentativeSubCategory(
                                 subCategory,
                                 subCategory
                         )
@@ -154,7 +154,7 @@ public class RecommendedCourseService {
                 ));
     }
 
-    private RecommendedCoursePlaceResponse toPlaceResponse(
+    private PlaceResponse toPlaceResponse(
             CoursePlace coursePlace,
             Map<Long, String> primaryImageUrlByPlaceId
     ) {
@@ -184,7 +184,7 @@ public class RecommendedCourseService {
                         ? coursePlace.getLongitudeSnapshot()
                         : place.getLongitude();
 
-        return new RecommendedCoursePlaceResponse(
+        return new PlaceResponse(
                 coursePlace.getId(),
                 place.getId(),
                 coursePlace.getVisitOrder(),

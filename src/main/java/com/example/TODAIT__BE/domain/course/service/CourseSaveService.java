@@ -1,35 +1,33 @@
 package com.example.TODAIT__BE.domain.course.service;
 
-import com.example.TODAIT__BE.domain.course.dto.request.CourseSaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseFoodCategoryResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseMoodTagResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CoursePlaceResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseSaveRequest.SaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.FoodCategoryItem;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.MoodTagItem;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.CoursePlaceItem;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.SaveResponse;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftFoodCategory;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
-import com.example.TODAIT__BE.domain.course.entity.CourseFoodCategory;
-import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
-import com.example.TODAIT__BE.domain.course.entity.CoursePlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseSaveErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
-import com.example.TODAIT__BE.domain.course.repository.CourseFoodCategoryRepository;
-import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
-import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
+import com.example.TODAIT__BE.domain.course.service.support.CourseSaveSupport;
+import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.place.entity.Place;
-import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
+import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
+import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.domain.taxonomy.repository.MoodTagRepository;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -55,19 +53,16 @@ public class CourseSaveService {
     private final CourseDraftFoodCategoryRepository courseDraftFoodCategoryRepository;
     private final CourseDraftPlaceRepository courseDraftPlaceRepository;
     private final CourseRepository courseRepository;
-    private final CourseMoodTagRepository courseMoodTagRepository;
-    private final CourseFoodCategoryRepository courseFoodCategoryRepository;
-    private final CoursePlaceRepository coursePlaceRepository;
     private final MoodTagRepository moodTagRepository;
+    private final CourseDraftValidator courseDraftValidator;
+    private final CourseSaveSupport courseSaveSupport;
 
     @Transactional
-    public CourseSaveResponse saveCourse(Long courseDraftId, Long memberId, CourseSaveRequest request) {
+    public SaveResponse saveCourse(Long courseDraftId, Long memberId, SaveRequest request) {
         CourseDraft courseDraft = courseDraftRepository.findByIdForUpdate(courseDraftId)
-                .orElseThrow(() -> new CourseException(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
+                .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
 
-        if (!courseDraft.getMember().getId().equals(memberId)) {
-            throw new CourseException(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
-        }
+        courseDraftValidator.validateOwner(courseDraft, memberId);
 
         validateSavableDraft(courseDraft);
 
@@ -78,8 +73,9 @@ public class CourseSaveService {
         List<CourseDraftFoodCategory> draftFoodCategories =
                 courseDraftFoodCategoryRepository.findByCourseDraft(courseDraft);
         if (draftFoodCategories.isEmpty()) {
-            throw new CourseException(CourseErrorCode.FOOD_CATEGORY_NOT_SELECTED);
+            throw new CourseException(CourseSaveErrorCode.FOOD_CATEGORY_NOT_SELECTED);
         }
+        validateDraftFoodCategories(draftFoodCategories);
 
         ValidatedDraftPlaces validatedDraftPlaces = validateAndGetDraftPlaces(courseDraft);
         List<CourseDraftPlace> draftPlaces = validatedDraftPlaces.draftPlaces();
@@ -96,20 +92,21 @@ public class CourseSaveService {
                 .sourceType(CourseSourceType.USER_CREATED)
                 .build());
 
-        List<CourseMoodTagResponse> moodTagResponses = saveCourseMoodTags(course, moodTags);
-        List<CourseFoodCategoryResponse> foodCategoryResponses = saveCourseFoodCategories(course, draftFoodCategories);
-        List<CoursePlaceResponse> placeResponses = saveCoursePlaces(course, draftPlaces);
+        List<MoodTagItem> moodTagResponses = courseSaveSupport.saveMoodTags(course, moodTags);
+        List<FoodCategoryItem> foodCategoryResponses =
+                courseSaveSupport.saveFoodCategories(course, draftFoodCategories);
+        List<CoursePlaceItem> placeResponses = courseSaveSupport.savePlaces(course, draftPlaces);
 
         courseDraft.completeWithCourse(course);
         courseDraftRepository.save(courseDraft);
 
-        return CourseSaveResponse.of(course, moodTagResponses, foodCategoryResponses, placeResponses);
+        return SaveResponse.of(course, moodTagResponses, foodCategoryResponses, placeResponses);
     }
 
     private String validateAndNormalizeTitle(String rawTitle) {
         String title = rawTitle == null ? null : rawTitle.trim();
         if (title == null || title.isEmpty() || title.length() > MAX_TITLE_LENGTH) {
-            throw new CourseException(CourseErrorCode.INVALID_COURSE_TITLE);
+            throw new CourseException(CourseSaveErrorCode.INVALID_COURSE_TITLE);
         }
         return title;
     }
@@ -126,12 +123,12 @@ public class CourseSaveService {
                 || moodTagIds.size() < MIN_MOOD_TAG_COUNT
                 || moodTagIds.size() > MAX_MOOD_TAG_COUNT
                 || new HashSet<>(moodTagIds).size() != moodTagIds.size()) {
-            throw new CourseException(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
+            throw new CourseException(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT);
         }
 
         List<MoodTag> foundMoodTags = moodTagRepository.findByIdInAndIsActiveTrue(moodTagIds);
         if (foundMoodTags.size() != moodTagIds.size()) {
-            throw new CourseException(CourseErrorCode.COURSE_MOOD_TAG_NOT_FOUND);
+            throw new TaxonomyException(MoodTagErrorCode.MOOD_TAG_NOT_FOUND);
         }
 
         Map<Long, MoodTag> moodTagsById = foundMoodTags.stream()
@@ -141,17 +138,26 @@ public class CourseSaveService {
                 .toList();
     }
 
+    private void validateDraftFoodCategories(List<CourseDraftFoodCategory> draftFoodCategories) {
+        boolean hasUnavailableFoodCategory = draftFoodCategories.stream()
+                .map(CourseDraftFoodCategory::getFoodCategory)
+                .anyMatch(foodCategory -> foodCategory == null || !Boolean.TRUE.equals(foodCategory.getIsActive()));
+        if (hasUnavailableFoodCategory) {
+            throw new TaxonomyException(FoodCategoryErrorCode.FOOD_CATEGORY_NOT_FOUND);
+        }
+    }
+
     private void validateSavableDraft(CourseDraft courseDraft) {
         if (courseDraft.getStatus() == CourseDraftStatus.COMPLETED) {
             Long completedCourseId = courseDraft.getCourse() == null ? null : courseDraft.getCourse().getId();
             throw new CourseException(
-                    CourseErrorCode.COURSE_DRAFT_ALREADY_COMPLETED,
+                    CourseSaveErrorCode.COURSE_DRAFT_ALREADY_COMPLETED,
                     Collections.singletonMap("courseId", completedCourseId)
             );
         }
 
         if (courseDraft.getStatus() != CourseDraftStatus.SAVING) {
-            throw new CourseException(CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
+            throw new CourseException(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
         }
     }
 
@@ -164,7 +170,7 @@ public class CourseSaveService {
         Set<Long> placeIds = new HashSet<>();
         for (CourseDraftPlace draftPlace : draftPlaces) {
             if (!placeIds.add(draftPlace.getPlace().getId())) {
-                throw new CourseException(CourseErrorCode.INVALID_SELECTED_PLACE);
+                throw new CourseException(CourseDraftErrorCode.INVALID_SELECTED_PLACE);
             }
         }
 
@@ -173,13 +179,13 @@ public class CourseSaveService {
                 .sorted(Comparator.comparing(CourseDraftPlace::getVisitOrder))
                 .toList();
         if (selectedPlaces.isEmpty()) {
-            throw new CourseException(CourseErrorCode.INVALID_SELECTED_PLACE);
+            throw new CourseException(CourseDraftErrorCode.INVALID_SELECTED_PLACE);
         }
 
         for (int i = 0; i < selectedPlaces.size(); i++) {
             int expectedOrder = SELECTED_PLACE_START_ORDER + i;
             if (!selectedPlaces.get(i).getVisitOrder().equals(expectedOrder)) {
-                throw new CourseException(CourseErrorCode.INVALID_VISIT_ORDER);
+                throw new CourseException(CourseDraftErrorCode.INVALID_VISIT_ORDER);
             }
         }
 
@@ -197,63 +203,15 @@ public class CourseSaveService {
                 .filter(draftPlace -> draftPlace.getPlaceRole() == PlaceRole.BASE)
                 .toList();
         if (basePlaces.size() != 1 || !basePlaces.get(0).getVisitOrder().equals(1)) {
-            throw new CourseException(CourseErrorCode.INVALID_BASE_PLACE);
+            throw new CourseException(CourseDraftErrorCode.INVALID_BASE_PLACE);
         }
 
         CourseDraftPlace baseDraftPlace = basePlaces.get(0);
         if (baseDraftPlace.getPlace() == null) {
-            throw new CourseException(CourseErrorCode.INVALID_BASE_PLACE);
+            throw new CourseException(CourseDraftErrorCode.INVALID_BASE_PLACE);
         }
 
         return baseDraftPlace;
     }
 
-    private List<CourseMoodTagResponse> saveCourseMoodTags(Course course, List<MoodTag> moodTags) {
-        List<CourseMoodTagResponse> responses = new ArrayList<>();
-        for (MoodTag moodTag : moodTags) {
-            courseMoodTagRepository.save(CourseMoodTag.builder()
-                    .course(course)
-                    .moodTag(moodTag)
-                    .build());
-            responses.add(CourseMoodTagResponse.from(moodTag));
-        }
-        return responses;
-    }
-
-    private List<CourseFoodCategoryResponse> saveCourseFoodCategories(
-            Course course,
-            List<CourseDraftFoodCategory> draftFoodCategories
-    ) {
-        List<CourseFoodCategoryResponse> responses = new ArrayList<>();
-        for (CourseDraftFoodCategory draftFoodCategory : draftFoodCategories) {
-            FoodCategory foodCategory = draftFoodCategory.getFoodCategory();
-            courseFoodCategoryRepository.save(CourseFoodCategory.builder()
-                    .course(course)
-                    .foodCategory(foodCategory)
-                    .build());
-            responses.add(CourseFoodCategoryResponse.from(foodCategory));
-        }
-        return responses;
-    }
-
-    private List<CoursePlaceResponse> saveCoursePlaces(Course course, List<CourseDraftPlace> draftPlaces) {
-        List<CoursePlaceResponse> responses = new ArrayList<>();
-        for (CourseDraftPlace draftPlace : draftPlaces) {
-            Place place = draftPlace.getPlace();
-            CoursePlace coursePlace = coursePlaceRepository.save(CoursePlace.builder()
-                    .course(course)
-                    .place(place)
-                    .visitOrder(draftPlace.getVisitOrder())
-                    .placeRole(draftPlace.getPlaceRole())
-                    .placeNameSnapshot(place.getName())
-                    .addressSnapshot(place.getAddress())
-                    .latitudeSnapshot(place.getLatitude())
-                    .longitudeSnapshot(place.getLongitude())
-                    .categorySnapshot(place.getPlaceCategory().getCode())
-                    .memo(draftPlace.getMemo())
-                    .build());
-            responses.add(CoursePlaceResponse.from(coursePlace));
-        }
-        return responses;
-    }
 }

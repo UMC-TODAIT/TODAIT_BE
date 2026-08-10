@@ -1,13 +1,12 @@
 package com.example.TODAIT__BE.domain.course.controller;
 
-import com.example.TODAIT__BE.domain.course.code.CourseSuccessCode;
-import com.example.TODAIT__BE.domain.course.dto.request.CourseSaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse;
+import com.example.TODAIT__BE.domain.course.code.CourseSaveSuccessCode;
+import com.example.TODAIT__BE.domain.course.controller.docs.CourseSaveControllerDocs;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseSaveRequest.SaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.SaveResponse;
 import com.example.TODAIT__BE.domain.course.service.CourseSaveService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,29 +19,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/course-drafts")
-@Tag(name = "COURSE", description = "임시 코스 및 저장 코스 API")
-public class CourseSaveController {
+public class CourseSaveController implements CourseSaveControllerDocs {
 
     private final CourseSaveService courseSaveService;
 
     @PostMapping("/{courseDraftId}/courses")
-    @Operation(
-            summary = "[코스 저장] 임시 코스 최종 저장",
-            description = """
-                    임시 코스를 최종 코스로 확정하여 저장합니다.
-
-                    - 저장 가능 상태: SAVING
-                    - 저장 결과: 사용자 개인 저장 코스
-                    """
-    )
-    public ResponseEntity<ApiResponse<CourseSaveResponse>> saveCourse(
+    @Override
+    public ResponseEntity<ApiResponse<SaveResponse>> saveCourse(
             @PathVariable Long courseDraftId,
             @AuthenticationPrincipal AuthMember authMember,
-            @RequestBody CourseSaveRequest request
+            @RequestBody SaveRequest request
     ) {
-        CourseSaveResponse result = courseSaveService.saveCourse(courseDraftId, authMember.memberId(), request);
+        SaveResponse result = courseSaveService.saveCourse(courseDraftId, authMember.memberId(), request);
         return ResponseEntity
-                .status(CourseSuccessCode.COURSE_SAVE_OK.getStatus())
-                .body(ApiResponse.onSuccess(CourseSuccessCode.COURSE_SAVE_OK, result));
+                .status(CourseSaveSuccessCode.COURSE_SAVE_OK.getStatus())
+                .body(ApiResponse.onSuccess(CourseSaveSuccessCode.COURSE_SAVE_OK, result));
     }
 }

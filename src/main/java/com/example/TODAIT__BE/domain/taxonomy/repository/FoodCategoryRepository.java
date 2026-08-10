@@ -12,4 +12,6 @@ public interface FoodCategoryRepository extends JpaRepository<FoodCategory, Long
     boolean existsByCode(String code);
 
     List<FoodCategory> findAllByIsActiveTrueOrderBySortOrderAsc();
+
+    List<FoodCategory> findByIdInAndIsActiveTrue(List<Long> ids);
 }

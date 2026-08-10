@@ -10,14 +10,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseDetailResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseOverviewResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.DetailResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.OverviewResponse;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
 import com.example.TODAIT__BE.domain.course.entity.CoursePlace;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.SavedCourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
@@ -100,7 +100,7 @@ class SavedCourseServiceTest {
         given(courseRepository.findViewCountById(100L))
                 .willReturn(6);
 
-        SavedCourseDetailResponse response =
+        DetailResponse response =
                 savedCourseService.getSavedCourseDetail(1L, 100L);
 
         assertThat(response.courseId()).isEqualTo(100L);
@@ -142,7 +142,7 @@ class SavedCourseServiceTest {
                 .isInstanceOfSatisfying(
                         CourseException.class,
                         exception -> assertThat(exception.getErrorCode())
-                                .isEqualTo(CourseErrorCode.SAVED_COURSE_NOT_FOUND)
+                                .isEqualTo(SavedCourseErrorCode.SAVED_COURSE_NOT_FOUND)
                 );
 
         verify(courseMoodTagRepository, never())
@@ -165,7 +165,7 @@ class SavedCourseServiceTest {
                 .isInstanceOfSatisfying(
                         CourseException.class,
                         exception -> assertThat(exception.getErrorCode())
-                                .isEqualTo(CourseErrorCode.SAVED_COURSE_ACCESS_DENIED)
+                                .isEqualTo(SavedCourseErrorCode.SAVED_COURSE_ACCESS_DENIED)
                 );
 
         verify(courseMoodTagRepository, never())
@@ -182,7 +182,7 @@ class SavedCourseServiceTest {
         given(courseRepository.findPopularSavedCourses(eq(1L), any(Pageable.class)))
                 .willReturn(List.of());
 
-        SavedCourseOverviewResponse response =
+        OverviewResponse response =
                 savedCourseService.getSavedCourseOverview(1L);
 
         assertThat(response.recentCourses()).isEmpty();
@@ -243,7 +243,7 @@ class SavedCourseServiceTest {
                 List.of(1L, 2L, 3L)
         )).willReturn(coursePlaces);
 
-        SavedCourseOverviewResponse response =
+        OverviewResponse response =
                 savedCourseService.getSavedCourseOverview(1L);
 
         assertThat(response.recentCourses()).hasSize(2);

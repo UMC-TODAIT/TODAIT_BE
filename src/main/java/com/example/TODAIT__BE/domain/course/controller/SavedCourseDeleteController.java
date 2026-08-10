@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.course.controller;
 
-import com.example.TODAIT__BE.domain.course.code.CourseSuccessCode;
+import com.example.TODAIT__BE.domain.course.code.SavedCourseSuccessCode;
 import com.example.TODAIT__BE.domain.course.controller.docs.SavedCourseDeleteControllerDocs;
 import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseDeleteResponse;
 import com.example.TODAIT__BE.domain.course.service.SavedCourseDeleteService;
@@ -37,13 +37,13 @@ public class SavedCourseDeleteController
 
         return ResponseEntity
                 .status(
-                        CourseSuccessCode
+                        SavedCourseSuccessCode
                                 .SAVED_COURSE_DELETE_OK
                                 .getStatus()
                 )
                 .body(
                         ApiResponse.onSuccess(
-                                CourseSuccessCode
+                                SavedCourseSuccessCode
                                         .SAVED_COURSE_DELETE_OK,
                                 result
                         )

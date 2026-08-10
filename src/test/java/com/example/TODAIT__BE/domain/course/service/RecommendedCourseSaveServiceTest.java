@@ -10,7 +10,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseResponse.SaveResponse;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseFoodCategory;
 import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
@@ -19,11 +19,12 @@ import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.RecommendedCourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseFoodCategoryRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
+import com.example.TODAIT__BE.domain.course.service.support.CourseSaveSupport;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.place.entity.Place;
@@ -64,7 +65,12 @@ class RecommendedCourseSaveServiceTest {
                 coursePlaceRepository,
                 courseMoodTagRepository,
                 courseFoodCategoryRepository,
-                memberRepository
+                memberRepository,
+                new CourseSaveSupport(
+                        courseMoodTagRepository,
+                        courseFoodCategoryRepository,
+                        coursePlaceRepository
+                )
         );
     }
 
@@ -102,7 +108,7 @@ class RecommendedCourseSaveServiceTest {
         given(courseFoodCategoryRepository.saveAll(anyList()))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
-        RecommendedCourseSaveResponse response =
+        SaveResponse response =
                 recommendedCourseSaveService.saveRecommendedCourse(10L, 1L);
 
         assertThat(response.sourceCourseId()).isEqualTo(10L);
@@ -236,7 +242,7 @@ class RecommendedCourseSaveServiceTest {
                 recommendedCourseSaveService.saveRecommendedCourse(10L, 1L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE);
+                .isEqualTo(RecommendedCourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE);
 
         verify(courseRepository, never()).save(any());
     }
@@ -259,7 +265,7 @@ class RecommendedCourseSaveServiceTest {
                 recommendedCourseSaveService.saveRecommendedCourse(10L, 1L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE);
+                .isEqualTo(RecommendedCourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE);
 
         verify(courseRepository, never()).save(any());
     }
@@ -283,7 +289,7 @@ class RecommendedCourseSaveServiceTest {
                 recommendedCourseSaveService.saveRecommendedCourse(10L, 1L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE);
+                .isEqualTo(RecommendedCourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE);
 
         verify(courseRepository, never()).save(any());
     }
@@ -308,7 +314,7 @@ class RecommendedCourseSaveServiceTest {
                 recommendedCourseSaveService.saveRecommendedCourse(10L, 1L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE);
+                .isEqualTo(RecommendedCourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE);
 
         verify(courseRepository, never()).save(any());
     }
@@ -329,7 +335,7 @@ class RecommendedCourseSaveServiceTest {
                 recommendedCourseSaveService.saveRecommendedCourse(10L, 1L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE);
+                .isEqualTo(RecommendedCourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE);
 
         verify(courseRepository, never()).save(any());
     }
@@ -348,7 +354,7 @@ class RecommendedCourseSaveServiceTest {
                 recommendedCourseSaveService.saveRecommendedCourse(10L, 1L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE);
+                .isEqualTo(RecommendedCourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE);
 
         verify(courseRepository, never()).save(any());
     }

@@ -1,6 +1,6 @@
 package com.example.TODAIT__BE.domain.course.service;
 
-import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseResponse.SaveResponse;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseFoodCategory;
 import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
@@ -9,11 +9,12 @@ import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
-import com.example.TODAIT__BE.domain.course.repository.CourseFoodCategoryRepository;
-import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
+import com.example.TODAIT__BE.domain.course.code.RecommendedCourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
+import com.example.TODAIT__BE.domain.course.repository.CourseFoodCategoryRepository;
+import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
+import com.example.TODAIT__BE.domain.course.service.support.CourseSaveSupport;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.member.enums.MemberStatus;
@@ -38,9 +39,10 @@ public class RecommendedCourseSaveService {
     private final CourseMoodTagRepository courseMoodTagRepository;
     private final CourseFoodCategoryRepository courseFoodCategoryRepository;
     private final MemberRepository memberRepository;
+    private final CourseSaveSupport courseSaveSupport;
 
     @Transactional
-    public RecommendedCourseSaveResponse saveRecommendedCourse(
+    public SaveResponse saveRecommendedCourse(
             Long sourceCourseId,
             Long memberId
     ) {
@@ -68,11 +70,11 @@ public class RecommendedCourseSaveService {
                 member
         );
 
-        copyCoursePlaces(sourcePlaces, savedCourse);
-        copyCourseMoodTags(sourceMoodTags, savedCourse);
-        copyCourseFoodCategories(sourceFoodCategories, savedCourse);
+        courseSaveSupport.copyPlaces(sourcePlaces, savedCourse);
+        courseSaveSupport.copyMoodTags(sourceMoodTags, savedCourse);
+        courseSaveSupport.copyFoodCategories(sourceFoodCategories, savedCourse);
 
-        return RecommendedCourseSaveResponse.of(
+        return SaveResponse.of(
                 sourceCourseId,
                 savedCourse,
                 sourcePlaces.size()
@@ -88,7 +90,7 @@ public class RecommendedCourseSaveService {
                 )
                 .orElseThrow(() ->
                         new CourseException(
-                                CourseErrorCode.RECOMMENDED_COURSE_NOT_FOUND
+                                RecommendedCourseErrorCode.RECOMMENDED_COURSE_NOT_FOUND
                         )
                 );
     }
@@ -227,7 +229,7 @@ public class RecommendedCourseSaveService {
 
     private CourseException recommendedCourseNotSavable() {
         return new CourseException(
-                CourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE
+                RecommendedCourseErrorCode.RECOMMENDED_COURSE_NOT_SAVABLE
         );
     }
 
@@ -252,76 +254,4 @@ public class RecommendedCourseSaveService {
         return courseRepository.save(savedCourse);
     }
 
-    private void copyCoursePlaces(
-            List<CoursePlace> sourcePlaces,
-            Course savedCourse
-    ) {
-        List<CoursePlace> copiedPlaces = sourcePlaces.stream()
-                .map(sourcePlace ->
-                        CoursePlace.builder()
-                                .course(savedCourse)
-                                .place(sourcePlace.getPlace())
-                                .visitOrder(sourcePlace.getVisitOrder())
-                                .placeRole(sourcePlace.getPlaceRole())
-                                .isRepresentative(
-                                        sourcePlace.getIsRepresentative()
-                                )
-                                .placeNameSnapshot(
-                                        sourcePlace.getPlaceNameSnapshot()
-                                )
-                                .addressSnapshot(
-                                        sourcePlace.getAddressSnapshot()
-                                )
-                                .latitudeSnapshot(
-                                        sourcePlace.getLatitudeSnapshot()
-                                )
-                                .longitudeSnapshot(
-                                        sourcePlace.getLongitudeSnapshot()
-                                )
-                                .categorySnapshot(
-                                        sourcePlace.getCategorySnapshot()
-                                )
-                                .memo(sourcePlace.getMemo())
-                                .build()
-                )
-                .toList();
-
-        coursePlaceRepository.saveAll(copiedPlaces);
-    }
-
-    private void copyCourseMoodTags(
-            List<CourseMoodTag> sourceMoodTags,
-            Course savedCourse
-    ) {
-        List<CourseMoodTag> copiedMoodTags = sourceMoodTags.stream()
-                .map(sourceMoodTag ->
-                        CourseMoodTag.builder()
-                                .course(savedCourse)
-                                .moodTag(sourceMoodTag.getMoodTag())
-                                .build()
-                )
-                .toList();
-
-        courseMoodTagRepository.saveAll(copiedMoodTags);
-    }
-
-    private void copyCourseFoodCategories(
-            List<CourseFoodCategory> sourceFoodCategories,
-            Course savedCourse
-    ) {
-        List<CourseFoodCategory> copiedFoodCategories =
-                sourceFoodCategories.stream()
-                        .map(sourceFoodCategory ->
-                                CourseFoodCategory.builder()
-                                        .course(savedCourse)
-                                        .foodCategory(
-                                                sourceFoodCategory
-                                                        .getFoodCategory()
-                                        )
-                                        .build()
-                        )
-                        .toList();
-
-        courseFoodCategoryRepository.saveAll(copiedFoodCategories);
-    }
 }

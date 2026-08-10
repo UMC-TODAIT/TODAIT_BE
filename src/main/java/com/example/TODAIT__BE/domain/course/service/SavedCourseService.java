@@ -1,16 +1,19 @@
 package com.example.TODAIT__BE.domain.course.service;
 
-import com.example.TODAIT__BE.domain.course.dto.response.RepresentativeMoodTagResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.RepresentativeSubCategoryResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseCardResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseDetailPlaceResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseDetailResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseOverviewResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.SavedCoursePreviewPlaceResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.RepresentativeMoodTag;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.RepresentativeSubCategory;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.CardResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.DetailPlaceResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.DetailResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.OverviewResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.PreviewPlaceResponse;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
 import com.example.TODAIT__BE.domain.course.entity.CoursePlace;
+import com.example.TODAIT__BE.domain.course.code.SavedCourseErrorCode;
+import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
+import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
@@ -25,13 +28,10 @@ import java.util.Set;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.dto.request.SavedCourseMemoUpdateRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.SavedCoursePlaceMemoUpdateRequest;
 import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseMemoUpdateResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.SavedCoursePlaceMemoUpdateResponse;
-import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 
 @Service
 public class SavedCourseService {
@@ -54,7 +54,7 @@ public class SavedCourseService {
     }
 
     @Transactional(readOnly = true)
-    public SavedCourseOverviewResponse getSavedCourseOverview(Long memberId) {
+    public OverviewResponse getSavedCourseOverview(Long memberId) {
         PageRequest limitTwo = PageRequest.of(0, COURSE_LIMIT);
 
         List<Course> recentCourses =
@@ -82,7 +82,7 @@ public class SavedCourseService {
                 .forEach(courseIdSet::add);
 
         if (courseIdSet.isEmpty()) {
-            return new SavedCourseOverviewResponse(
+            return new OverviewResponse(
                     List.of(),
                     List.of()
             );
@@ -90,13 +90,13 @@ public class SavedCourseService {
 
         List<Long> courseIds = new ArrayList<>(courseIdSet);
 
-        Map<Long, RepresentativeMoodTagResponse> moodTagByCourseId =
+        Map<Long, RepresentativeMoodTag> moodTagByCourseId =
                 getMoodTagByCourseId(courseIds);
 
         Map<Long, List<CoursePlace>> coursePlacesByCourseId =
                 getCoursePlacesByCourseId(courseIds);
 
-        List<SavedCourseCardResponse> recentCourseResponses =
+        List<CardResponse> recentCourseResponses =
                 recentCourses.stream()
                         .map(course ->
                                 toCardResponse(
@@ -107,7 +107,7 @@ public class SavedCourseService {
                         )
                         .toList();
 
-        List<SavedCourseCardResponse> popularCourseResponses =
+        List<CardResponse> popularCourseResponses =
                 popularCourses.stream()
                         .map(course ->
                                 toCardResponse(
@@ -118,14 +118,14 @@ public class SavedCourseService {
                         )
                         .toList();
 
-        return new SavedCourseOverviewResponse(
+        return new OverviewResponse(
                 recentCourseResponses,
                 popularCourseResponses
         );
     }
 
     @Transactional
-    public SavedCourseDetailResponse getSavedCourseDetail(
+    public DetailResponse getSavedCourseDetail(
             Long memberId,
             Long courseId
     ) {
@@ -133,21 +133,21 @@ public class SavedCourseService {
                 .findSavedCourseDetailById(courseId)
                 .orElseThrow(() ->
                         new CourseException(
-                                CourseErrorCode.SAVED_COURSE_NOT_FOUND
+                                SavedCourseErrorCode.SAVED_COURSE_NOT_FOUND
                         )
                 );
 
         if (!course.getMember().getId().equals(memberId)) {
             throw new CourseException(
-                    CourseErrorCode.SAVED_COURSE_ACCESS_DENIED
+                    SavedCourseErrorCode.SAVED_COURSE_ACCESS_DENIED
             );
         }
 
-        RepresentativeMoodTagResponse representativeMoodTag =
+        RepresentativeMoodTag representativeMoodTag =
                 getMoodTagByCourseId(List.of(courseId))
                         .get(courseId);
 
-        List<SavedCourseDetailPlaceResponse> places =
+        List<DetailPlaceResponse> places =
                 coursePlaceRepository
                         .findAllByCourseIdOrderByVisitOrderAsc(courseId)
                         .stream()
@@ -157,7 +157,7 @@ public class SavedCourseService {
         courseRepository.increaseViewCount(courseId);
         Integer viewCount = courseRepository.findViewCountById(courseId);
 
-        return new SavedCourseDetailResponse(
+        return new DetailResponse(
                 course.getId(),
                 course.getTitle(),
                 course.getCreatedAt().toLocalDate(),
@@ -172,10 +172,10 @@ public class SavedCourseService {
         );
     }
 
-    private Map<Long, RepresentativeMoodTagResponse> getMoodTagByCourseId(
+    private Map<Long, RepresentativeMoodTag> getMoodTagByCourseId(
             List<Long> courseIds
     ) {
-        Map<Long, RepresentativeMoodTagResponse> result =
+        Map<Long, RepresentativeMoodTag> result =
                 new LinkedHashMap<>();
 
         List<CourseMoodTag> courseMoodTags =
@@ -190,7 +190,7 @@ public class SavedCourseService {
 
             result.putIfAbsent(
                     courseId,
-                    new RepresentativeMoodTagResponse(
+                    new RepresentativeMoodTag(
                             moodTag.getId(),
                             moodTag.getCode(),
                             moodTag.getName()
@@ -224,9 +224,9 @@ public class SavedCourseService {
         return result;
     }
 
-    private SavedCourseCardResponse toCardResponse(
+    private CardResponse toCardResponse(
             Course course,
-            Map<Long, RepresentativeMoodTagResponse> moodTagByCourseId,
+            Map<Long, RepresentativeMoodTag> moodTagByCourseId,
             Map<Long, List<CoursePlace>> coursePlacesByCourseId
     ) {
         List<CoursePlace> coursePlaces =
@@ -235,7 +235,7 @@ public class SavedCourseService {
                         List.of()
                 );
 
-        List<SavedCoursePreviewPlaceResponse> previewPlaces =
+        List<PreviewPlaceResponse> previewPlaces =
                 coursePlaces.stream()
                         .filter(coursePlace ->
                                 coursePlace.getPlaceRole()
@@ -256,7 +256,7 @@ public class SavedCourseService {
                 ? course.getViewCount()
                 : 0;
 
-        return new SavedCourseCardResponse(
+        return new CardResponse(
                 course.getId(),
                 course.getTitle(),
                 course.getCreatedAt().toLocalDate(),
@@ -269,7 +269,7 @@ public class SavedCourseService {
         );
     }
 
-    private SavedCourseDetailPlaceResponse toDetailPlaceResponse(
+    private DetailPlaceResponse toDetailPlaceResponse(
             CoursePlace coursePlace
     ) {
         Place place = coursePlace.getPlace();
@@ -282,7 +282,7 @@ public class SavedCourseService {
                 ? coursePlace.getAddressSnapshot()
                 : place.getAddress();
 
-        return new SavedCourseDetailPlaceResponse(
+        return new DetailPlaceResponse(
                 coursePlace.getId(),
                 place.getId(),
                 coursePlace.getVisitOrder(),
@@ -292,7 +292,7 @@ public class SavedCourseService {
         );
     }
 
-    private RepresentativeSubCategoryResponse toRepresentativePlaceCategory(
+    private RepresentativeSubCategory toRepresentativePlaceCategory(
             Place basePlace
     ) {
         if (basePlace == null || !hasText(basePlace.getSubCategory())) {
@@ -300,13 +300,13 @@ public class SavedCourseService {
         }
 
         String subCategory = basePlace.getSubCategory();
-        return new RepresentativeSubCategoryResponse(
+        return new RepresentativeSubCategory(
                 subCategory,
                 subCategory
         );
     }
 
-    private SavedCoursePreviewPlaceResponse toPreviewPlaceResponse(
+    private PreviewPlaceResponse toPreviewPlaceResponse(
             CoursePlace coursePlace
     ) {
         Place place = coursePlace.getPlace();
@@ -315,7 +315,7 @@ public class SavedCourseService {
                 ? coursePlace.getPlaceNameSnapshot()
                 : place.getName();
 
-        return new SavedCoursePreviewPlaceResponse(
+        return new PreviewPlaceResponse(
                 place.getId(),
                 name,
                 coursePlace.getVisitOrder()
@@ -362,7 +362,7 @@ public class SavedCourseService {
                 )
                 .orElseThrow(() ->
                         new CourseException(
-                                CourseErrorCode.SAVED_COURSE_PLACE_NOT_FOUND
+                                SavedCourseErrorCode.SAVED_COURSE_PLACE_NOT_FOUND
                         )
                 );
 
@@ -385,19 +385,19 @@ public class SavedCourseService {
                 .findSavedCourseDetailById(courseId)
                 .orElseThrow(() ->
                         new CourseException(
-                                CourseErrorCode.SAVED_COURSE_NOT_FOUND
+                                SavedCourseErrorCode.SAVED_COURSE_NOT_FOUND
                         )
                 );
 
         if (!course.getMember().getId().equals(memberId)) {
             throw new CourseException(
-                    CourseErrorCode.SAVED_COURSE_ACCESS_DENIED
+                    SavedCourseErrorCode.SAVED_COURSE_ACCESS_DENIED
             );
         }
 
         if (course.getSourceType() != CourseSourceType.USER_CREATED) {
             throw new CourseException(
-                    CourseErrorCode.SAVED_COURSE_ACCESS_DENIED
+                    SavedCourseErrorCode.SAVED_COURSE_ACCESS_DENIED
             );
         }
 

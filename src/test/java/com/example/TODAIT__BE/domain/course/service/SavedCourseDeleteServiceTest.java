@@ -6,10 +6,10 @@ import static org.mockito.BDDMockito.given;
 
 import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseDeleteResponse;
 import com.example.TODAIT__BE.domain.course.entity.Course;
+import com.example.TODAIT__BE.domain.course.code.SavedCourseErrorCode;
 import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.place.entity.Place;
@@ -72,7 +72,7 @@ class SavedCourseDeleteServiceTest {
         )
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.SAVED_COURSE_NOT_FOUND);
+                .isEqualTo(SavedCourseErrorCode.SAVED_COURSE_NOT_FOUND);
     }
 
     @Test
@@ -94,7 +94,7 @@ class SavedCourseDeleteServiceTest {
         )
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.SAVED_COURSE_ACCESS_DENIED);
+                .isEqualTo(SavedCourseErrorCode.SAVED_COURSE_ACCESS_DENIED);
 
         assertThat(course.getDeletedAt()).isNull();
     }
@@ -118,7 +118,7 @@ class SavedCourseDeleteServiceTest {
         )
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.SAVED_COURSE_ACCESS_DENIED);
+                .isEqualTo(SavedCourseErrorCode.SAVED_COURSE_ACCESS_DENIED);
 
         assertThat(course.getDeletedAt()).isNull();
     }

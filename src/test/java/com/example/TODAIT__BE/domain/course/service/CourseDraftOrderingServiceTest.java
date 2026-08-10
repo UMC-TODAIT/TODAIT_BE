@@ -8,22 +8,26 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import com.example.TODAIT__BE.domain.course.dto.response.OrderingEntryResponse;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest.PlaceOrderItem;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.OrderingEntryResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceOrderUpdateResponse;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
+import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -41,8 +45,27 @@ class CourseDraftOrderingServiceTest {
     @Mock
     private CourseDraftPlaceRepository courseDraftPlaceRepository;
 
-    @InjectMocks
-    private CourseDraftOrderingService service;
+    private CourseDraftService service;
+
+    @BeforeEach
+    void setUp() {
+        service = new CourseDraftService(
+                courseDraftRepository,
+                null,
+                null,
+                null,
+                courseDraftPlaceRepository,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                new CourseDraftValidator()
+        );
+    }
 
     @Test
     void transitionsToOrderingAndReturnsPlacesOnFirstEntry() {
@@ -103,7 +126,7 @@ class CourseDraftOrderingServiceTest {
         assertThatThrownBy(() -> service.enterOrdering(DRAFT_ID, MEMBER_ID))
                 .isInstanceOfSatisfying(CourseException.class, e ->
                         assertThat(e.getErrorCode())
-                                .isEqualTo(CourseErrorCode.ORDERING_ENTRY_STATUS_CONFLICT));
+                                .isEqualTo(CourseDraftErrorCode.ORDERING_ENTRY_STATUS_CONFLICT));
 
         verify(courseDraftPlaceRepository, never())
                 .findByCourseDraftIdWithPlaceOrderByVisitOrderAsc(any());
@@ -117,7 +140,7 @@ class CourseDraftOrderingServiceTest {
         assertThatThrownBy(() -> service.enterOrdering(DRAFT_ID, MEMBER_ID))
                 .isInstanceOfSatisfying(CourseException.class, e ->
                         assertThat(e.getErrorCode())
-                                .isEqualTo(CourseErrorCode.COURSE_DRAFT_NOT_FOUND));
+                                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
     }
 
     @Test
@@ -129,7 +152,7 @@ class CourseDraftOrderingServiceTest {
         assertThatThrownBy(() -> service.enterOrdering(DRAFT_ID, MEMBER_ID))
                 .isInstanceOfSatisfying(CourseException.class, e ->
                         assertThat(e.getErrorCode())
-                                .isEqualTo(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED));
+                                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED));
     }
 
     @Test
@@ -137,7 +160,7 @@ class CourseDraftOrderingServiceTest {
         givenPlaces(CourseDraftStatus.PLACE_SELECTING,
                 place(102L, 35L, 1, PlaceRole.SELECTED, "코이르"));
 
-        assertConflict(CourseErrorCode.ORDERING_ENTRY_INVALID_BASE_PLACE);
+        assertConflict(CourseDraftErrorCode.ORDERING_ENTRY_INVALID_BASE_PLACE);
     }
 
     @Test
@@ -146,7 +169,7 @@ class CourseDraftOrderingServiceTest {
                 place(102L, 35L, 1, PlaceRole.SELECTED, "코이르"),
                 place(101L, 21L, 2, PlaceRole.BASE, "쥬노이"));
 
-        assertConflict(CourseErrorCode.ORDERING_ENTRY_INVALID_BASE_PLACE);
+        assertConflict(CourseDraftErrorCode.ORDERING_ENTRY_INVALID_BASE_PLACE);
     }
 
     @Test
@@ -154,7 +177,7 @@ class CourseDraftOrderingServiceTest {
         givenPlaces(CourseDraftStatus.PLACE_SELECTING,
                 place(101L, 21L, 1, PlaceRole.BASE, "쥬노이"));
 
-        assertConflict(CourseErrorCode.ORDERING_ENTRY_SELECTED_PLACE_REQUIRED);
+        assertConflict(CourseDraftErrorCode.ORDERING_ENTRY_SELECTED_PLACE_REQUIRED);
     }
 
     @Test
@@ -163,7 +186,34 @@ class CourseDraftOrderingServiceTest {
                 place(101L, 21L, 1, PlaceRole.BASE, "쥬노이"),
                 place(102L, 35L, 3, PlaceRole.SELECTED, "코이르"));
 
-        assertConflict(CourseErrorCode.ORDERING_ENTRY_INVALID_VISIT_ORDER);
+        assertConflict(CourseDraftErrorCode.ORDERING_ENTRY_INVALID_VISIT_ORDER);
+    }
+
+    @Test
+    void updatePlaceOrderLocksDraftBeforeReorderingPlaces() {
+        CourseDraft draft = draft(CourseDraftStatus.ORDERING, MEMBER_ID);
+        CourseDraftPlace basePlace = place(101L, 21L, 1, PlaceRole.BASE, "쥬노이");
+        CourseDraftPlace firstSelectedPlace = place(102L, 35L, 2, PlaceRole.SELECTED, "코이르");
+        CourseDraftPlace secondSelectedPlace = place(103L, 36L, 3, PlaceRole.SELECTED, "서니");
+
+        given(courseDraftRepository.findByIdForUpdate(DRAFT_ID)).willReturn(Optional.of(draft));
+        given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
+                .willReturn(List.of(basePlace, firstSelectedPlace, secondSelectedPlace));
+
+        PlaceOrderUpdateResponse response = service.updatePlaceOrder(
+                DRAFT_ID,
+                MEMBER_ID,
+                new PlaceOrderUpdateRequest(List.of(
+                        new PlaceOrderItem(103L, 2),
+                        new PlaceOrderItem(102L, 3)
+                ))
+        );
+
+        verify(courseDraftRepository).findByIdForUpdate(DRAFT_ID);
+        verify(courseDraftPlaceRepository).flush();
+        assertThat(response.places()).extracting("courseDraftPlaceId").containsExactly(101L, 103L, 102L);
+        assertThat(secondSelectedPlace.getVisitOrder()).isEqualTo(2);
+        assertThat(firstSelectedPlace.getVisitOrder()).isEqualTo(3);
     }
 
     private void givenPlaces(CourseDraftStatus status, CourseDraftPlace... places) {
@@ -175,7 +225,7 @@ class CourseDraftOrderingServiceTest {
                 .willReturn(List.of(places));
     }
 
-    private void assertConflict(CourseErrorCode expected) {
+    private void assertConflict(CourseDraftErrorCode expected) {
         assertThatThrownBy(() -> service.enterOrdering(DRAFT_ID, MEMBER_ID))
                 .isInstanceOfSatisfying(CourseException.class, e ->
                         assertThat(e.getErrorCode()).isEqualTo(expected));

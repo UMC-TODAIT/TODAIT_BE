@@ -5,15 +5,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftSavingEnterResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.SavingEnterResponse;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
+import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import java.util.List;
@@ -34,13 +35,25 @@ class CourseDraftSavingServiceTest {
     @Mock
     private CourseDraftPlaceRepository courseDraftPlaceRepository;
 
-    private CourseDraftSavingService courseDraftSavingService;
+    private CourseDraftService courseDraftService;
 
     @BeforeEach
     void setUp() {
-        courseDraftSavingService = new CourseDraftSavingService(
+        courseDraftService = new CourseDraftService(
                 courseDraftRepository,
-                courseDraftPlaceRepository
+                null,
+                null,
+                null,
+                courseDraftPlaceRepository,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                new CourseDraftValidator()
         );
     }
 
@@ -54,7 +67,7 @@ class CourseDraftSavingServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base, selected));
 
-        CourseDraftSavingEnterResponse response = courseDraftSavingService.enterSaving(10L, 1L);
+        SavingEnterResponse response = courseDraftService.enterSaving(10L, 1L);
 
         assertThat(draft.getStatus()).isEqualTo(CourseDraftStatus.SAVING);
         assertThat(response.courseDraftId()).isEqualTo(10L);
@@ -75,7 +88,7 @@ class CourseDraftSavingServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base, selected));
 
-        CourseDraftSavingEnterResponse response = courseDraftSavingService.enterSaving(10L, 1L);
+        SavingEnterResponse response = courseDraftService.enterSaving(10L, 1L);
 
         assertThat(draft.getStatus()).isEqualTo(CourseDraftStatus.SAVING);
         assertThat(response.courseDraftId()).isEqualTo(10L);
@@ -91,10 +104,10 @@ class CourseDraftSavingServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        assertThatThrownBy(() -> courseDraftSavingService.enterSaving(10L, 2L))
+        assertThatThrownBy(() -> courseDraftService.enterSaving(10L, 2L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED);
     }
 
     @ParameterizedTest
@@ -107,10 +120,10 @@ class CourseDraftSavingServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), status);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        assertThatThrownBy(() -> courseDraftSavingService.enterSaving(10L, 1L))
+        assertThatThrownBy(() -> courseDraftService.enterSaving(10L, 1L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
     }
 
     @Test
@@ -122,10 +135,10 @@ class CourseDraftSavingServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(selected));
 
-        assertThatThrownBy(() -> courseDraftSavingService.enterSaving(10L, 1L))
+        assertThatThrownBy(() -> courseDraftService.enterSaving(10L, 1L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.COURSE_DRAFT_BASE_PLACE_CONFLICT);
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_BASE_PLACE_CONFLICT);
     }
 
     @Test
@@ -137,10 +150,10 @@ class CourseDraftSavingServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base));
 
-        assertThatThrownBy(() -> courseDraftSavingService.enterSaving(10L, 1L))
+        assertThatThrownBy(() -> courseDraftService.enterSaving(10L, 1L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.COURSE_DRAFT_SELECTED_PLACE_CONFLICT);
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_SELECTED_PLACE_CONFLICT);
     }
 
     @Test
@@ -153,10 +166,10 @@ class CourseDraftSavingServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base, selected));
 
-        assertThatThrownBy(() -> courseDraftSavingService.enterSaving(10L, 1L))
+        assertThatThrownBy(() -> courseDraftService.enterSaving(10L, 1L))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.COURSE_DRAFT_SELECTED_PLACE_CONFLICT);
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_SELECTED_PLACE_CONFLICT);
     }
 
     private Member member(Long id) {

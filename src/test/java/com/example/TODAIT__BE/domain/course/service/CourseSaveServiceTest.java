@@ -10,8 +10,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.example.TODAIT__BE.domain.course.dto.request.CourseSaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseSaveRequest.SaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.SaveResponse;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftFoodCategory;
@@ -22,7 +22,8 @@ import com.example.TODAIT__BE.domain.course.entity.CoursePlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseSaveErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
@@ -30,12 +31,17 @@ import com.example.TODAIT__BE.domain.course.repository.CourseFoodCategoryReposit
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
+import com.example.TODAIT__BE.domain.course.service.support.CourseSaveSupport;
+import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
+import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;
+import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.domain.taxonomy.repository.MoodTagRepository;
 import java.util.List;
 import java.util.Map;
@@ -80,10 +86,13 @@ class CourseSaveServiceTest {
                 courseDraftFoodCategoryRepository,
                 courseDraftPlaceRepository,
                 courseRepository,
-                courseMoodTagRepository,
-                courseFoodCategoryRepository,
-                coursePlaceRepository,
-                moodTagRepository
+                moodTagRepository,
+                new CourseDraftValidator(),
+                new CourseSaveSupport(
+                        courseMoodTagRepository,
+                        courseFoodCategoryRepository,
+                        coursePlaceRepository
+                )
         );
     }
 
@@ -111,17 +120,23 @@ class CourseSaveServiceTest {
         return moodTag;
     }
 
+    private FoodCategory activeFoodCategory() {
+        FoodCategory foodCategory = mock(FoodCategory.class);
+        given(foodCategory.getIsActive()).willReturn(true);
+        return foodCategory;
+    }
+
     @Test
     void throwsWhenRequesterIsNotOwner() {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.ORDERING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 2L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED);
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED);
 
         verify(courseRepository, never()).save(any());
     }
@@ -131,13 +146,13 @@ class CourseSaveServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.COMPLETED);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .satisfies(exception -> {
                     CourseException courseException = (CourseException) exception;
-                    assertThat(courseException.getErrorCode()).isEqualTo(CourseErrorCode.COURSE_DRAFT_ALREADY_COMPLETED);
+                    assertThat(courseException.getErrorCode()).isEqualTo(CourseSaveErrorCode.COURSE_DRAFT_ALREADY_COMPLETED);
                     assertThat((Map<String, Object>) courseException.getResult()).containsEntry("courseId", null);
                 });
 
@@ -157,13 +172,13 @@ class CourseSaveServiceTest {
                 .build();
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .satisfies(exception -> {
                     CourseException courseException = (CourseException) exception;
-                    assertThat(courseException.getErrorCode()).isEqualTo(CourseErrorCode.COURSE_DRAFT_ALREADY_COMPLETED);
+                    assertThat(courseException.getErrorCode()).isEqualTo(CourseSaveErrorCode.COURSE_DRAFT_ALREADY_COMPLETED);
                     assertThat((Map<String, Object>) courseException.getResult()).containsEntry("courseId", 999L);
                 });
 
@@ -180,14 +195,14 @@ class CourseSaveServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), status);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .satisfies(errorCode -> {
-                    assertThat(errorCode).isEqualTo(CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
-                    assertThat(((CourseErrorCode) errorCode).getStatus()).isEqualTo(HttpStatus.CONFLICT);
+                    assertThat(errorCode).isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
+                    assertThat(((CourseDraftErrorCode) errorCode).getStatus()).isEqualTo(HttpStatus.CONFLICT);
                 });
 
         verify(courseRepository, never()).save(any());
@@ -198,12 +213,12 @@ class CourseSaveServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest(" ", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest(" ", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_COURSE_TITLE);
+                .isEqualTo(CourseSaveErrorCode.INVALID_COURSE_TITLE);
 
         verify(courseRepository, never()).save(any());
     }
@@ -213,12 +228,12 @@ class CourseSaveServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest("a".repeat(256), "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("a".repeat(256), "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_COURSE_TITLE);
+                .isEqualTo(CourseSaveErrorCode.INVALID_COURSE_TITLE);
 
         verify(courseRepository, never()).save(any());
     }
@@ -228,12 +243,12 @@ class CourseSaveServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", null);
+        SaveRequest request = new SaveRequest("제목", "메모", null);
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
+                .isEqualTo(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT);
 
         verify(courseRepository, never()).save(any());
     }
@@ -243,12 +258,12 @@ class CourseSaveServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
+                .isEqualTo(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT);
 
         verify(courseRepository, never()).save(any());
     }
@@ -258,12 +273,12 @@ class CourseSaveServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
+                .isEqualTo(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT);
 
         verify(courseRepository, never()).save(any());
     }
@@ -273,12 +288,12 @@ class CourseSaveServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 1L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 1L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_MOOD_TAG_COUNT);
+                .isEqualTo(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT);
 
         verify(courseRepository, never()).save(any());
     }
@@ -290,12 +305,12 @@ class CourseSaveServiceTest {
         MoodTag hip = moodTag(1L, "HIP", "힙한");
         given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L))).willReturn(List.of(hip));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
-                .isInstanceOf(CourseException.class)
+                .isInstanceOf(TaxonomyException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.COURSE_MOOD_TAG_NOT_FOUND);
+                .isEqualTo(MoodTagErrorCode.MOOD_TAG_NOT_FOUND);
 
         verify(courseRepository, never()).save(any());
     }
@@ -308,12 +323,12 @@ class CourseSaveServiceTest {
         // id 2 exists but is inactive, so the active-only query excludes it from the result
         given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L))).willReturn(List.of(hip));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
-                .isInstanceOf(CourseException.class)
+                .isInstanceOf(TaxonomyException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.COURSE_MOOD_TAG_NOT_FOUND);
+                .isEqualTo(MoodTagErrorCode.MOOD_TAG_NOT_FOUND);
 
         verify(courseRepository, never()).save(any());
     }
@@ -327,12 +342,37 @@ class CourseSaveServiceTest {
         given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L))).willReturn(List.of(hip, calm));
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft)).willReturn(List.of());
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.FOOD_CATEGORY_NOT_SELECTED);
+                .isEqualTo(CourseSaveErrorCode.FOOD_CATEGORY_NOT_SELECTED);
+
+        verify(courseRepository, never()).save(any());
+    }
+
+    @Test
+    void throwsWhenDraftFoodCategoryIsInactive() {
+        CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+        MoodTag hip = moodTag(1L, "HIP", "힙한");
+        MoodTag calm = moodTag(2L, "CALM", "차분한");
+        given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L))).willReturn(List.of(hip, calm));
+
+        FoodCategory inactiveFoodCategory = mock(FoodCategory.class);
+        given(inactiveFoodCategory.getIsActive()).willReturn(false);
+        CourseDraftFoodCategory draftFoodCategory = CourseDraftFoodCategory.builder()
+                .foodCategory(inactiveFoodCategory)
+                .build();
+        given(courseDraftFoodCategoryRepository.findByCourseDraft(draft)).willReturn(List.of(draftFoodCategory));
+
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
+
+        assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
+                .isInstanceOf(TaxonomyException.class)
+                .extracting("errorCode")
+                .isEqualTo(FoodCategoryErrorCode.FOOD_CATEGORY_NOT_FOUND);
 
         verify(courseRepository, never()).save(any());
     }
@@ -345,7 +385,9 @@ class CourseSaveServiceTest {
         MoodTag calm = moodTag(2L, "CALM", "차분한");
         given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L))).willReturn(List.of(hip, calm));
 
-        CourseDraftFoodCategory draftFoodCategory = CourseDraftFoodCategory.builder().build();
+        CourseDraftFoodCategory draftFoodCategory = CourseDraftFoodCategory.builder()
+                .foodCategory(activeFoodCategory())
+                .build();
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft)).willReturn(List.of(draftFoodCategory));
 
         CourseDraftPlace selectedOnly = CourseDraftPlace.builder()
@@ -356,12 +398,12 @@ class CourseSaveServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(selectedOnly));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_BASE_PLACE);
+                .isEqualTo(CourseDraftErrorCode.INVALID_BASE_PLACE);
 
         verify(courseRepository, never()).save(any());
     }
@@ -377,7 +419,9 @@ class CourseSaveServiceTest {
         MoodTag calm = moodTag(2L, "CALM", "차분한");
         given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L))).willReturn(List.of(hip, calm));
 
-        CourseDraftFoodCategory draftFoodCategory = CourseDraftFoodCategory.builder().build();
+        CourseDraftFoodCategory draftFoodCategory = CourseDraftFoodCategory.builder()
+                .foodCategory(activeFoodCategory())
+                .build();
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft)).willReturn(List.of(draftFoodCategory));
 
         CourseDraftPlace baseOnly = CourseDraftPlace.builder()
@@ -388,12 +432,12 @@ class CourseSaveServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(baseOnly));
 
-        CourseSaveRequest request = new CourseSaveRequest("제목", "메모", List.of(1L, 2L));
+        SaveRequest request = new SaveRequest("제목", "메모", List.of(1L, 2L));
 
         assertThatThrownBy(() -> courseSaveService.saveCourse(10L, 1L, request))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.INVALID_SELECTED_PLACE);
+                .isEqualTo(CourseDraftErrorCode.INVALID_SELECTED_PLACE);
 
         verify(courseRepository, never()).save(any());
     }
@@ -436,6 +480,7 @@ class CourseSaveServiceTest {
         given(foodCategory.getId()).willReturn(5L);
         given(foodCategory.getCode()).willReturn("KOREAN");
         given(foodCategory.getName()).willReturn("한식");
+        given(foodCategory.getIsActive()).willReturn(true);
         CourseDraftFoodCategory draftFoodCategory = CourseDraftFoodCategory.builder()
                 .courseDraft(draft)
                 .foodCategory(foodCategory)
@@ -463,9 +508,9 @@ class CourseSaveServiceTest {
         given(courseFoodCategoryRepository.save(any(CourseFoodCategory.class))).willAnswer(invocation -> invocation.getArgument(0));
         given(coursePlaceRepository.save(any(CoursePlace.class))).willAnswer(invocation -> invocation.getArgument(0));
 
-        CourseSaveRequest request = new CourseSaveRequest("  course title  ", "  ", List.of(4L, 1L));
+        SaveRequest request = new SaveRequest("  course title  ", "  ", List.of(4L, 1L));
 
-        CourseSaveResponse response = courseSaveService.saveCourse(10L, 1L, request);
+        SaveResponse response = courseSaveService.saveCourse(10L, 1L, request);
 
         assertThat(response.title()).isEqualTo("course title");
         assertThat(response.memo()).isNull();

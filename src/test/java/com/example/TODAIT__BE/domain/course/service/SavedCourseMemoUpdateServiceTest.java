@@ -11,11 +11,11 @@ import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseMemoUpdateRe
 import com.example.TODAIT__BE.domain.course.dto.response.SavedCoursePlaceMemoUpdateResponse;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CoursePlace;
+import com.example.TODAIT__BE.domain.course.code.SavedCourseErrorCode;
 import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
@@ -134,7 +134,7 @@ class SavedCourseMemoUpdateServiceTest {
         )
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.SAVED_COURSE_ACCESS_DENIED);
+                .isEqualTo(SavedCourseErrorCode.SAVED_COURSE_ACCESS_DENIED);
 
         assertThat(course.getMemo()).isNull();
     }
@@ -162,7 +162,7 @@ class SavedCourseMemoUpdateServiceTest {
         )
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.SAVED_COURSE_ACCESS_DENIED);
+                .isEqualTo(SavedCourseErrorCode.SAVED_COURSE_ACCESS_DENIED);
 
         assertThat(course.getMemo()).isNull();
     }
@@ -271,7 +271,7 @@ class SavedCourseMemoUpdateServiceTest {
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(
-                        CourseErrorCode.SAVED_COURSE_PLACE_NOT_FOUND
+                        SavedCourseErrorCode.SAVED_COURSE_PLACE_NOT_FOUND
                 );
     }
 
@@ -310,7 +310,7 @@ class SavedCourseMemoUpdateServiceTest {
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
                 .isEqualTo(
-                        CourseErrorCode.SAVED_COURSE_PLACE_NOT_FOUND
+                        SavedCourseErrorCode.SAVED_COURSE_PLACE_NOT_FOUND
                 );
     }
 

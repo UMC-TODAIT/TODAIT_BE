@@ -5,7 +5,7 @@ import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
@@ -200,20 +200,20 @@ public class CategoryRecommendedPlaceService {
                 courseDraftRepository.findById(courseDraftId)
                         .orElseThrow(() ->
                                 new CourseException(
-                                        CourseErrorCode.COURSE_DRAFT_NOT_FOUND
+                                        CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND
                                 )
                         );
 
         if (!courseDraft.getMember().getId().equals(memberId)) {
             throw new CourseException(
-                    CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED
+                    CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED
             );
         }
 
         if (courseDraft.getStatus()
                 != CourseDraftStatus.PLACE_SELECTING) {
             throw new CourseException(
-                    CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT
+                    CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT
             );
         }
 
@@ -233,7 +233,7 @@ public class CategoryRecommendedPlaceService {
 
         if (basePlaces.size() != 1) {
             throw new CourseException(
-                    CourseErrorCode.COURSE_DRAFT_BASE_PLACE_CONFLICT
+                    CourseDraftErrorCode.COURSE_DRAFT_BASE_PLACE_CONFLICT
             );
         }
 
@@ -243,7 +243,7 @@ public class CategoryRecommendedPlaceService {
                 baseDraftPlace.getVisitOrder()
         )) {
             throw new CourseException(
-                    CourseErrorCode.COURSE_DRAFT_BASE_PLACE_CONFLICT
+                    CourseDraftErrorCode.COURSE_DRAFT_BASE_PLACE_CONFLICT
             );
         }
 

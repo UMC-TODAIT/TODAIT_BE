@@ -9,17 +9,20 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 
-import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftFoodCategorySaveRequest;
-import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftFoodCategorySaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.FoodCategorySaveRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.FoodCategorySaveResponse;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftFoodCategory;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
+import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.member.entity.Member;
+import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
+import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.domain.taxonomy.repository.FoodCategoryRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,14 +44,25 @@ class CourseDraftFoodCategoryServiceTest {
     @Mock
     private FoodCategoryRepository foodCategoryRepository;
 
-    private CourseDraftFoodCategoryService courseDraftFoodCategoryService;
+    private CourseDraftService courseDraftService;
 
     @BeforeEach
     void setUp() {
-        courseDraftFoodCategoryService = new CourseDraftFoodCategoryService(
+        courseDraftService = new CourseDraftService(
                 courseDraftRepository,
+                null,
+                null,
                 courseDraftFoodCategoryRepository,
-                foodCategoryRepository
+                null,
+                null,
+                foodCategoryRepository,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                new CourseDraftValidator()
         );
     }
 
@@ -68,15 +82,15 @@ class CourseDraftFoodCategoryServiceTest {
                 .build();
 
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
-        given(foodCategoryRepository.findAllById(List.of(2L, 3L)))
+        given(foodCategoryRepository.findByIdInAndIsActiveTrue(List.of(2L, 3L)))
                 .willReturn(List.of(keptFoodCategory, addedFoodCategory));
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft))
                 .willReturn(List.of(oldDraftFoodCategory, keptDraftFoodCategory));
 
-        CourseDraftFoodCategorySaveResponse response = courseDraftFoodCategoryService.saveFoodCategories(
+        FoodCategorySaveResponse response = courseDraftService.saveFoodCategories(
                 10L,
                 1L,
-                new CourseDraftFoodCategorySaveRequest(List.of(2L, 3L))
+                new FoodCategorySaveRequest(List.of(2L, 3L))
         );
 
         verify(courseDraftRepository).findByIdForUpdate(10L);
@@ -104,15 +118,15 @@ class CourseDraftFoodCategoryServiceTest {
                 .build();
 
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
-        given(foodCategoryRepository.findAllById(List.of(1L, 2L)))
+        given(foodCategoryRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L)))
                 .willReturn(List.of(foodCategory, secondFoodCategory));
         given(courseDraftFoodCategoryRepository.findByCourseDraft(draft))
                 .willReturn(List.of(existingFoodCategory, secondExistingFoodCategory));
 
-        CourseDraftFoodCategorySaveResponse response = courseDraftFoodCategoryService.saveFoodCategories(
+        FoodCategorySaveResponse response = courseDraftService.saveFoodCategories(
                 10L,
                 1L,
-                new CourseDraftFoodCategorySaveRequest(List.of(1L, 2L))
+                new FoodCategorySaveRequest(List.of(1L, 2L))
         );
 
         verify(courseDraftFoodCategoryRepository).deleteAll(List.of());
@@ -125,14 +139,34 @@ class CourseDraftFoodCategoryServiceTest {
         CourseDraft draft = draft(CourseDraftStatus.ORDERING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
-        assertThatThrownBy(() -> courseDraftFoodCategoryService.saveFoodCategories(
+        assertThatThrownBy(() -> courseDraftService.saveFoodCategories(
                 10L,
                 1L,
-                new CourseDraftFoodCategorySaveRequest(List.of(1L))
+                new FoodCategorySaveRequest(List.of(1L))
         ))
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.FOOD_CATEGORY_DRAFT_STATUS_CONFLICT);
+                .isEqualTo(CourseDraftErrorCode.FOOD_CATEGORY_DRAFT_STATUS_CONFLICT);
+
+        verify(courseDraftFoodCategoryRepository, never()).findByCourseDraft(any());
+    }
+
+    @Test
+    void throwsWhenFoodCategoryIsInactive() {
+        CourseDraft draft = draft(CourseDraftStatus.FOOD_SELECTING);
+
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+        given(foodCategoryRepository.findByIdInAndIsActiveTrue(List.of(1L, 2L)))
+                .willReturn(List.of(mock(FoodCategory.class)));
+
+        assertThatThrownBy(() -> courseDraftService.saveFoodCategories(
+                10L,
+                1L,
+                new FoodCategorySaveRequest(List.of(1L, 2L))
+        ))
+                .isInstanceOf(TaxonomyException.class)
+                .extracting("errorCode")
+                .isEqualTo(FoodCategoryErrorCode.FOOD_CATEGORY_NOT_FOUND);
 
         verify(courseDraftFoodCategoryRepository, never()).findByCourseDraft(any());
     }

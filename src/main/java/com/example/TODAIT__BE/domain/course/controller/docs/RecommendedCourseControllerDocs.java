@@ -1,12 +1,15 @@
 package com.example.TODAIT__BE.domain.course.controller.docs;
 
-import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseDetailResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseSaveResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseResponse.DetailResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseResponse.SaveResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @Tag(
         name = "COURSE",
@@ -24,8 +27,8 @@ public interface RecommendedCourseControllerDocs {
                     - 방문 장소 목록
                     """
     )
-    ResponseEntity<ApiResponse<RecommendedCourseDetailResponse>>
-    getRecommendedCourseDetail(Long courseId);
+    ResponseEntity<ApiResponse<DetailResponse>>
+    getRecommendedCourseDetail(@PathVariable Long courseId);
 
     @Operation(
             summary = "[추천 코스] 추천 코스를 내 코스로 저장",
@@ -37,9 +40,11 @@ public interface RecommendedCourseControllerDocs {
                     - 중복 저장: 같은 추천 코스를 여러 번 저장 가능
                     """
     )
-    ResponseEntity<ApiResponse<RecommendedCourseSaveResponse>>
+    @SecurityRequirement(name = "JWT TOKEN")
+    ResponseEntity<ApiResponse<SaveResponse>>
     saveRecommendedCourse(
-            Long courseId,
+            @PathVariable Long courseId,
+            @Parameter(hidden = true)
             AuthMember authMember
     );
 }

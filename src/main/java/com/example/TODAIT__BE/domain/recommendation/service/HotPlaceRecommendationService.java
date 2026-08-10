@@ -3,7 +3,7 @@ package com.example.TODAIT__BE.domain.recommendation.service;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
@@ -177,7 +177,7 @@ public class HotPlaceRecommendationService {
                 courseDraftRepository.findById(courseDraftId)
                         .orElseThrow(() ->
                                 new CourseException(
-                                        CourseErrorCode.COURSE_DRAFT_NOT_FOUND
+                                        CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND
                                 )
                         );
 
@@ -185,14 +185,14 @@ public class HotPlaceRecommendationService {
                 .getId()
                 .equals(memberId)) {
             throw new CourseException(
-                    CourseErrorCode.COURSE_DRAFT_ACCESS_DENIED
+                    CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED
             );
         }
 
         if (courseDraft.getStatus()
                 != CourseDraftStatus.BASE_PLACE_SELECTING) {
             throw new CourseException(
-                    CourseErrorCode.COURSE_DRAFT_STATUS_CONFLICT
+                    CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT
             );
         }
 

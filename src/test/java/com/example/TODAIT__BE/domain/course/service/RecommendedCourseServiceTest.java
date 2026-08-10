@@ -7,7 +7,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseDetailResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseResponse.DetailResponse;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
 import com.example.TODAIT__BE.domain.course.entity.CoursePlace;
@@ -15,7 +15,7 @@ import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.CourseVisibility;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
-import com.example.TODAIT__BE.domain.course.exception.code.CourseErrorCode;
+import com.example.TODAIT__BE.domain.course.code.RecommendedCourseErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
@@ -106,7 +106,7 @@ class RecommendedCourseServiceTest {
         given(placeImageRepository.findPrimaryImageUrlsByPlaceIds(List.of(21L, 22L)))
                 .willReturn(List.of(selectedPrimaryImage));
 
-        RecommendedCourseDetailResponse response =
+        DetailResponse response =
                 recommendedCourseService.getRecommendedCourseDetail(100L);
 
         assertThat(response.courseId()).isEqualTo(100L);
@@ -137,7 +137,7 @@ class RecommendedCourseServiceTest {
         )
                 .isInstanceOf(CourseException.class)
                 .extracting("errorCode")
-                .isEqualTo(CourseErrorCode.RECOMMENDED_COURSE_NOT_FOUND);
+                .isEqualTo(RecommendedCourseErrorCode.RECOMMENDED_COURSE_NOT_FOUND);
 
         verify(coursePlaceRepository, never())
                 .findAllByCourseIdOrderByVisitOrderAsc(999L);
