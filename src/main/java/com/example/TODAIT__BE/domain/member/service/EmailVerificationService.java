@@ -71,7 +71,7 @@ public class EmailVerificationService {
             throw new MemberException(EmailVerificationErrorCode.CODE_MISMATCH);
         }
         if (result == VerifyCodeResult.VERIFY_ATTEMPT_EXCEEDED) {
-            throw new MemberException(EmailVerificationErrorCode.VERIFY_ATTEMPT_EXCEEDED);
+            throw new MemberException(EmailVerificationErrorCode.CODE_MISMATCH);
         }
 
         return new EmailVerificationResponse.Verify(email, true);

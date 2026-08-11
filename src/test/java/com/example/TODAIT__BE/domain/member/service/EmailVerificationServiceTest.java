@@ -152,7 +152,7 @@ class EmailVerificationServiceTest {
     }
 
     @Test
-    void verifyCodeFailsWhenVerifyAttemptExceeded() {
+    void verifyCodeFailsWithMismatchWhenVerifyAttemptExceeded() {
         given(emailVerificationStore.isVerified("test@example.com"))
                 .willReturn(false);
         given(emailVerificationStore.verifyCodeAndMarkVerified("test@example.com", "123456"))
@@ -163,7 +163,7 @@ class EmailVerificationServiceTest {
         ))
                 .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
-                .isEqualTo(EmailVerificationErrorCode.VERIFY_ATTEMPT_EXCEEDED);
+                .isEqualTo(EmailVerificationErrorCode.CODE_MISMATCH);
     }
 
     @Test
