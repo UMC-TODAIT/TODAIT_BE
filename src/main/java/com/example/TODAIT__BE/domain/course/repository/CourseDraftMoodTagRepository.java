@@ -11,6 +11,8 @@ public interface CourseDraftMoodTagRepository extends JpaRepository<CourseDraftM
 
     List<CourseDraftMoodTag> findByCourseDraft(CourseDraft courseDraft);
 
+    List<CourseDraftMoodTag> findByCourseDraftOrderByIdAsc(CourseDraft courseDraft);
+
     void deleteByCourseDraft(CourseDraft courseDraft);
 
     @Query("""

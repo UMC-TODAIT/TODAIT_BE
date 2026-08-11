@@ -419,12 +419,7 @@ public class CourseDraftService {
             CourseDraftStatus currentStatus,
             CourseDraftStatus targetStatus
     ) {
-        if (targetStatus == null
-                || currentStatus == CourseDraftStatus.COMPLETED
-                || currentStatus == CourseDraftStatus.ABANDONED
-                || targetStatus == CourseDraftStatus.COMPLETED
-                || targetStatus == CourseDraftStatus.ABANDONED
-                || targetStatus.ordinal() >= currentStatus.ordinal()) {
+        if (!currentStatus.canMoveBackTo(targetStatus)) {
             throw new CourseException(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
         }
     }

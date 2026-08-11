@@ -129,7 +129,7 @@ class CourseSaveServiceTest {
     }
 
     private void givenDraftMoodTags(CourseDraft draft, MoodTag... moodTags) {
-        given(courseDraftMoodTagRepository.findByCourseDraft(draft))
+        given(courseDraftMoodTagRepository.findByCourseDraftOrderByIdAsc(draft))
                 .willReturn(List.of(moodTags).stream()
                         .map(moodTag -> draftMoodTag(draft, moodTag))
                         .toList());
@@ -331,7 +331,7 @@ class CourseSaveServiceTest {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.SAVING);
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
         MoodTag hip = moodTag(1L, "HIP", "힙한");
-        given(courseDraftMoodTagRepository.findByCourseDraft(draft))
+        given(courseDraftMoodTagRepository.findByCourseDraftOrderByIdAsc(draft))
                 .willReturn(List.of(
                         draftMoodTag(draft, hip),
                         draftMoodTag(draft, null)

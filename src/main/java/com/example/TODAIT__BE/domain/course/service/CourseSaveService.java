@@ -117,7 +117,8 @@ public class CourseSaveService {
     }
 
     private List<MoodTag> validateAndGetDraftMoodTags(CourseDraft courseDraft) {
-        List<CourseDraftMoodTag> draftMoodTags = courseDraftMoodTagRepository.findByCourseDraft(courseDraft);
+        List<CourseDraftMoodTag> draftMoodTags =
+                courseDraftMoodTagRepository.findByCourseDraftOrderByIdAsc(courseDraft);
         if (draftMoodTags.size() < MIN_MOOD_TAG_COUNT
                 || draftMoodTags.size() > MAX_MOOD_TAG_COUNT) {
             throw new CourseException(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT);
