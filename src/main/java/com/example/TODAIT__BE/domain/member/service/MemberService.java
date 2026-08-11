@@ -36,7 +36,8 @@ public class MemberService {
 
         validateActiveMember(member);
 
-        long savedCourseCount = courseRepository.countByMemberId(memberId);
+        long savedCourseCount =
+                courseRepository.countByMemberIdAndDeletedAtIsNull(memberId);
 
         return new MemberResponse.Me(
                 member.getId(),
