@@ -23,10 +23,16 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(
         name = "course_draft_place",
-        uniqueConstraints = @UniqueConstraint(
-                name = "uk_course_draft_place_draft_visit_order",
-                columnNames = {"course_draft_id", "visit_order"}
-        ),
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_course_draft_place_draft_visit_order",
+                        columnNames = {"course_draft_id", "visit_order"}
+                ),
+                @UniqueConstraint(
+                        name = "uk_course_draft_place_draft_place",
+                        columnNames = {"course_draft_id", "place_id"}
+                )
+        },
         indexes = {
                 @Index(
                         name = "idx_course_draft_place_draft_role",

@@ -22,10 +22,16 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(
         name = "course_place",
-        uniqueConstraints = @UniqueConstraint(
-                name = "uk_course_place_course_visit_order",
-                columnNames = {"course_id", "visit_order"}
-        )
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_course_place_course_visit_order",
+                        columnNames = {"course_id", "visit_order"}
+                ),
+                @UniqueConstraint(
+                        name = "uk_course_place_course_place",
+                        columnNames = {"course_id", "place_id"}
+                )
+        }
 )
 @Getter
 @Builder
@@ -62,13 +68,13 @@ public class CoursePlace {
     @Column(name = "address_snapshot", nullable = false)
     private String addressSnapshot;
 
-    @Column(name = "latitude_snapshot")
+    @Column(name = "latitude_snapshot", nullable = false)
     private Double latitudeSnapshot;
 
-    @Column(name = "longitude_snapshot")
+    @Column(name = "longitude_snapshot", nullable = false)
     private Double longitudeSnapshot;
 
-    @Column(name = "category_snapshot")
+    @Column(name = "category_snapshot", nullable = false)
     private String categorySnapshot;
 
     @Column
