@@ -32,8 +32,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 import java.util.List;
 import java.util.Map;
@@ -45,12 +43,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class HotPlaceRecommendationServiceTest {
 
     private static final Long MEMBER_ID = 1L;
@@ -89,8 +87,8 @@ class HotPlaceRecommendationServiceTest {
                 responseAssembler
         );
 
-        given(recommendationLogRepository.save(any(RecommendationLog.class)))
-                .willAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(recommendationLogRepository.save(any(RecommendationLog.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
@@ -101,7 +99,7 @@ class HotPlaceRecommendationServiceTest {
                 CourseDraftStatus.BASE_PLACE_SELECTING
         );
         Place place = mock(Place.class);
-        given(place.getId()).willReturn(100L);
+        lenient().when(place.getId()).thenReturn(100L);
 
         CandidateData candidateData =
                 new CandidateData(
@@ -506,10 +504,10 @@ class HotPlaceRecommendationServiceTest {
         CourseDraft courseDraft = mock(CourseDraft.class);
         Member member = mock(Member.class);
 
-        given(courseDraft.getId()).willReturn(COURSE_DRAFT_ID);
-        given(courseDraft.getMember()).willReturn(member);
-        given(courseDraft.getStatus()).willReturn(status);
-        given(member.getId()).willReturn(ownerMemberId);
+        lenient().when(courseDraft.getId()).thenReturn(COURSE_DRAFT_ID);
+        lenient().when(courseDraft.getMember()).thenReturn(member);
+        lenient().when(courseDraft.getStatus()).thenReturn(status);
+        lenient().when(member.getId()).thenReturn(ownerMemberId);
 
         return courseDraft;
     }

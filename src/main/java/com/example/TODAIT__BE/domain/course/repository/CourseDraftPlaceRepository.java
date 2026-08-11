@@ -2,7 +2,6 @@ package com.example.TODAIT__BE.domain.course.repository;
 
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
-import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -25,7 +24,9 @@ public interface CourseDraftPlaceRepository extends JpaRepository<CourseDraftPla
             @Param("courseDraft") CourseDraft courseDraft
     );
 
-    List<CourseDraftPlace> findByCourseDraftAndPlaceRole(CourseDraft courseDraft, PlaceRole placeRole);
+    boolean existsByCourseDraft(CourseDraft courseDraft);
+
+    void deleteByCourseDraft(CourseDraft courseDraft);
 
     @Query("""
             select cdp

@@ -8,6 +8,7 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.Save
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftFoodCategory;
+import com.example.TODAIT__BE.domain.course.entity.CourseDraftMoodTag;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
@@ -17,6 +18,7 @@ import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.code.CourseSaveErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRepository;
+import com.example.TODAIT__BE.domain.course.repository.CourseDraftMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
@@ -27,15 +29,11 @@ import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
-import com.example.TODAIT__BE.domain.taxonomy.repository.MoodTagRepository;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,10 +48,10 @@ public class CourseSaveService {
     private static final int MAX_TITLE_LENGTH = 255;
 
     private final CourseDraftRepository courseDraftRepository;
+    private final CourseDraftMoodTagRepository courseDraftMoodTagRepository;
     private final CourseDraftFoodCategoryRepository courseDraftFoodCategoryRepository;
     private final CourseDraftPlaceRepository courseDraftPlaceRepository;
     private final CourseRepository courseRepository;
-    private final MoodTagRepository moodTagRepository;
     private final CourseDraftValidator courseDraftValidator;
     private final CourseSaveSupport courseSaveSupport;
 
@@ -68,7 +66,7 @@ public class CourseSaveService {
 
         String title = validateAndNormalizeTitle(request.title());
         String memo = normalizeMemo(request.memo());
-        List<MoodTag> moodTags = validateAndGetMoodTags(request.moodTagIds());
+        List<MoodTag> moodTags = validateAndGetDraftMoodTags(courseDraft);
 
         List<CourseDraftFoodCategory> draftFoodCategories =
                 courseDraftFoodCategoryRepository.findByCourseDraft(courseDraft);
@@ -118,24 +116,35 @@ public class CourseSaveService {
         return rawMemo.trim();
     }
 
-    private List<MoodTag> validateAndGetMoodTags(List<Long> moodTagIds) {
-        if (moodTagIds == null
-                || moodTagIds.size() < MIN_MOOD_TAG_COUNT
-                || moodTagIds.size() > MAX_MOOD_TAG_COUNT
-                || new HashSet<>(moodTagIds).size() != moodTagIds.size()) {
+    private List<MoodTag> validateAndGetDraftMoodTags(CourseDraft courseDraft) {
+        List<CourseDraftMoodTag> draftMoodTags =
+                courseDraftMoodTagRepository.findByCourseDraftOrderByIdAsc(courseDraft);
+        if (draftMoodTags.size() < MIN_MOOD_TAG_COUNT
+                || draftMoodTags.size() > MAX_MOOD_TAG_COUNT) {
             throw new CourseException(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT);
         }
 
-        List<MoodTag> foundMoodTags = moodTagRepository.findByIdInAndIsActiveTrue(moodTagIds);
-        if (foundMoodTags.size() != moodTagIds.size()) {
+        Set<Long> moodTagIds = new HashSet<>();
+        List<MoodTag> moodTags = draftMoodTags.stream()
+                .map(CourseDraftMoodTag::getMoodTag)
+                .toList();
+
+        boolean hasInvalidMoodTag = moodTags.stream()
+                .anyMatch(moodTag -> moodTag == null
+                        || moodTag.getId() == null
+                        || !Boolean.TRUE.equals(moodTag.getIsActive()));
+        if (hasInvalidMoodTag) {
             throw new TaxonomyException(MoodTagErrorCode.MOOD_TAG_NOT_FOUND);
         }
 
-        Map<Long, MoodTag> moodTagsById = foundMoodTags.stream()
-                .collect(Collectors.toMap(MoodTag::getId, Function.identity()));
-        return moodTagIds.stream()
-                .map(moodTagsById::get)
-                .toList();
+        boolean hasDuplicateMoodTag = moodTags.stream()
+                .map(MoodTag::getId)
+                .anyMatch(moodTagId -> !moodTagIds.add(moodTagId));
+        if (hasDuplicateMoodTag) {
+            throw new CourseException(CourseDraftErrorCode.INVALID_MOOD_TAG_COUNT);
+        }
+
+        return moodTags;
     }
 
     private void validateDraftFoodCategories(List<CourseDraftFoodCategory> draftFoodCategories) {

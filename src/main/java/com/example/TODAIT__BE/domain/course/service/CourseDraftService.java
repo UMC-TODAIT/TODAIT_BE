@@ -1,5 +1,9 @@
 package com.example.TODAIT__BE.domain.course.service;
 
+import static com.example.TODAIT__BE.domain.course.service.validator.CourseDraftPlaceValidator.validateBasePlaceIntegrity;
+import static com.example.TODAIT__BE.domain.course.service.validator.CourseDraftPlaceValidator.validateOrderingPlaceComposition;
+import static com.example.TODAIT__BE.domain.course.service.validator.CourseDraftPlaceValidator.validateSavingPlaces;
+
 import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.BasePlaceSaveRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.BasePlaceSaveRequest.ExternalPlace;
@@ -8,6 +12,7 @@ import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.MoodT
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceAddRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest.PlaceOrderItem;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.StatusUpdateRequest;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlace;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlaceSaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CreateResponse;
@@ -19,6 +24,7 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.Ord
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceAddResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceOrderUpdateResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.SavingEnterResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.StatusUpdateResponse;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftFoodCategory;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftMoodTag;
@@ -152,7 +158,8 @@ public class CourseDraftService {
 
         List<MoodTag> moodTags = validateAndGetMoodTags(moodTagIds);
 
-        updateMoodTags(courseDraft, moodTags);
+        boolean moodTagsChanged = updateMoodTags(courseDraft, moodTags);
+        deletePlacesIfPreferenceChanged(courseDraft, moodTagsChanged);
 
         if (courseDraft.getStatus() == CourseDraftStatus.MOOD_SELECTING) {
             courseDraft.changeStatus(CourseDraftStatus.FOOD_SELECTING);
@@ -193,7 +200,8 @@ public class CourseDraftService {
 
         List<FoodCategory> foodCategories = validateAndGetFoodCategories(foodCategoryIds);
 
-        updateFoodCategories(courseDraft, foodCategories);
+        boolean foodCategoriesChanged = updateFoodCategories(courseDraft, foodCategories);
+        deletePlacesIfPreferenceChanged(courseDraft, foodCategoriesChanged);
 
         courseDraft.changeStatus(CourseDraftStatus.BASE_PLACE_SELECTING);
 
@@ -388,9 +396,52 @@ public class CourseDraftService {
         );
     }
 
+    @Transactional
+    public StatusUpdateResponse updateStatus(
+            Long courseDraftId,
+            Long memberId,
+            StatusUpdateRequest request
+    ) {
+        CourseDraft courseDraft = getCourseDraftForUpdate(courseDraftId);
+
+        courseDraftValidator.validateOwner(courseDraft, memberId);
+
+        CourseDraftStatus targetStatus = request.targetStatus();
+        validateBackwardStatus(courseDraft.getStatus(), targetStatus);
+        validateBeforeStatusChange(courseDraft, targetStatus);
+        courseDraft.changeStatus(targetStatus);
+
+        return StatusUpdateResponse.of(courseDraft);
+    }
+
     private CourseDraft getCourseDraftForUpdate(Long courseDraftId) {
         return courseDraftRepository.findByIdForUpdate(courseDraftId)
                 .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
+    }
+
+    private void validateBackwardStatus(
+            CourseDraftStatus currentStatus,
+            CourseDraftStatus targetStatus
+    ) {
+        if (!currentStatus.canMoveBackTo(targetStatus)) {
+            throw new CourseException(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
+        }
+    }
+
+    private void validateBeforeStatusChange(
+            CourseDraft courseDraft,
+            CourseDraftStatus targetStatus
+    ) {
+        switch (targetStatus) {
+            case MOOD_SELECTING, FOOD_SELECTING, BASE_PLACE_SELECTING, PLACE_SELECTING -> {
+            }
+            case ORDERING -> {
+                List<CourseDraftPlace> places = courseDraftPlaceRepository
+                        .findByCourseDraftIdWithPlaceOrderByVisitOrderAsc(courseDraft.getId());
+                validateOrderingPlaceComposition(places);
+            }
+            default -> throw new CourseException(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
+        }
     }
 
     private List<MoodTag> validateAndGetMoodTags(List<Long> moodTagIds) {
@@ -406,7 +457,7 @@ public class CourseDraftService {
                 .toList();
     }
 
-    private void updateMoodTags(CourseDraft courseDraft, List<MoodTag> moodTags) {
+    private boolean updateMoodTags(CourseDraft courseDraft, List<MoodTag> moodTags) {
         List<CourseDraftMoodTag> existingMoodTags = courseDraftMoodTagRepository.findByCourseDraft(courseDraft);
         Set<Long> requestedMoodTagIds = moodTags.stream()
                 .map(MoodTag::getId)
@@ -414,6 +465,7 @@ public class CourseDraftService {
         Set<Long> existingMoodTagIds = existingMoodTags.stream()
                 .map(courseDraftMoodTag -> courseDraftMoodTag.getMoodTag().getId())
                 .collect(Collectors.toSet());
+        boolean changed = !requestedMoodTagIds.equals(existingMoodTagIds);
 
         List<CourseDraftMoodTag> moodTagsToDelete = existingMoodTags.stream()
                 .filter(courseDraftMoodTag -> !requestedMoodTagIds.contains(courseDraftMoodTag.getMoodTag().getId()))
@@ -427,6 +479,8 @@ public class CourseDraftService {
                         .moodTag(moodTag)
                         .build())
                 .forEach(courseDraftMoodTagRepository::save);
+
+        return changed;
     }
 
     private List<FoodCategory> validateAndGetFoodCategories(List<Long> foodCategoryIds) {
@@ -442,7 +496,7 @@ public class CourseDraftService {
                 .toList();
     }
 
-    private void updateFoodCategories(CourseDraft courseDraft, List<FoodCategory> foodCategories) {
+    private boolean updateFoodCategories(CourseDraft courseDraft, List<FoodCategory> foodCategories) {
         List<CourseDraftFoodCategory> existingFoodCategories =
                 courseDraftFoodCategoryRepository.findByCourseDraft(courseDraft);
         Set<Long> requestedFoodCategoryIds = foodCategories.stream()
@@ -451,6 +505,7 @@ public class CourseDraftService {
         Set<Long> existingFoodCategoryIds = existingFoodCategories.stream()
                 .map(courseDraftFoodCategory -> courseDraftFoodCategory.getFoodCategory().getId())
                 .collect(Collectors.toSet());
+        boolean changed = !requestedFoodCategoryIds.equals(existingFoodCategoryIds);
 
         List<CourseDraftFoodCategory> foodCategoriesToDelete = existingFoodCategories.stream()
                 .filter(courseDraftFoodCategory ->
@@ -465,6 +520,14 @@ public class CourseDraftService {
                         .foodCategory(foodCategory)
                         .build())
                 .forEach(courseDraftFoodCategoryRepository::save);
+
+        return changed;
+    }
+
+    private void deletePlacesIfPreferenceChanged(CourseDraft courseDraft, boolean preferenceChanged) {
+        if (preferenceChanged && courseDraftPlaceRepository.existsByCourseDraft(courseDraft)) {
+            courseDraftPlaceRepository.deleteByCourseDraft(courseDraft);
+        }
     }
 
     private void validateExactlyOneSource(BasePlaceSaveRequest request) {
@@ -577,8 +640,11 @@ public class CourseDraftService {
     }
 
     private CourseDraftPlace upsertBasePlace(CourseDraft courseDraft, Place place) {
-        List<CourseDraftPlace> baseDraftPlaces =
-                courseDraftPlaceRepository.findByCourseDraftAndPlaceRole(courseDraft, PlaceRole.BASE);
+        List<CourseDraftPlace> draftPlaces =
+                courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(courseDraft);
+        List<CourseDraftPlace> baseDraftPlaces = draftPlaces.stream()
+                .filter(draftPlace -> draftPlace.getPlaceRole() == PlaceRole.BASE)
+                .toList();
 
         if (baseDraftPlaces.isEmpty()) {
             return courseDraftPlaceRepository.save(CourseDraftPlace.builder()
@@ -590,18 +656,52 @@ public class CourseDraftService {
         }
 
         CourseDraftPlace baseDraftPlace = baseDraftPlaces.get(0);
+        CourseDraftPlace selectedDraftPlace = findSelectedDraftPlaceByPlaceId(draftPlaces, place.getId());
+        if (selectedDraftPlace != null) {
+            swapBasePlace(baseDraftPlace, selectedDraftPlace, nextTemporaryVisitOrder(draftPlaces));
+            return selectedDraftPlace;
+        }
+
         baseDraftPlace.updatePlace(place);
         return baseDraftPlace;
     }
 
-    private CourseDraftPlace validateBasePlaceIntegrity(List<CourseDraftPlace> existingPlaces) {
-        List<CourseDraftPlace> baseDraftPlaces = existingPlaces.stream()
-                .filter(draftPlace -> draftPlace.getPlaceRole() == PlaceRole.BASE)
-                .toList();
-        if (baseDraftPlaces.size() != 1 || !baseDraftPlaces.get(0).getVisitOrder().equals(BASE_VISIT_ORDER)) {
-            throw new CourseException(CourseDraftErrorCode.INVALID_BASE_PLACE);
-        }
-        return baseDraftPlaces.get(0);
+    private CourseDraftPlace findSelectedDraftPlaceByPlaceId(
+            List<CourseDraftPlace> draftPlaces,
+            Long placeId
+    ) {
+        return draftPlaces.stream()
+                .filter(draftPlace -> draftPlace.getPlaceRole() == PlaceRole.SELECTED)
+                .filter(draftPlace -> draftPlace.getPlace() != null)
+                .filter(draftPlace -> placeId.equals(draftPlace.getPlace().getId()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private void swapBasePlace(
+            CourseDraftPlace baseDraftPlace,
+            CourseDraftPlace selectedDraftPlace,
+            int temporaryVisitOrder
+    ) {
+        Integer selectedVisitOrder = selectedDraftPlace.getVisitOrder();
+        baseDraftPlace.updateRoleAndVisitOrder(
+                PlaceRole.SELECTED,
+                temporaryVisitOrder
+        );
+        courseDraftPlaceRepository.flush();
+
+        selectedDraftPlace.updateRoleAndVisitOrder(PlaceRole.BASE, BASE_VISIT_ORDER);
+        courseDraftPlaceRepository.flush();
+
+        baseDraftPlace.updateRoleAndVisitOrder(PlaceRole.SELECTED, selectedVisitOrder);
+    }
+
+    private int nextTemporaryVisitOrder(List<CourseDraftPlace> draftPlaces) {
+        return draftPlaces.stream()
+                .map(CourseDraftPlace::getVisitOrder)
+                .filter(visitOrder -> visitOrder != null)
+                .max(Integer::compareTo)
+                .orElse(BASE_VISIT_ORDER) + 1;
     }
 
     private void validateSelectedPlaceAvailable(Place place) {
@@ -630,39 +730,6 @@ public class CourseDraftService {
         }
     }
 
-    private int validateOrderingPlaceComposition(List<CourseDraftPlace> places) {
-        List<CourseDraftPlace> basePlaces = places.stream()
-                .filter(place -> place.getPlaceRole() == PlaceRole.BASE)
-                .toList();
-        if (basePlaces.size() != 1
-                || basePlaces.get(0).getVisitOrder() != BASE_VISIT_ORDER) {
-            throw new CourseException(
-                    CourseDraftErrorCode.ORDERING_ENTRY_INVALID_BASE_PLACE);
-        }
-
-        long selectedPlaceCount = places.stream()
-                .filter(place -> place.getPlaceRole() == PlaceRole.SELECTED)
-                .count();
-        if (selectedPlaceCount == 0) {
-            throw new CourseException(
-                    CourseDraftErrorCode.ORDERING_ENTRY_SELECTED_PLACE_REQUIRED);
-        }
-
-        validateContiguousVisitOrders(places);
-
-        return (int) selectedPlaceCount;
-    }
-
-    private void validateContiguousVisitOrders(List<CourseDraftPlace> places) {
-        for (int i = 0; i < places.size(); i++) {
-            Integer visitOrder = places.get(i).getVisitOrder();
-            if (visitOrder == null || visitOrder != i + 1) {
-                throw new CourseException(
-                        CourseDraftErrorCode.ORDERING_ENTRY_INVALID_VISIT_ORDER);
-            }
-        }
-    }
-
     private List<CourseDraftPlace> resolveTargetPlaces(
             List<CourseDraftPlace> allPlaces,
             List<PlaceOrderItem> placeOrders
@@ -676,9 +743,6 @@ public class CourseDraftService {
             if (place == null) {
                 throw new CourseException(CourseDraftErrorCode.SELECTED_PLACE_NOT_FOUND);
             }
-            if (place.getPlaceRole() == PlaceRole.BASE) {
-                throw new CourseException(CourseDraftErrorCode.BASE_PLACE_NOT_REORDERABLE);
-            }
             targetPlaces.add(place);
         }
         return targetPlaces;
@@ -686,12 +750,21 @@ public class CourseDraftService {
 
     private void updateVisitOrders(List<CourseDraftPlace> targetPlaces, List<PlaceOrderItem> placeOrders) {
         for (int i = 0; i < targetPlaces.size(); i++) {
-            targetPlaces.get(i).updateVisitOrder(-(i + 1));
+            targetPlaces.get(i).updateRoleAndVisitOrder(
+                    PlaceRole.SELECTED,
+                    targetPlaces.size() + SELECTED_PLACE_START_ORDER + i
+            );
         }
         courseDraftPlaceRepository.flush();
 
         for (int i = 0; i < targetPlaces.size(); i++) {
-            targetPlaces.get(i).updateVisitOrder(placeOrders.get(i).visitOrder());
+            Integer visitOrder = placeOrders.get(i).visitOrder();
+            targetPlaces.get(i).updateRoleAndVisitOrder(
+                    visitOrder.equals(BASE_VISIT_ORDER)
+                            ? PlaceRole.BASE
+                            : PlaceRole.SELECTED,
+                    visitOrder
+            );
         }
     }
 
@@ -701,7 +774,7 @@ public class CourseDraftService {
                 .sorted()
                 .toList();
         for (int i = 0; i < sortedOrders.size(); i++) {
-            if (!sortedOrders.get(i).equals(SELECTED_PLACE_START_ORDER + i)) {
+            if (!sortedOrders.get(i).equals(BASE_VISIT_ORDER + i)) {
                 throw new CourseException(CourseDraftErrorCode.INVALID_VISIT_ORDER);
             }
         }
@@ -709,45 +782,12 @@ public class CourseDraftService {
         Set<Long> requestedIds = placeOrders.stream()
                 .map(PlaceOrderItem::courseDraftPlaceId)
                 .collect(Collectors.toSet());
-        Set<Long> actualSelectedIds = allPlaces.stream()
-                .filter(place -> place.getPlaceRole() == PlaceRole.SELECTED)
+        Set<Long> actualPlaceIds = allPlaces.stream()
                 .map(CourseDraftPlace::getId)
                 .collect(Collectors.toSet());
 
-        if (requestedIds.size() != placeOrders.size() || !requestedIds.equals(actualSelectedIds)) {
+        if (requestedIds.size() != placeOrders.size() || !requestedIds.equals(actualPlaceIds)) {
             throw new CourseException(CourseDraftErrorCode.INVALID_VISIT_ORDER);
-        }
-    }
-
-    private void validateSavingPlaces(List<CourseDraftPlace> draftPlaces) {
-        List<CourseDraftPlace> basePlaces = draftPlaces.stream()
-                .filter(draftPlace -> draftPlace.getPlaceRole() == PlaceRole.BASE)
-                .toList();
-
-        if (basePlaces.size() != 1
-                || basePlaces.get(0).getPlace() == null
-                || !Integer.valueOf(BASE_VISIT_ORDER).equals(basePlaces.get(0).getVisitOrder())) {
-            throw new CourseException(CourseDraftErrorCode.COURSE_DRAFT_BASE_PLACE_CONFLICT);
-        }
-
-        List<CourseDraftPlace> selectedPlaces = draftPlaces.stream()
-                .filter(draftPlace -> draftPlace.getPlaceRole() == PlaceRole.SELECTED)
-                .sorted(Comparator.comparing(
-                        CourseDraftPlace::getVisitOrder,
-                        Comparator.nullsLast(Integer::compareTo)
-                ))
-                .toList();
-
-        if (selectedPlaces.isEmpty()) {
-            throw new CourseException(CourseDraftErrorCode.COURSE_DRAFT_SELECTED_PLACE_CONFLICT);
-        }
-
-        for (int i = 0; i < selectedPlaces.size(); i++) {
-            int expectedOrder = SELECTED_PLACE_START_ORDER + i;
-            if (selectedPlaces.get(i).getPlace() == null
-                    || !Integer.valueOf(expectedOrder).equals(selectedPlaces.get(i).getVisitOrder())) {
-                throw new CourseException(CourseDraftErrorCode.COURSE_DRAFT_SELECTED_PLACE_CONFLICT);
-            }
         }
     }
 

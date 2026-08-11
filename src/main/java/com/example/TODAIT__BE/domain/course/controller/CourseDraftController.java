@@ -7,6 +7,7 @@ import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.FoodC
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.MoodTagSaveRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceAddRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.StatusUpdateRequest;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlaceSaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CreateResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.FoodCategorySaveResponse;
@@ -15,6 +16,7 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.Ord
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceAddResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceOrderUpdateResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.SavingEnterResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.StatusUpdateResponse;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftService;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
@@ -153,5 +155,20 @@ public class CourseDraftController implements CourseDraftControllerDocs {
         return ResponseEntity
                 .status(CourseDraftSuccessCode.COURSE_DRAFT_SAVING_ENTER_OK.getStatus())
                 .body(ApiResponse.onSuccess(CourseDraftSuccessCode.COURSE_DRAFT_SAVING_ENTER_OK, result));
+    }
+
+    @PatchMapping("/{courseDraftId}/status")
+    @Override
+    public ResponseEntity<ApiResponse<StatusUpdateResponse>> updateStatus(
+            @PathVariable Long courseDraftId,
+            @AuthenticationPrincipal AuthMember authMember,
+            @Valid @RequestBody StatusUpdateRequest request
+    ) {
+        StatusUpdateResponse result =
+                courseDraftService.updateStatus(courseDraftId, authMember.memberId(), request);
+
+        return ResponseEntity
+                .status(CourseDraftSuccessCode.COURSE_DRAFT_STATUS_UPDATE_OK.getStatus())
+                .body(ApiResponse.onSuccess(CourseDraftSuccessCode.COURSE_DRAFT_STATUS_UPDATE_OK, result));
     }
 }

@@ -5,6 +5,7 @@ import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.FoodC
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.MoodTagSaveRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceAddRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.StatusUpdateRequest;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlaceSaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CreateResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.FoodCategorySaveResponse;
@@ -13,6 +14,7 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.Ord
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceAddResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceOrderUpdateResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.SavingEnterResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.StatusUpdateResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,6 +57,7 @@ public interface CourseDraftControllerDocs {
                     - 선택 개수: 2개 이상 6개 이하
                     - MOOD_SELECTING 상태: 저장 후 FOOD_SELECTING으로 전이
                     - FOOD_SELECTING 상태: 태그만 교체하고 상태 유지
+                    - 기존 분위기 태그와 실제 값이 달라지고 저장된 장소가 있으면 장소 선택 데이터를 초기화합니다.
                     """
     )
     @SecurityRequirement(name = "JWT TOKEN")
@@ -74,6 +77,7 @@ public interface CourseDraftControllerDocs {
                     - 선택 개수: 1개 이상
                     - FOOD_SELECTING 상태: 저장 후 BASE_PLACE_SELECTING으로 전이
                     - BASE_PLACE_SELECTING 상태: 카테고리만 교체하고 상태 유지
+                    - 기존 음식 카테고리와 실제 값이 달라지고 저장된 장소가 있으면 장소 선택 데이터를 초기화합니다.
                     """
     )
     @SecurityRequirement(name = "JWT TOKEN")
@@ -140,12 +144,13 @@ public interface CourseDraftControllerDocs {
     );
 
     @Operation(
-            summary = "[순서 설정] 선택 장소 순서 변경",
+            summary = "[순서 설정] 장소 순서 변경",
             description = """
-                    임시 코스에 담긴 선택 장소들의 방문 순서를 일괄 변경합니다.
+                    임시 코스에 담긴 전체 장소들의 방문 순서를 일괄 변경합니다.
 
-                    - BASE 장소는 요청에서 제외합니다.
-                    - 선택 장소는 2번부터 연속된 방문 순서를 가져야 합니다.
+                    - BASE 포함 전체 장소를 요청에 포함합니다.
+                    - 방문 순서는 1번부터 연속되어야 합니다.
+                    - 성공 후 1번 장소는 BASE, 나머지는 SELECTED로 재지정합니다.
                     - 성공 후 draftStatus는 ORDERING입니다.
                     """
     )
@@ -171,5 +176,24 @@ public interface CourseDraftControllerDocs {
             @PathVariable Long courseDraftId,
             @Parameter(hidden = true)
             AuthMember authMember
+    );
+
+    @Operation(
+            summary = "[단계 이동] 임시 코스 이전 단계 이동",
+            description = """
+                    임시 코스를 현재보다 앞선 작성 단계로 되돌립니다.
+
+                    이전 단계 이동은 화면 이동으로 취급하므로 기존 선택 데이터는 삭제하지 않습니다.
+                    ORDERING으로 이동할 때만 장소 구성을 검증합니다.
+                    COMPLETED 또는 ABANDONED Draft는 되돌릴 수 없습니다.
+                    """
+    )
+    @SecurityRequirement(name = "JWT TOKEN")
+    ResponseEntity<ApiResponse<StatusUpdateResponse>> updateStatus(
+            @PathVariable Long courseDraftId,
+            @Parameter(hidden = true)
+            AuthMember authMember,
+            @RequestBody
+            StatusUpdateRequest request
     );
 }

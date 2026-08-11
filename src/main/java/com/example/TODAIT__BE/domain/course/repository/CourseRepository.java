@@ -13,7 +13,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
 
-    long countByMemberId(Long memberId);
+    long countByMemberIdAndDeletedAtIsNull(Long memberId);
 
     @Query("""
         select c

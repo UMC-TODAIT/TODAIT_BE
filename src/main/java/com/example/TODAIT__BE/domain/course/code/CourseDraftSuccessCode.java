@@ -16,7 +16,8 @@ public enum CourseDraftSuccessCode implements BaseSuccessCode {
     ORDERING_ENTRY_OK(HttpStatus.OK, "COURSE200_9", "임시 코스 순서 설정 화면 진입 성공"),
     COURSE_DRAFT_SAVING_ENTER_OK(HttpStatus.OK, "COURSE200_8", "임시 코스 저장 화면 진입 성공"),
     BASE_PLACE_SAVE_OK(HttpStatus.OK, "COURSE200_6", "임시 코스 기준 장소 설정 성공"),
-    PLACE_ADD_OK(HttpStatus.CREATED, "COURSE201_1", "선택 장소 추가 성공");
+    PLACE_ADD_OK(HttpStatus.CREATED, "COURSE201_1", "선택 장소 추가 성공"),
+    COURSE_DRAFT_STATUS_UPDATE_OK(HttpStatus.OK, "COURSE200_12", "임시 코스 단계 이동 성공");
 
     private final HttpStatus status;
     private final String code;

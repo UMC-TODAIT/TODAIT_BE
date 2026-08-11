@@ -272,14 +272,13 @@ public final class CourseDraftResponse {
 
         public static OrderingEntryPlaceResponse from(CourseDraftPlace courseDraftPlace) {
             Place place = courseDraftPlace.getPlace();
-            boolean selected = courseDraftPlace.getPlaceRole() == PlaceRole.SELECTED;
             return new OrderingEntryPlaceResponse(
                     courseDraftPlace.getId(),
                     place.getId(),
                     courseDraftPlace.getVisitOrder(),
                     courseDraftPlace.getPlaceRole(),
-                    selected,
-                    selected,
+                    true,
+                    false,
                     place.getName(),
                     place.getAddress(),
                     place.getRoadAddress(),
@@ -296,6 +295,19 @@ public final class CourseDraftResponse {
 
         public static PlaceOrderUpdateResponse of(Long courseDraftId, List<DraftPlaceResponse> places) {
             return new PlaceOrderUpdateResponse(courseDraftId, places);
+        }
+    }
+
+    public record StatusUpdateResponse(
+            Long courseDraftId,
+            CourseDraftStatus draftStatus
+    ) {
+
+        public static StatusUpdateResponse of(CourseDraft courseDraft) {
+            return new StatusUpdateResponse(
+                    courseDraft.getId(),
+                    courseDraft.getStatus()
+            );
         }
     }
 

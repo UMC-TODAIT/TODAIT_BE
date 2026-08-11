@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -30,11 +31,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class CourseDraftOrderingServiceTest {
 
     private static final Long DRAFT_ID = 15L;
@@ -87,13 +85,12 @@ class CourseDraftOrderingServiceTest {
         assertThat(response.totalPlaceCount()).isEqualTo(2);
         assertThat(response.selectedPlaceCount()).isEqualTo(1);
         assertThat(response.places()).hasSize(2);
-        // BASE = 드래그/삭제 불가, SELECTED = 가능
         assertThat(response.places().get(0).placeRole()).isEqualTo(PlaceRole.BASE);
-        assertThat(response.places().get(0).draggable()).isFalse();
+        assertThat(response.places().get(0).draggable()).isTrue();
         assertThat(response.places().get(0).deletable()).isFalse();
         assertThat(response.places().get(1).placeRole()).isEqualTo(PlaceRole.SELECTED);
         assertThat(response.places().get(1).draggable()).isTrue();
-        assertThat(response.places().get(1).deletable()).isTrue();
+        assertThat(response.places().get(1).deletable()).isFalse();
     }
 
     @Test
@@ -204,15 +201,19 @@ class CourseDraftOrderingServiceTest {
                 DRAFT_ID,
                 MEMBER_ID,
                 new PlaceOrderUpdateRequest(List.of(
-                        new PlaceOrderItem(103L, 2),
+                        new PlaceOrderItem(103L, 1),
+                        new PlaceOrderItem(101L, 2),
                         new PlaceOrderItem(102L, 3)
                 ))
         );
 
         verify(courseDraftRepository).findByIdForUpdate(DRAFT_ID);
         verify(courseDraftPlaceRepository).flush();
-        assertThat(response.places()).extracting("courseDraftPlaceId").containsExactly(101L, 103L, 102L);
-        assertThat(secondSelectedPlace.getVisitOrder()).isEqualTo(2);
+        assertThat(response.places()).extracting("courseDraftPlaceId").containsExactly(103L, 101L, 102L);
+        assertThat(secondSelectedPlace.getPlaceRole()).isEqualTo(PlaceRole.BASE);
+        assertThat(secondSelectedPlace.getVisitOrder()).isEqualTo(1);
+        assertThat(basePlace.getPlaceRole()).isEqualTo(PlaceRole.SELECTED);
+        assertThat(basePlace.getVisitOrder()).isEqualTo(2);
         assertThat(firstSelectedPlace.getVisitOrder()).isEqualTo(3);
     }
 
@@ -233,7 +234,7 @@ class CourseDraftOrderingServiceTest {
 
     private CourseDraft draft(CourseDraftStatus status, Long ownerId) {
         Member member = mock(Member.class);
-        given(member.getId()).willReturn(ownerId);
+        lenient().when(member.getId()).thenReturn(ownerId);
         return CourseDraft.builder()
                 .id(DRAFT_ID)
                 .member(member)
@@ -244,12 +245,12 @@ class CourseDraftOrderingServiceTest {
     private CourseDraftPlace place(
             Long id, Long placeId, int visitOrder, PlaceRole role, String name) {
         Place place = mock(Place.class);
-        given(place.getId()).willReturn(placeId);
-        given(place.getName()).willReturn(name);
-        given(place.getAddress()).willReturn("서울 마포구 연남동");
-        given(place.getRoadAddress()).willReturn("서울 마포구 연희로");
-        given(place.getLatitude()).willReturn(37.56);
-        given(place.getLongitude()).willReturn(126.92);
+        lenient().when(place.getId()).thenReturn(placeId);
+        lenient().when(place.getName()).thenReturn(name);
+        lenient().when(place.getAddress()).thenReturn("서울 마포구 연남동");
+        lenient().when(place.getRoadAddress()).thenReturn("서울 마포구 연희로");
+        lenient().when(place.getLatitude()).thenReturn(37.56);
+        lenient().when(place.getLongitude()).thenReturn(126.92);
         return CourseDraftPlace.builder()
                 .id(id)
                 .place(place)

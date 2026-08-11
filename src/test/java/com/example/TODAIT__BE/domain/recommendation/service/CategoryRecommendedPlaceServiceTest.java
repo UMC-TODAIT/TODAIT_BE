@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -49,13 +50,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import com.example.TODAIT__BE.domain.recommendation.entity.RecommendationResult;
 import com.example.TODAIT__BE.domain.recommendation.service.support.EvaluatedNearBasePlace;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class CategoryRecommendedPlaceServiceTest {
 
     private static final Long MEMBER_ID = 1L;
@@ -275,9 +273,9 @@ class CategoryRecommendedPlaceServiceTest {
                 baseDraftPlace(basePlace);
 
         PlaceCategory category = mock(PlaceCategory.class);
-        given(category.getId()).willReturn(1L);
+        lenient().when(category.getId()).thenReturn(1L);
         given(category.getCode()).willReturn("CAFE");
-        given(category.getName()).willReturn("카페");
+        lenient().when(category.getName()).thenReturn("카페");
         given(category.getIsActive()).willReturn(true);
 
         given(courseDraftRepository.findById(COURSE_DRAFT_ID))
@@ -361,26 +359,26 @@ class CategoryRecommendedPlaceServiceTest {
 
     private CourseDraft draft(CourseDraftStatus status) {
         Member member = mock(Member.class);
-        given(member.getId()).willReturn(MEMBER_ID);
+        lenient().when(member.getId()).thenReturn(MEMBER_ID);
 
         CourseDraft draft = mock(CourseDraft.class);
-        given(draft.getId()).willReturn(COURSE_DRAFT_ID);
-        given(draft.getMember()).willReturn(member);
-        given(draft.getStatus()).willReturn(status);
+        lenient().when(draft.getId()).thenReturn(COURSE_DRAFT_ID);
+        lenient().when(draft.getMember()).thenReturn(member);
+        lenient().when(draft.getStatus()).thenReturn(status);
 
         return draft;
     }
 
     private Place basePlace() {
         Area area = mock(Area.class);
-        given(area.getId()).willReturn(1L);
-        given(area.getCode()).willReturn("HONGDAE");
-        given(area.getName()).willReturn("홍대");
+        lenient().when(area.getId()).thenReturn(1L);
+        lenient().when(area.getCode()).thenReturn("HONGDAE");
+        lenient().when(area.getName()).thenReturn("홍대");
 
         Place place = mock(Place.class);
-        given(place.getId()).willReturn(1L);
-        given(place.getName()).willReturn("홍대 테스트 카페");
-        given(place.getArea()).willReturn(area);
+        lenient().when(place.getId()).thenReturn(1L);
+        lenient().when(place.getName()).thenReturn("홍대 테스트 카페");
+        lenient().when(place.getArea()).thenReturn(area);
 
         return place;
     }
@@ -389,14 +387,14 @@ class CategoryRecommendedPlaceServiceTest {
         CourseDraftPlace draftPlace =
                 mock(CourseDraftPlace.class);
 
-        given(draftPlace.getPlaceRole())
-                .willReturn(PlaceRole.BASE);
+        lenient().when(draftPlace.getPlaceRole())
+                .thenReturn(PlaceRole.BASE);
 
-        given(draftPlace.getVisitOrder())
-                .willReturn(1);
+        lenient().when(draftPlace.getVisitOrder())
+                .thenReturn(1);
 
-        given(draftPlace.getPlace())
-                .willReturn(basePlace);
+        lenient().when(draftPlace.getPlace())
+                .thenReturn(basePlace);
 
         return draftPlace;
     }
@@ -411,9 +409,9 @@ class CategoryRecommendedPlaceServiceTest {
                 baseDraftPlace(basePlace);
 
         PlaceCategory category = mock(PlaceCategory.class);
-        given(category.getId()).willReturn(1L);
+        lenient().when(category.getId()).thenReturn(1L);
         given(category.getCode()).willReturn("CAFE");
-        given(category.getName()).willReturn("카페");
+        lenient().when(category.getName()).thenReturn("카페");
         given(category.getIsActive()).willReturn(true);
 
         Place firstPlace = mock(Place.class);
