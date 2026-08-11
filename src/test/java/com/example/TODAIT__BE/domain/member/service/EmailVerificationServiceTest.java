@@ -4,6 +4,7 @@ import com.example.TODAIT__BE.domain.member.code.EmailVerificationErrorCode;
 import com.example.TODAIT__BE.domain.member.dto.request.EmailVerificationRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationResponse;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
+import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.member.service.port.EmailVerificationSender;
 import com.example.TODAIT__BE.domain.member.service.port.EmailVerificationStore;
 import com.example.TODAIT__BE.domain.member.service.port.EmailVerificationStore.VerifyCodeResult;
@@ -35,6 +36,9 @@ class EmailVerificationServiceTest {
     @Mock
     private RandomCodeGenerator randomCodeGenerator;
 
+    @Mock
+    private MemberRepository memberRepository;
+
     private EmailVerificationService emailVerificationService;
 
     @BeforeEach
@@ -43,13 +47,14 @@ class EmailVerificationServiceTest {
                 emailVerificationStore,
                 emailVerificationSender,
                 randomCodeGenerator,
+                memberRepository,
                 CODE_TTL_MINUTES
         );
     }
 
     @Test
     void sendVerificationCodeSavesCodeAndSendsMail() {
-        given(emailVerificationStore.isVerified("test@example.com"))
+        given(memberRepository.existsByEmail("test@example.com"))
                 .willReturn(false);
         given(randomCodeGenerator.generateNumericCode())
                 .willReturn("123456");
@@ -81,7 +86,7 @@ class EmailVerificationServiceTest {
 
     @Test
     void sendVerificationCodeFailsWhenResendCooldownIsActive() {
-        given(emailVerificationStore.isVerified("test@example.com"))
+        given(memberRepository.existsByEmail("test@example.com"))
                 .willReturn(false);
         given(randomCodeGenerator.generateNumericCode())
                 .willReturn("123456");
@@ -132,7 +137,7 @@ class EmailVerificationServiceTest {
     }
 
     @Test
-    void verifyCodeFailsWhenCodeDoesNotExist() {
+    void verifyCodeFailsWithMismatchWhenCodeDoesNotExist() {
         given(emailVerificationStore.isVerified("test@example.com"))
                 .willReturn(false);
         given(emailVerificationStore.verifyCodeAndMarkVerified("test@example.com", "123456"))
@@ -143,11 +148,11 @@ class EmailVerificationServiceTest {
         ))
                 .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
-                .isEqualTo(EmailVerificationErrorCode.CODE_NOT_FOUND);
+                .isEqualTo(EmailVerificationErrorCode.CODE_MISMATCH);
     }
 
     @Test
-    void verifyCodeFailsWhenVerifyAttemptExceeded() {
+    void verifyCodeFailsWithMismatchWhenVerifyAttemptExceeded() {
         given(emailVerificationStore.isVerified("test@example.com"))
                 .willReturn(false);
         given(emailVerificationStore.verifyCodeAndMarkVerified("test@example.com", "123456"))
@@ -158,23 +163,40 @@ class EmailVerificationServiceTest {
         ))
                 .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
-                .isEqualTo(EmailVerificationErrorCode.VERIFY_ATTEMPT_EXCEEDED);
+                .isEqualTo(EmailVerificationErrorCode.CODE_MISMATCH);
     }
 
     @Test
-    void sendVerificationCodeFailsWhenEmailAlreadyVerified() {
-        given(emailVerificationStore.isVerified("test@example.com"))
+    void sendVerificationCodeReturnsSuccessWithoutSendingWhenEmailAlreadyRegistered() {
+        given(memberRepository.existsByEmail("test@example.com"))
                 .willReturn(true);
 
-        assertThatThrownBy(() -> emailVerificationService.sendVerificationCode(
+        EmailVerificationResponse.Send response = emailVerificationService.sendVerificationCode(
                 new EmailVerificationRequest.Send("test@example.com")
-        ))
-                .isInstanceOf(MemberException.class)
-                .extracting("errorCode")
-                .isEqualTo(EmailVerificationErrorCode.ALREADY_COMPLETED);
+        );
 
+        assertThat(response.email()).isEqualTo("test@example.com");
+        assertThat(response.expiresInMinutes()).isEqualTo(CODE_TTL_MINUTES);
+        verify(randomCodeGenerator, never()).generateNumericCode();
         verify(emailVerificationStore, never()).saveCodeIfNotCoolingDown(anyString(), anyString());
         verify(emailVerificationSender, never()).sendVerificationCode(anyString(), anyString());
+    }
+
+    @Test
+    void sendVerificationCodeAllowsVerifiedEmailBeforeSignup() {
+        given(memberRepository.existsByEmail("test@example.com"))
+                .willReturn(false);
+        given(randomCodeGenerator.generateNumericCode())
+                .willReturn("123456");
+        given(emailVerificationStore.saveCodeIfNotCoolingDown("test@example.com", "123456"))
+                .willReturn(true);
+
+        emailVerificationService.sendVerificationCode(
+                new EmailVerificationRequest.Send("test@example.com")
+        );
+
+        verify(emailVerificationStore, never()).isVerified("test@example.com");
+        verify(emailVerificationSender).sendVerificationCode("test@example.com", "123456");
     }
 
     @Test

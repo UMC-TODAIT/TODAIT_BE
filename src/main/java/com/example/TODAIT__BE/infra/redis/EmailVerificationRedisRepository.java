@@ -29,6 +29,7 @@ public class EmailVerificationRedisRepository implements EmailVerificationStore 
                     redis.call('set', KEYS[1], ARGV[1], 'PX', ARGV[2])
                     redis.call('set', KEYS[2], ARGV[3], 'PX', ARGV[4])
                     redis.call('del', KEYS[3])
+                    redis.call('del', KEYS[4])
                     return 1
                     """, Long.class);
 
@@ -101,7 +102,7 @@ public class EmailVerificationRedisRepository implements EmailVerificationStore 
     public boolean saveCodeIfNotCoolingDown(String email, String code) {
         Long result = redisTemplate.execute(
                 SAVE_CODE_IF_NOT_COOLING_DOWN_SCRIPT,
-                List.of(codeKey(email), resendCooldownKey(email), verifyFailureKey(email)),
+                List.of(codeKey(email), resendCooldownKey(email), verifyFailureKey(email), verifiedKey(email)),
                 code,
                 String.valueOf(codeTtl.toMillis()),
                 COOLDOWN_VALUE,
