@@ -65,7 +65,7 @@ public class EmailVerificationService {
                 request.code().trim()
         );
         if (result == VerifyCodeResult.CODE_NOT_FOUND) {
-            throw new MemberException(EmailVerificationErrorCode.CODE_NOT_FOUND);
+            throw new MemberException(EmailVerificationErrorCode.CODE_MISMATCH);
         }
         if (result == VerifyCodeResult.CODE_MISMATCH) {
             throw new MemberException(EmailVerificationErrorCode.CODE_MISMATCH);

@@ -137,7 +137,7 @@ class EmailVerificationServiceTest {
     }
 
     @Test
-    void verifyCodeFailsWhenCodeDoesNotExist() {
+    void verifyCodeFailsWithMismatchWhenCodeDoesNotExist() {
         given(emailVerificationStore.isVerified("test@example.com"))
                 .willReturn(false);
         given(emailVerificationStore.verifyCodeAndMarkVerified("test@example.com", "123456"))
@@ -148,7 +148,7 @@ class EmailVerificationServiceTest {
         ))
                 .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
-                .isEqualTo(EmailVerificationErrorCode.CODE_NOT_FOUND);
+                .isEqualTo(EmailVerificationErrorCode.CODE_MISMATCH);
     }
 
     @Test
