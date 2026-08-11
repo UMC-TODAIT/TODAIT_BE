@@ -57,6 +57,7 @@ public interface CourseDraftControllerDocs {
                     - 선택 개수: 2개 이상 6개 이하
                     - MOOD_SELECTING 상태: 저장 후 FOOD_SELECTING으로 전이
                     - FOOD_SELECTING 상태: 태그만 교체하고 상태 유지
+                    - 기존 분위기 태그와 실제 값이 달라지고 저장된 장소가 있으면 장소 선택 데이터를 초기화합니다.
                     """
     )
     @SecurityRequirement(name = "JWT TOKEN")
@@ -76,6 +77,7 @@ public interface CourseDraftControllerDocs {
                     - 선택 개수: 1개 이상
                     - FOOD_SELECTING 상태: 저장 후 BASE_PLACE_SELECTING으로 전이
                     - BASE_PLACE_SELECTING 상태: 카테고리만 교체하고 상태 유지
+                    - 기존 음식 카테고리와 실제 값이 달라지고 저장된 장소가 있으면 장소 선택 데이터를 초기화합니다.
                     """
     )
     @SecurityRequirement(name = "JWT TOKEN")
@@ -181,7 +183,8 @@ public interface CourseDraftControllerDocs {
             description = """
                     임시 코스를 현재보다 앞선 작성 단계로 되돌립니다.
 
-                    대상 단계 이후에 저장된 관계 데이터는 서버가 정리합니다.
+                    이전 단계 이동은 화면 이동으로 취급하므로 기존 선택 데이터는 삭제하지 않습니다.
+                    ORDERING으로 이동할 때만 장소 구성을 검증합니다.
                     COMPLETED 또는 ABANDONED Draft는 되돌릴 수 없습니다.
                     """
     )
