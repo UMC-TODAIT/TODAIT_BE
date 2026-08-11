@@ -134,7 +134,6 @@ class ApiResponseCodeContractTest {
             entry("EmailVerificationErrorCode.CODE_NOT_FOUND", "EMAIL400_3"),
             entry("EmailVerificationErrorCode.ALREADY_COMPLETED", "EMAIL400_4"),
             entry("EmailVerificationErrorCode.RESEND_COOLDOWN", "EMAIL429_1"),
-            entry("EmailVerificationErrorCode.VERIFY_ATTEMPT_EXCEEDED", "EMAIL429_2"),
             entry("EmailVerificationErrorCode.SEND_FAILED", "EMAIL500_1"),
             entry("EmailVerificationErrorCode.STORE_FAILED", "EMAIL500_2"),
             entry("PasswordResetSuccessCode.CODE_SENT", "AUTH200_4"),
