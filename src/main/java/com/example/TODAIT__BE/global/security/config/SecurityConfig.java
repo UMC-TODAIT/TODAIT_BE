@@ -61,7 +61,8 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.GET,
-                                "/api/members/nickname-availability"
+                                "/api/members/nickname-availability",
+                                "/course-images/**"
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.PATCH,
@@ -71,8 +72,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/v3/api-docs/**",
-                                "/course-images/**"
+                                "/v3/api-docs/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
