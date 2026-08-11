@@ -67,7 +67,7 @@ app:
   email-verification:
     code-ttl-minutes: ${EMAIL_VERIFICATION_CODE_TTL_MINUTES:5}
     verified-ttl-minutes: ${EMAIL_VERIFICATION_VERIFIED_TTL_MINUTES:30}
-    resend-cooldown-seconds: ${EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS:60}
+    resend-cooldown-seconds: ${EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS:30}
     verify-failure-ttl-minutes: ${EMAIL_VERIFICATION_VERIFY_FAILURE_TTL_MINUTES:5}
     max-verify-failures: ${EMAIL_VERIFICATION_MAX_VERIFY_FAILURES:5}
   password-reset:
