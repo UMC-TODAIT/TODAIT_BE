@@ -66,6 +66,7 @@ class PlaceControllerTest {
                 1,
                 2,
                 true,
+                null,
                 List.of(new PlaceSearchResponse.PlaceItem(
                         "kakao-1",
                         1L,

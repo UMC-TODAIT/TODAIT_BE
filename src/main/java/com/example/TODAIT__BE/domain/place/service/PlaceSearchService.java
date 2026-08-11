@@ -2,6 +2,7 @@ package com.example.TODAIT__BE.domain.place.service;
 
 import com.example.TODAIT__BE.domain.place.code.PlaceSearchErrorCode;
 import com.example.TODAIT__BE.domain.place.dto.response.PlaceSearchResponse;
+import com.example.TODAIT__BE.domain.place.enums.PlaceSearchEmptyReason;
 import com.example.TODAIT__BE.domain.place.exception.PlaceException;
 import com.example.TODAIT__BE.domain.place.service.port.ExternalPlaceCandidate;
 import com.example.TODAIT__BE.domain.place.service.port.ExternalPlaceSearchResult;
@@ -48,15 +49,33 @@ public class PlaceSearchService {
 
         List<ExternalPlaceCandidate> candidates = searchResult.candidates();
         List<PlaceSearchResponse.PlaceItem> places = searchEnricher.enrich(candidates);
-        boolean hasNext = !searchResult.end();
+        boolean hasNext = !searchResult.end() && resolvedCursor < MAX_CURSOR;
+        Integer nextCursor = hasNext ? resolvedCursor + 1 : null;
+        PlaceSearchEmptyReason emptyReason = determineEmptyReason(candidates, places);
 
         return new PlaceSearchResponse.SearchResult(
                 normalizedQuery,
                 places.size(),
-                hasNext ? resolvedCursor + 1 : null,
+                nextCursor,
                 hasNext,
+                emptyReason,
                 places
         );
+    }
+
+    private PlaceSearchEmptyReason determineEmptyReason(
+            List<ExternalPlaceCandidate> candidates,
+            List<PlaceSearchResponse.PlaceItem> places
+    ) {
+        if (!places.isEmpty()) {
+            return null;
+        }
+
+        if (candidates.isEmpty()) {
+            return PlaceSearchEmptyReason.NO_SEARCH_RESULTS;
+        }
+
+        return PlaceSearchEmptyReason.OUTSIDE_SUPPORTED_AREA;
     }
 
     private int validateAndResolveCursor(Integer cursor) {

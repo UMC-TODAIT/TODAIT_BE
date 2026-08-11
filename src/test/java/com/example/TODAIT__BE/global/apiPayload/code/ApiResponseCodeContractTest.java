@@ -215,6 +215,7 @@ class ApiResponseCodeContractTest {
             entry("PlaceDetailErrorCode.PLACE_NOT_EXPOSED", "PLACE400_4"),
             entry("PlaceDetailErrorCode.PLACE_NOT_FOUND", "PLACE404"),
             entry("PlaceSearchErrorCode.KAKAO_LOCAL_API_RATE_LIMIT_EXCEEDED", "PLACE429_1"),
+            entry("PlaceSearchErrorCode.PLACE_CATEGORY_CONFIGURATION_MISSING", "PLACE500_1"),
             entry("PlaceSearchErrorCode.KAKAO_LOCAL_API_REQUEST_FAILED", "PLACE502_1"),
             entry("ExternalPlaceRegistrationErrorCode.PLACE_NOT_AVAILABLE", "PLACE400"),
             entry("ExternalPlaceRegistrationErrorCode.INVALID_PLACE_COORDINATE", "PLACE400_5"),
