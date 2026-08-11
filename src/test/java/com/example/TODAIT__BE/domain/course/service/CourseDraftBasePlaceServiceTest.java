@@ -99,7 +99,7 @@ class CourseDraftBasePlaceServiceTest {
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
         given(placeRepository.findById(21L)).willReturn(Optional.of(place));
         given(placeSourceRepository.findByPlaceIdAndIsPrimaryTrue(21L)).willReturn(Optional.empty());
-        given(courseDraftPlaceRepository.findByCourseDraftAndPlaceRole(draft, PlaceRole.BASE))
+        given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
                 .willReturn(List.of());
         given(courseDraftPlaceRepository.save(any(CourseDraftPlace.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
@@ -133,7 +133,7 @@ class CourseDraftBasePlaceServiceTest {
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
         given(placeRepository.findById(22L)).willReturn(Optional.of(newPlace));
         given(placeSourceRepository.findByPlaceIdAndIsPrimaryTrue(22L)).willReturn(Optional.empty());
-        given(courseDraftPlaceRepository.findByCourseDraftAndPlaceRole(draft, PlaceRole.BASE))
+        given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(existingBase));
 
         BasePlaceSaveResponse response = courseDraftService.saveBasePlace(
@@ -143,6 +143,46 @@ class CourseDraftBasePlaceServiceTest {
         verify(courseDraftPlaceRepository, never()).save(any());
         assertThat(existingBase.getPlace()).isEqualTo(newPlace);
         assertThat(response.basePlace().placeId()).isEqualTo(22L);
+    }
+
+    @Test
+    void swapsBaseWithExistingSelectedPlaceWhenSelectedPlaceBecomesBase() {
+        CourseDraft draft = draft(CourseDraftStatus.BASE_PLACE_SELECTING);
+        Place oldBasePlace = availablePlace(21L);
+        Place newBasePlace = availablePlace(22L);
+        CourseDraftPlace existingBase = CourseDraftPlace.builder()
+                .id(100L)
+                .courseDraft(draft)
+                .place(oldBasePlace)
+                .visitOrder(1)
+                .placeRole(PlaceRole.BASE)
+                .build();
+        CourseDraftPlace existingSelected = CourseDraftPlace.builder()
+                .id(101L)
+                .courseDraft(draft)
+                .place(newBasePlace)
+                .visitOrder(2)
+                .placeRole(PlaceRole.SELECTED)
+                .build();
+
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+        given(placeRepository.findById(22L)).willReturn(Optional.of(newBasePlace));
+        given(placeSourceRepository.findByPlaceIdAndIsPrimaryTrue(22L)).willReturn(Optional.empty());
+        given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
+                .willReturn(List.of(existingBase, existingSelected));
+
+        BasePlaceSaveResponse response = courseDraftService.saveBasePlace(
+                10L, 1L, new BasePlaceSaveRequest(22L, null)
+        );
+
+        verify(courseDraftPlaceRepository).flush();
+        assertThat(existingSelected.getPlaceRole()).isEqualTo(PlaceRole.BASE);
+        assertThat(existingSelected.getVisitOrder()).isEqualTo(1);
+        assertThat(existingBase.getPlaceRole()).isEqualTo(PlaceRole.SELECTED);
+        assertThat(existingBase.getVisitOrder()).isEqualTo(2);
+        assertThat(existingBase.getPlace()).isEqualTo(oldBasePlace);
+        assertThat(response.basePlace().placeId()).isEqualTo(22L);
+        assertThat(response.basePlace().placeRole()).isEqualTo(PlaceRole.BASE);
     }
 
     @Test
@@ -171,7 +211,7 @@ class CourseDraftBasePlaceServiceTest {
                 externalPlace.phone(), externalPlace.subCategory(),
                 externalPlace.sourcePlaceId(), externalPlace.sourceUrl()
         )).willReturn(createdPlace);
-        given(courseDraftPlaceRepository.findByCourseDraftAndPlaceRole(draft, PlaceRole.BASE))
+        given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
                 .willReturn(List.of());
         given(courseDraftPlaceRepository.save(any(CourseDraftPlace.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
@@ -220,7 +260,7 @@ class CourseDraftBasePlaceServiceTest {
         given(externalPlaceRegistrationService.register(
                 any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
         )).willThrow(new org.springframework.dao.DataIntegrityViolationException("unique violation"));
-        given(courseDraftPlaceRepository.findByCourseDraftAndPlaceRole(draft, PlaceRole.BASE))
+        given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
                 .willReturn(List.of());
         given(courseDraftPlaceRepository.save(any(CourseDraftPlace.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
@@ -305,7 +345,7 @@ class CourseDraftBasePlaceServiceTest {
         given(placeCategoryRepository.findByCode("CAFE")).willReturn(Optional.of(category));
         given(placeSourceRepository.findByDataSourceAndSourcePlaceId(kakao, "1234567890"))
                 .willReturn(Optional.of(existingSource));
-        given(courseDraftPlaceRepository.findByCourseDraftAndPlaceRole(draft, PlaceRole.BASE))
+        given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
                 .willReturn(List.of());
         given(courseDraftPlaceRepository.save(any(CourseDraftPlace.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));

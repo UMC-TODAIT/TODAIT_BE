@@ -640,8 +640,11 @@ public class CourseDraftService {
     }
 
     private CourseDraftPlace upsertBasePlace(CourseDraft courseDraft, Place place) {
-        List<CourseDraftPlace> baseDraftPlaces =
-                courseDraftPlaceRepository.findByCourseDraftAndPlaceRole(courseDraft, PlaceRole.BASE);
+        List<CourseDraftPlace> draftPlaces =
+                courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(courseDraft);
+        List<CourseDraftPlace> baseDraftPlaces = draftPlaces.stream()
+                .filter(draftPlace -> draftPlace.getPlaceRole() == PlaceRole.BASE)
+                .toList();
 
         if (baseDraftPlaces.isEmpty()) {
             return courseDraftPlaceRepository.save(CourseDraftPlace.builder()
@@ -653,8 +656,50 @@ public class CourseDraftService {
         }
 
         CourseDraftPlace baseDraftPlace = baseDraftPlaces.get(0);
+        CourseDraftPlace selectedDraftPlace = findSelectedDraftPlaceByPlaceId(draftPlaces, place.getId());
+        if (selectedDraftPlace != null) {
+            swapBasePlace(baseDraftPlace, selectedDraftPlace, nextTemporaryVisitOrder(draftPlaces));
+            return selectedDraftPlace;
+        }
+
         baseDraftPlace.updatePlace(place);
         return baseDraftPlace;
+    }
+
+    private CourseDraftPlace findSelectedDraftPlaceByPlaceId(
+            List<CourseDraftPlace> draftPlaces,
+            Long placeId
+    ) {
+        return draftPlaces.stream()
+                .filter(draftPlace -> draftPlace.getPlaceRole() == PlaceRole.SELECTED)
+                .filter(draftPlace -> draftPlace.getPlace() != null)
+                .filter(draftPlace -> placeId.equals(draftPlace.getPlace().getId()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private void swapBasePlace(
+            CourseDraftPlace baseDraftPlace,
+            CourseDraftPlace selectedDraftPlace,
+            int temporaryVisitOrder
+    ) {
+        Integer selectedVisitOrder = selectedDraftPlace.getVisitOrder();
+        baseDraftPlace.updateRoleAndVisitOrder(
+                PlaceRole.SELECTED,
+                temporaryVisitOrder
+        );
+        courseDraftPlaceRepository.flush();
+
+        selectedDraftPlace.updateRoleAndVisitOrder(PlaceRole.BASE, BASE_VISIT_ORDER);
+        baseDraftPlace.updateRoleAndVisitOrder(PlaceRole.SELECTED, selectedVisitOrder);
+    }
+
+    private int nextTemporaryVisitOrder(List<CourseDraftPlace> draftPlaces) {
+        return draftPlaces.stream()
+                .map(CourseDraftPlace::getVisitOrder)
+                .filter(visitOrder -> visitOrder != null)
+                .max(Integer::compareTo)
+                .orElse(BASE_VISIT_ORDER) + 1;
     }
 
     private void validateSelectedPlaceAvailable(Place place) {
