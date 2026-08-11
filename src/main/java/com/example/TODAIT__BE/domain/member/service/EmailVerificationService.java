@@ -4,6 +4,7 @@ import com.example.TODAIT__BE.domain.member.code.EmailVerificationErrorCode;
 import com.example.TODAIT__BE.domain.member.dto.request.EmailVerificationRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.EmailVerificationResponse;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
+import com.example.TODAIT__BE.domain.member.repository.MemberRepository;
 import com.example.TODAIT__BE.domain.member.service.port.EmailVerificationSender;
 import com.example.TODAIT__BE.domain.member.service.port.EmailVerificationStore;
 import com.example.TODAIT__BE.domain.member.service.port.EmailVerificationStore.VerifyCodeResult;
@@ -19,17 +20,20 @@ public class EmailVerificationService {
     private final EmailVerificationStore emailVerificationStore;
     private final EmailVerificationSender emailVerificationSender;
     private final RandomCodeGenerator randomCodeGenerator;
+    private final MemberRepository memberRepository;
     private final long codeTtlMinutes;
 
     public EmailVerificationService(
             EmailVerificationStore emailVerificationStore,
             EmailVerificationSender emailVerificationSender,
             RandomCodeGenerator randomCodeGenerator,
+            MemberRepository memberRepository,
             @Value("${app.email-verification.code-ttl-minutes}") long codeTtlMinutes
     ) {
         this.emailVerificationStore = emailVerificationStore;
         this.emailVerificationSender = emailVerificationSender;
         this.randomCodeGenerator = randomCodeGenerator;
+        this.memberRepository = memberRepository;
         this.codeTtlMinutes = codeTtlMinutes;
     }
 
@@ -37,7 +41,7 @@ public class EmailVerificationService {
             EmailVerificationRequest.Send request
     ) {
         String email = normalizeAndValidateEmail(request.email());
-        if (emailVerificationStore.isVerified(email)) {
+        if (memberRepository.existsByEmail(email)) {
             throw new MemberException(EmailVerificationErrorCode.ALREADY_COMPLETED);
         }
 
