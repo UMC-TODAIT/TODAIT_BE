@@ -27,6 +27,8 @@ public interface CourseDraftPlaceRepository extends JpaRepository<CourseDraftPla
 
     List<CourseDraftPlace> findByCourseDraftAndPlaceRole(CourseDraft courseDraft, PlaceRole placeRole);
 
+    boolean existsByCourseDraft(CourseDraft courseDraft);
+
     void deleteByCourseDraft(CourseDraft courseDraft);
 
     @Query("""

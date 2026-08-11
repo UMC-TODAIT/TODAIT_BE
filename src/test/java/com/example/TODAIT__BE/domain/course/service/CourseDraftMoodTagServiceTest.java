@@ -17,6 +17,7 @@ import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftMoodTagRepository;
+import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.member.entity.Member;
@@ -42,6 +43,8 @@ class CourseDraftMoodTagServiceTest {
     @Mock
     private CourseDraftMoodTagRepository courseDraftMoodTagRepository;
     @Mock
+    private CourseDraftPlaceRepository courseDraftPlaceRepository;
+    @Mock
     private MoodTagRepository moodTagRepository;
 
     private CourseDraftService courseDraftService;
@@ -53,7 +56,7 @@ class CourseDraftMoodTagServiceTest {
                 null,
                 courseDraftMoodTagRepository,
                 null,
-                null,
+                courseDraftPlaceRepository,
                 moodTagRepository,
                 null,
                 null,
@@ -104,6 +107,68 @@ class CourseDraftMoodTagServiceTest {
     }
 
     @Test
+    void deletesDraftPlacesWhenMoodTagsChangedAndPlacesExist() {
+        CourseDraft draft = draft(CourseDraftStatus.FOOD_SELECTING);
+        MoodTag oldMoodTag = moodTag(1L, "CALM", "차분한");
+        MoodTag keptMoodTag = moodTag(2L, "HIP", "힙한");
+        MoodTag addedMoodTag = moodTag(3L, "MODERN", "모던한");
+        CourseDraftMoodTag oldDraftMoodTag = CourseDraftMoodTag.builder()
+                .courseDraft(draft)
+                .moodTag(oldMoodTag)
+                .build();
+        CourseDraftMoodTag keptDraftMoodTag = CourseDraftMoodTag.builder()
+                .courseDraft(draft)
+                .moodTag(keptMoodTag)
+                .build();
+
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+        given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(2L, 3L)))
+                .willReturn(List.of(keptMoodTag, addedMoodTag));
+        given(courseDraftMoodTagRepository.findByCourseDraft(draft))
+                .willReturn(List.of(oldDraftMoodTag, keptDraftMoodTag));
+        given(courseDraftPlaceRepository.existsByCourseDraft(draft)).willReturn(true);
+
+        courseDraftService.saveMoodTags(
+                10L,
+                1L,
+                new MoodTagSaveRequest(List.of(2L, 3L))
+        );
+
+        verify(courseDraftPlaceRepository).deleteByCourseDraft(draft);
+    }
+
+    @Test
+    void keepsDraftPlacesWhenMoodTagsChangedButPlacesDoNotExist() {
+        CourseDraft draft = draft(CourseDraftStatus.FOOD_SELECTING);
+        MoodTag oldMoodTag = moodTag(1L, "CALM", "차분한");
+        MoodTag keptMoodTag = moodTag(2L, "HIP", "힙한");
+        MoodTag addedMoodTag = moodTag(3L, "MODERN", "모던한");
+        CourseDraftMoodTag oldDraftMoodTag = CourseDraftMoodTag.builder()
+                .courseDraft(draft)
+                .moodTag(oldMoodTag)
+                .build();
+        CourseDraftMoodTag keptDraftMoodTag = CourseDraftMoodTag.builder()
+                .courseDraft(draft)
+                .moodTag(keptMoodTag)
+                .build();
+
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+        given(moodTagRepository.findByIdInAndIsActiveTrue(List.of(2L, 3L)))
+                .willReturn(List.of(keptMoodTag, addedMoodTag));
+        given(courseDraftMoodTagRepository.findByCourseDraft(draft))
+                .willReturn(List.of(oldDraftMoodTag, keptDraftMoodTag));
+        given(courseDraftPlaceRepository.existsByCourseDraft(draft)).willReturn(false);
+
+        courseDraftService.saveMoodTags(
+                10L,
+                1L,
+                new MoodTagSaveRequest(List.of(2L, 3L))
+        );
+
+        verify(courseDraftPlaceRepository, never()).deleteByCourseDraft(draft);
+    }
+
+    @Test
     void keepsFoodSelectingStatusWhenMoodTagsAreUpdatedFromFoodScreen() {
         CourseDraft draft = draft(CourseDraftStatus.FOOD_SELECTING);
         MoodTag moodTag = moodTag(1L, "CALM", "차분한");
@@ -131,6 +196,8 @@ class CourseDraftMoodTagServiceTest {
 
         verify(courseDraftMoodTagRepository).deleteAll(List.of());
         verify(courseDraftMoodTagRepository, never()).save(any());
+        verify(courseDraftPlaceRepository, never()).existsByCourseDraft(draft);
+        verify(courseDraftPlaceRepository, never()).deleteByCourseDraft(draft);
         assertThat(response.draftStatus()).isEqualTo(CourseDraftStatus.FOOD_SELECTING);
     }
 

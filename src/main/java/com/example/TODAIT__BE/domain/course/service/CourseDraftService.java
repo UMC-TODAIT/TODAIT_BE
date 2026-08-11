@@ -154,7 +154,8 @@ public class CourseDraftService {
 
         List<MoodTag> moodTags = validateAndGetMoodTags(moodTagIds);
 
-        updateMoodTags(courseDraft, moodTags);
+        boolean moodTagsChanged = updateMoodTags(courseDraft, moodTags);
+        deletePlacesIfPreferenceChanged(courseDraft, moodTagsChanged);
 
         if (courseDraft.getStatus() == CourseDraftStatus.MOOD_SELECTING) {
             courseDraft.changeStatus(CourseDraftStatus.FOOD_SELECTING);
@@ -195,7 +196,8 @@ public class CourseDraftService {
 
         List<FoodCategory> foodCategories = validateAndGetFoodCategories(foodCategoryIds);
 
-        updateFoodCategories(courseDraft, foodCategories);
+        boolean foodCategoriesChanged = updateFoodCategories(courseDraft, foodCategories);
+        deletePlacesIfPreferenceChanged(courseDraft, foodCategoriesChanged);
 
         courseDraft.changeStatus(CourseDraftStatus.BASE_PLACE_SELECTING);
 
@@ -456,7 +458,7 @@ public class CourseDraftService {
                 .toList();
     }
 
-    private void updateMoodTags(CourseDraft courseDraft, List<MoodTag> moodTags) {
+    private boolean updateMoodTags(CourseDraft courseDraft, List<MoodTag> moodTags) {
         List<CourseDraftMoodTag> existingMoodTags = courseDraftMoodTagRepository.findByCourseDraft(courseDraft);
         Set<Long> requestedMoodTagIds = moodTags.stream()
                 .map(MoodTag::getId)
@@ -464,6 +466,7 @@ public class CourseDraftService {
         Set<Long> existingMoodTagIds = existingMoodTags.stream()
                 .map(courseDraftMoodTag -> courseDraftMoodTag.getMoodTag().getId())
                 .collect(Collectors.toSet());
+        boolean changed = !requestedMoodTagIds.equals(existingMoodTagIds);
 
         List<CourseDraftMoodTag> moodTagsToDelete = existingMoodTags.stream()
                 .filter(courseDraftMoodTag -> !requestedMoodTagIds.contains(courseDraftMoodTag.getMoodTag().getId()))
@@ -477,6 +480,8 @@ public class CourseDraftService {
                         .moodTag(moodTag)
                         .build())
                 .forEach(courseDraftMoodTagRepository::save);
+
+        return changed;
     }
 
     private List<FoodCategory> validateAndGetFoodCategories(List<Long> foodCategoryIds) {
@@ -492,7 +497,7 @@ public class CourseDraftService {
                 .toList();
     }
 
-    private void updateFoodCategories(CourseDraft courseDraft, List<FoodCategory> foodCategories) {
+    private boolean updateFoodCategories(CourseDraft courseDraft, List<FoodCategory> foodCategories) {
         List<CourseDraftFoodCategory> existingFoodCategories =
                 courseDraftFoodCategoryRepository.findByCourseDraft(courseDraft);
         Set<Long> requestedFoodCategoryIds = foodCategories.stream()
@@ -501,6 +506,7 @@ public class CourseDraftService {
         Set<Long> existingFoodCategoryIds = existingFoodCategories.stream()
                 .map(courseDraftFoodCategory -> courseDraftFoodCategory.getFoodCategory().getId())
                 .collect(Collectors.toSet());
+        boolean changed = !requestedFoodCategoryIds.equals(existingFoodCategoryIds);
 
         List<CourseDraftFoodCategory> foodCategoriesToDelete = existingFoodCategories.stream()
                 .filter(courseDraftFoodCategory ->
@@ -515,6 +521,14 @@ public class CourseDraftService {
                         .foodCategory(foodCategory)
                         .build())
                 .forEach(courseDraftFoodCategoryRepository::save);
+
+        return changed;
+    }
+
+    private void deletePlacesIfPreferenceChanged(CourseDraft courseDraft, boolean preferenceChanged) {
+        if (preferenceChanged && courseDraftPlaceRepository.existsByCourseDraft(courseDraft)) {
+            courseDraftPlaceRepository.deleteByCourseDraft(courseDraft);
+        }
     }
 
     private void validateExactlyOneSource(BasePlaceSaveRequest request) {
