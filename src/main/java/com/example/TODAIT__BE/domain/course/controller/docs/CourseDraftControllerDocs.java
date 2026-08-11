@@ -142,12 +142,13 @@ public interface CourseDraftControllerDocs {
     );
 
     @Operation(
-            summary = "[순서 설정] 선택 장소 순서 변경",
+            summary = "[순서 설정] 장소 순서 변경",
             description = """
-                    임시 코스에 담긴 선택 장소들의 방문 순서를 일괄 변경합니다.
+                    임시 코스에 담긴 전체 장소들의 방문 순서를 일괄 변경합니다.
 
-                    - BASE 장소는 요청에서 제외합니다.
-                    - 선택 장소는 2번부터 연속된 방문 순서를 가져야 합니다.
+                    - BASE 포함 전체 장소를 요청에 포함합니다.
+                    - 방문 순서는 1번부터 연속되어야 합니다.
+                    - 성공 후 1번 장소는 BASE, 나머지는 SELECTED로 재지정합니다.
                     - 성공 후 draftStatus는 ORDERING입니다.
                     """
     )

@@ -272,14 +272,13 @@ public final class CourseDraftResponse {
 
         public static OrderingEntryPlaceResponse from(CourseDraftPlace courseDraftPlace) {
             Place place = courseDraftPlace.getPlace();
-            boolean selected = courseDraftPlace.getPlaceRole() == PlaceRole.SELECTED;
             return new OrderingEntryPlaceResponse(
                     courseDraftPlace.getId(),
                     place.getId(),
                     courseDraftPlace.getVisitOrder(),
                     courseDraftPlace.getPlaceRole(),
-                    selected,
-                    selected,
+                    true,
+                    false,
                     place.getName(),
                     place.getAddress(),
                     place.getRoadAddress(),

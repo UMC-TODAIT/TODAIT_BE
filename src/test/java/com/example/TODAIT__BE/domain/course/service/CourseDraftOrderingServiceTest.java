@@ -87,13 +87,12 @@ class CourseDraftOrderingServiceTest {
         assertThat(response.totalPlaceCount()).isEqualTo(2);
         assertThat(response.selectedPlaceCount()).isEqualTo(1);
         assertThat(response.places()).hasSize(2);
-        // BASE = 드래그/삭제 불가, SELECTED = 가능
         assertThat(response.places().get(0).placeRole()).isEqualTo(PlaceRole.BASE);
-        assertThat(response.places().get(0).draggable()).isFalse();
+        assertThat(response.places().get(0).draggable()).isTrue();
         assertThat(response.places().get(0).deletable()).isFalse();
         assertThat(response.places().get(1).placeRole()).isEqualTo(PlaceRole.SELECTED);
         assertThat(response.places().get(1).draggable()).isTrue();
-        assertThat(response.places().get(1).deletable()).isTrue();
+        assertThat(response.places().get(1).deletable()).isFalse();
     }
 
     @Test
@@ -204,15 +203,19 @@ class CourseDraftOrderingServiceTest {
                 DRAFT_ID,
                 MEMBER_ID,
                 new PlaceOrderUpdateRequest(List.of(
-                        new PlaceOrderItem(103L, 2),
+                        new PlaceOrderItem(103L, 1),
+                        new PlaceOrderItem(101L, 2),
                         new PlaceOrderItem(102L, 3)
                 ))
         );
 
         verify(courseDraftRepository).findByIdForUpdate(DRAFT_ID);
         verify(courseDraftPlaceRepository).flush();
-        assertThat(response.places()).extracting("courseDraftPlaceId").containsExactly(101L, 103L, 102L);
-        assertThat(secondSelectedPlace.getVisitOrder()).isEqualTo(2);
+        assertThat(response.places()).extracting("courseDraftPlaceId").containsExactly(103L, 101L, 102L);
+        assertThat(secondSelectedPlace.getPlaceRole()).isEqualTo(PlaceRole.BASE);
+        assertThat(secondSelectedPlace.getVisitOrder()).isEqualTo(1);
+        assertThat(basePlace.getPlaceRole()).isEqualTo(PlaceRole.SELECTED);
+        assertThat(basePlace.getVisitOrder()).isEqualTo(2);
         assertThat(firstSelectedPlace.getVisitOrder()).isEqualTo(3);
     }
 

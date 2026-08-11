@@ -737,9 +737,6 @@ public class CourseDraftService {
             if (place == null) {
                 throw new CourseException(CourseDraftErrorCode.SELECTED_PLACE_NOT_FOUND);
             }
-            if (place.getPlaceRole() == PlaceRole.BASE) {
-                throw new CourseException(CourseDraftErrorCode.BASE_PLACE_NOT_REORDERABLE);
-            }
             targetPlaces.add(place);
         }
         return targetPlaces;
@@ -747,12 +744,21 @@ public class CourseDraftService {
 
     private void updateVisitOrders(List<CourseDraftPlace> targetPlaces, List<PlaceOrderItem> placeOrders) {
         for (int i = 0; i < targetPlaces.size(); i++) {
-            targetPlaces.get(i).updateVisitOrder(-(i + 1));
+            targetPlaces.get(i).updateRoleAndVisitOrder(
+                    PlaceRole.SELECTED,
+                    targetPlaces.size() + SELECTED_PLACE_START_ORDER + i
+            );
         }
         courseDraftPlaceRepository.flush();
 
         for (int i = 0; i < targetPlaces.size(); i++) {
-            targetPlaces.get(i).updateVisitOrder(placeOrders.get(i).visitOrder());
+            Integer visitOrder = placeOrders.get(i).visitOrder();
+            targetPlaces.get(i).updateRoleAndVisitOrder(
+                    visitOrder.equals(BASE_VISIT_ORDER)
+                            ? PlaceRole.BASE
+                            : PlaceRole.SELECTED,
+                    visitOrder
+            );
         }
     }
 
@@ -762,7 +768,7 @@ public class CourseDraftService {
                 .sorted()
                 .toList();
         for (int i = 0; i < sortedOrders.size(); i++) {
-            if (!sortedOrders.get(i).equals(SELECTED_PLACE_START_ORDER + i)) {
+            if (!sortedOrders.get(i).equals(BASE_VISIT_ORDER + i)) {
                 throw new CourseException(CourseDraftErrorCode.INVALID_VISIT_ORDER);
             }
         }
@@ -770,12 +776,11 @@ public class CourseDraftService {
         Set<Long> requestedIds = placeOrders.stream()
                 .map(PlaceOrderItem::courseDraftPlaceId)
                 .collect(Collectors.toSet());
-        Set<Long> actualSelectedIds = allPlaces.stream()
-                .filter(place -> place.getPlaceRole() == PlaceRole.SELECTED)
+        Set<Long> actualPlaceIds = allPlaces.stream()
                 .map(CourseDraftPlace::getId)
                 .collect(Collectors.toSet());
 
-        if (requestedIds.size() != placeOrders.size() || !requestedIds.equals(actualSelectedIds)) {
+        if (requestedIds.size() != placeOrders.size() || !requestedIds.equals(actualPlaceIds)) {
             throw new CourseException(CourseDraftErrorCode.INVALID_VISIT_ORDER);
         }
     }

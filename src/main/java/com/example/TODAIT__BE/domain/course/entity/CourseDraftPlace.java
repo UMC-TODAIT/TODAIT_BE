@@ -66,6 +66,11 @@ public class CourseDraftPlace {
         this.visitOrder = visitOrder;
     }
 
+    public void updateRoleAndVisitOrder(PlaceRole placeRole, Integer visitOrder) {
+        this.placeRole = placeRole;
+        this.visitOrder = visitOrder;
+    }
+
     public void updatePlace(Place place) {
         this.place = place;
     }
