@@ -36,21 +36,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         String token = resolveToken(request);
 
-        if (token != null && jwtTokenProvider.validateToken(token)
-                && TokenType.ACCESS == jwtTokenProvider.getTokenType(token)) {
-            AuthMember authMember = resolveAuthMember(token);
-            if (authMember == null) {
-                writeUnauthorizedResponse(response);
-                return;
-            }
-
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    authMember,
-                    null,
-                    List.of(new SimpleGrantedAuthority("ROLE_" + authMember.role().name()))
-            );
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        if (token == null) {
+            filterChain.doFilter(request, response);
+            return;
         }
+
+        if (!jwtTokenProvider.validateToken(token)
+                || TokenType.ACCESS != jwtTokenProvider.getTokenType(token)) {
+            writeUnauthorizedResponse(response);
+            return;
+        }
+
+        AuthMember authMember = resolveAuthMember(token);
+        if (authMember == null) {
+            writeUnauthorizedResponse(response);
+            return;
+        }
+
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                authMember,
+                null,
+                List.of(new SimpleGrantedAuthority("ROLE_" + authMember.role().name()))
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         filterChain.doFilter(request, response);
     }
