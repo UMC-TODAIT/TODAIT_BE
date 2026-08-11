@@ -167,17 +167,17 @@ class EmailVerificationServiceTest {
     }
 
     @Test
-    void sendVerificationCodeFailsWhenEmailAlreadyRegistered() {
+    void sendVerificationCodeReturnsSuccessWithoutSendingWhenEmailAlreadyRegistered() {
         given(memberRepository.existsByEmail("test@example.com"))
                 .willReturn(true);
 
-        assertThatThrownBy(() -> emailVerificationService.sendVerificationCode(
+        EmailVerificationResponse.Send response = emailVerificationService.sendVerificationCode(
                 new EmailVerificationRequest.Send("test@example.com")
-        ))
-                .isInstanceOf(MemberException.class)
-                .extracting("errorCode")
-                .isEqualTo(EmailVerificationErrorCode.ALREADY_COMPLETED);
+        );
 
+        assertThat(response.email()).isEqualTo("test@example.com");
+        assertThat(response.expiresInMinutes()).isEqualTo(CODE_TTL_MINUTES);
+        verify(randomCodeGenerator, never()).generateNumericCode();
         verify(emailVerificationStore, never()).saveCodeIfNotCoolingDown(anyString(), anyString());
         verify(emailVerificationSender, never()).sendVerificationCode(anyString(), anyString());
     }

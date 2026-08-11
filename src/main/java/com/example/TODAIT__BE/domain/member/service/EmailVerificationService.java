@@ -42,7 +42,7 @@ public class EmailVerificationService {
     ) {
         String email = normalizeAndValidateEmail(request.email());
         if (memberRepository.existsByEmail(email)) {
-            throw new MemberException(EmailVerificationErrorCode.ALREADY_COMPLETED);
+            return new EmailVerificationResponse.Send(email, codeTtlMinutes);
         }
 
         String code = randomCodeGenerator.generateNumericCode();
