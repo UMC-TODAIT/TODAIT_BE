@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -47,11 +48,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class HomeRecommendedCourseServiceTest {
 
     private static final Long MEMBER_ID = 1L;
@@ -83,10 +81,10 @@ class HomeRecommendedCourseServiceTest {
                 new ObjectMapper()
         );
 
-        given(memberRepository.findById(MEMBER_ID))
-                .willReturn(Optional.of(mock(Member.class)));
-        given(recommendationLogRepository.save(any(RecommendationLog.class)))
-                .willAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(memberRepository.findById(MEMBER_ID))
+                .thenReturn(Optional.of(mock(Member.class)));
+        lenient().when(recommendationLogRepository.save(any(RecommendationLog.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
@@ -408,16 +406,16 @@ class HomeRecommendedCourseServiceTest {
             String title
     ) {
         Area area = mock(Area.class);
-        given(area.getId()).willReturn(areaId);
-        given(area.getCode()).willReturn(areaCode);
-        given(area.getName()).willReturn(areaName);
+        lenient().when(area.getId()).thenReturn(areaId);
+        lenient().when(area.getCode()).thenReturn(areaCode);
+        lenient().when(area.getName()).thenReturn(areaName);
 
         Course course = mock(Course.class);
-        given(course.getId()).willReturn(id);
-        given(course.getTitle()).willReturn(title);
-        given(course.getArea()).willReturn(area);
-        given(course.getOperatorPriority()).willReturn(operatorPriority);
-        given(course.getCreatedAt()).willReturn(LocalDateTime.of(2026, 7, 1, 0, 0));
+        lenient().when(course.getId()).thenReturn(id);
+        lenient().when(course.getTitle()).thenReturn(title);
+        lenient().when(course.getArea()).thenReturn(area);
+        lenient().when(course.getOperatorPriority()).thenReturn(operatorPriority);
+        lenient().when(course.getCreatedAt()).thenReturn(LocalDateTime.of(2026, 7, 1, 0, 0));
         return course;
     }
 
@@ -427,24 +425,24 @@ class HomeRecommendedCourseServiceTest {
             String imageUrl
     ) {
         Place place = mock(Place.class);
-        given(place.getSubCategory()).willReturn(subCategory);
-        given(place.getDefaultImageUrl()).willReturn(imageUrl);
+        lenient().when(place.getSubCategory()).thenReturn(subCategory);
+        lenient().when(place.getDefaultImageUrl()).thenReturn(imageUrl);
 
         CoursePlace coursePlace = mock(CoursePlace.class);
-        given(coursePlace.getCourse()).willReturn(course);
-        given(coursePlace.getPlace()).willReturn(place);
-        given(coursePlace.getIsRepresentative()).willReturn(true);
+        lenient().when(coursePlace.getCourse()).thenReturn(course);
+        lenient().when(coursePlace.getPlace()).thenReturn(place);
+        lenient().when(coursePlace.getIsRepresentative()).thenReturn(true);
         return coursePlace;
     }
 
     private CourseMoodTag moodTag(Course course, String code, String name) {
         MoodTag moodTag = mock(MoodTag.class);
-        given(moodTag.getCode()).willReturn(code);
-        given(moodTag.getName()).willReturn(name);
+        lenient().when(moodTag.getCode()).thenReturn(code);
+        lenient().when(moodTag.getName()).thenReturn(name);
 
         CourseMoodTag courseMoodTag = mock(CourseMoodTag.class);
-        given(courseMoodTag.getCourse()).willReturn(course);
-        given(courseMoodTag.getMoodTag()).willReturn(moodTag);
+        lenient().when(courseMoodTag.getCourse()).thenReturn(course);
+        lenient().when(courseMoodTag.getMoodTag()).thenReturn(moodTag);
         return courseMoodTag;
     }
 

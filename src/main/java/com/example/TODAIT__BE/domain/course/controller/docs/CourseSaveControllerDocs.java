@@ -22,6 +22,8 @@ public interface CourseSaveControllerDocs {
 
                     - 저장 가능 상태: SAVING
                     - 저장 결과: 사용자 개인 저장 코스
+                    - 요청 body: title, memo
+                    - 무드 태그, 음식 카테고리, 장소는 임시 코스에 저장된 선택값을 사용합니다.
                     """
     )
     @SecurityRequirement(name = "JWT TOKEN")

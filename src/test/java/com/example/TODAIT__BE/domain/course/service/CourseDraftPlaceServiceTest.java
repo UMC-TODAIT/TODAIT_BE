@@ -175,7 +175,7 @@ class CourseDraftPlaceServiceTest {
     }
 
     @Test
-    void throwsWhenBasePlaceIncludedInRequest() {
+    void reassignsBaseToFirstRequestedPlace() {
         CourseDraft draft = courseDraft(10L, member(1L));
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
@@ -184,12 +184,17 @@ class CourseDraftPlaceServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base, selected));
 
-        PlaceOrderUpdateRequest request = new PlaceOrderUpdateRequest(List.of(new PlaceOrderItem(100L, 2)));
+        PlaceOrderUpdateRequest request = new PlaceOrderUpdateRequest(List.of(
+                new PlaceOrderItem(101L, 1),
+                new PlaceOrderItem(100L, 2)
+        ));
 
-        assertThatThrownBy(() -> courseDraftService.updatePlaceOrder(10L, 1L, request))
-                .isInstanceOf(CourseException.class)
-                .extracting("errorCode")
-                .isEqualTo(CourseDraftErrorCode.BASE_PLACE_NOT_REORDERABLE);
+        courseDraftService.updatePlaceOrder(10L, 1L, request);
+
+        assertThat(selected.getPlaceRole()).isEqualTo(PlaceRole.BASE);
+        assertThat(selected.getVisitOrder()).isEqualTo(1);
+        assertThat(base.getPlaceRole()).isEqualTo(PlaceRole.SELECTED);
+        assertThat(base.getVisitOrder()).isEqualTo(2);
     }
 
     @Test
@@ -232,7 +237,7 @@ class CourseDraftPlaceServiceTest {
     }
 
     @Test
-    void throwsWhenVisitOrderNotContinuousFromTwo() {
+    void throwsWhenVisitOrderNotContinuousFromOne() {
         CourseDraft draft = courseDraft(10L, member(1L));
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
@@ -243,8 +248,8 @@ class CourseDraftPlaceServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base, s1, s2, s3));
 
-        // 2, 4, 5 : gap at 3
         PlaceOrderUpdateRequest request = new PlaceOrderUpdateRequest(List.of(
+                new PlaceOrderItem(100L, 1),
                 new PlaceOrderItem(101L, 2),
                 new PlaceOrderItem(102L, 4),
                 new PlaceOrderItem(103L, 5)
@@ -267,8 +272,8 @@ class CourseDraftPlaceServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base, s1, s2));
 
-        // 2, 2 : duplicate
         PlaceOrderUpdateRequest request = new PlaceOrderUpdateRequest(List.of(
+                new PlaceOrderItem(100L, 1),
                 new PlaceOrderItem(101L, 2),
                 new PlaceOrderItem(102L, 2)
         ));
@@ -280,7 +285,7 @@ class CourseDraftPlaceServiceTest {
     }
 
     @Test
-    void throwsWhenSelectedPlaceIsMissingFromRequest() {
+    void throwsWhenAnyPlaceIsMissingFromRequest() {
         CourseDraft draft = courseDraft(10L, member(1L));
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
 
@@ -291,8 +296,8 @@ class CourseDraftPlaceServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base, s1, s2, s3));
 
-        // only 2 of 3 selected places submitted
         PlaceOrderUpdateRequest request = new PlaceOrderUpdateRequest(List.of(
+                new PlaceOrderItem(100L, 1),
                 new PlaceOrderItem(101L, 2),
                 new PlaceOrderItem(102L, 3)
         ));

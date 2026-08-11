@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -38,11 +39,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class PlaceServiceTest {
 
     @Mock
@@ -173,28 +171,28 @@ class PlaceServiceTest {
 
     private Place exposablePlace(Long id) {
         Place place = mock(Place.class);
-        given(place.getId()).willReturn(id);
-        given(place.getName()).willReturn("투데잇 카페");
-        given(place.getAddress()).willReturn("서울 마포구 와우산로 00");
-        given(place.getRoadAddress()).willReturn("서울 마포구 와우산로 00길 00");
-        given(place.getLatitude()).willReturn(37.5563);
-        given(place.getLongitude()).willReturn(126.9236);
-        given(place.getPhone()).willReturn("02-1234-5678");
-        given(place.getSubCategory()).willReturn("디저트 카페");
-        given(place.getDefaultImageUrl()).willReturn("https://img/main1.jpg");
-        given(place.getBusinessHours()).willReturn("00:00-00:00"); // 24시간 → OPEN
-        given(place.getLastOrderTime()).willReturn(LocalTime.of(20, 30));
-        given(place.getDefaultRecommendReason()).willReturn("감성적인 분위기");
-        given(place.getReviewStatus()).willReturn(PlaceReviewStatus.APPROVED);
-        given(place.getExposureStatus()).willReturn(PlaceExposureStatus.ACTIVE);
-        given(place.getIsActive()).willReturn(true);
+        lenient().when(place.getId()).thenReturn(id);
+        lenient().when(place.getName()).thenReturn("투데잇 카페");
+        lenient().when(place.getAddress()).thenReturn("서울 마포구 와우산로 00");
+        lenient().when(place.getRoadAddress()).thenReturn("서울 마포구 와우산로 00길 00");
+        lenient().when(place.getLatitude()).thenReturn(37.5563);
+        lenient().when(place.getLongitude()).thenReturn(126.9236);
+        lenient().when(place.getPhone()).thenReturn("02-1234-5678");
+        lenient().when(place.getSubCategory()).thenReturn("디저트 카페");
+        lenient().when(place.getDefaultImageUrl()).thenReturn("https://img/main1.jpg");
+        lenient().when(place.getBusinessHours()).thenReturn("00:00-00:00"); // 24시간 -> OPEN
+        lenient().when(place.getLastOrderTime()).thenReturn(LocalTime.of(20, 30));
+        lenient().when(place.getDefaultRecommendReason()).thenReturn("감성적인 분위기");
+        lenient().when(place.getReviewStatus()).thenReturn(PlaceReviewStatus.APPROVED);
+        lenient().when(place.getExposureStatus()).thenReturn(PlaceExposureStatus.ACTIVE);
+        lenient().when(place.getIsActive()).thenReturn(true);
         // 중첩 given() 방지: 연관 mock을 먼저 만든 뒤 스텁에 전달
         Area area = area(true);
         PlaceCategory placeCategory = placeCategory(1L, "CAFE", "카페");
         FoodCategory primaryFoodCategory = foodCategory(6L, "DESSERT", "디저트");
-        given(place.getArea()).willReturn(area);
-        given(place.getPlaceCategory()).willReturn(placeCategory);
-        given(place.getPrimaryFoodCategory()).willReturn(primaryFoodCategory);
+        lenient().when(place.getArea()).thenReturn(area);
+        lenient().when(place.getPlaceCategory()).thenReturn(placeCategory);
+        lenient().when(place.getPrimaryFoodCategory()).thenReturn(primaryFoodCategory);
         return place;
     }
 
@@ -209,16 +207,16 @@ class PlaceServiceTest {
             boolean isActive
     ) {
         PlaceCategory category = mock(PlaceCategory.class);
-        given(category.getId()).willReturn(id);
-        given(category.getCode()).willReturn(code);
-        given(category.getName()).willReturn(name);
-        given(category.getIsActive()).willReturn(isActive);
+        lenient().when(category.getId()).thenReturn(id);
+        lenient().when(category.getCode()).thenReturn(code);
+        lenient().when(category.getName()).thenReturn(name);
+        lenient().when(category.getIsActive()).thenReturn(isActive);
         return category;
     }
 
     private Area area(boolean isActive) {
         Area area = mock(Area.class);
-        given(area.getIsActive()).willReturn(isActive);
+        lenient().when(area.getIsActive()).thenReturn(isActive);
         return area;
     }
 
@@ -239,9 +237,9 @@ class PlaceServiceTest {
 
     private FoodCategory foodCategory(Long id, String code, String name) {
         FoodCategory category = mock(FoodCategory.class);
-        given(category.getId()).willReturn(id);
-        given(category.getCode()).willReturn(code);
-        given(category.getName()).willReturn(name);
+        lenient().when(category.getId()).thenReturn(id);
+        lenient().when(category.getCode()).thenReturn(code);
+        lenient().when(category.getName()).thenReturn(name);
         return category;
     }
 

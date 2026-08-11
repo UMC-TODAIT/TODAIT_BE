@@ -17,6 +17,7 @@ import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRepository;
+import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.member.entity.Member;
@@ -42,6 +43,8 @@ class CourseDraftFoodCategoryServiceTest {
     @Mock
     private CourseDraftFoodCategoryRepository courseDraftFoodCategoryRepository;
     @Mock
+    private CourseDraftPlaceRepository courseDraftPlaceRepository;
+    @Mock
     private FoodCategoryRepository foodCategoryRepository;
 
     private CourseDraftService courseDraftService;
@@ -53,7 +56,7 @@ class CourseDraftFoodCategoryServiceTest {
                 null,
                 null,
                 courseDraftFoodCategoryRepository,
-                null,
+                courseDraftPlaceRepository,
                 null,
                 foodCategoryRepository,
                 null,
@@ -104,6 +107,68 @@ class CourseDraftFoodCategoryServiceTest {
     }
 
     @Test
+    void deletesDraftPlacesWhenFoodCategoriesChangedAndPlacesExist() {
+        CourseDraft draft = draft(CourseDraftStatus.BASE_PLACE_SELECTING);
+        FoodCategory oldFoodCategory = foodCategory(1L, "KOREAN", "한식");
+        FoodCategory keptFoodCategory = foodCategory(2L, "JAPANESE", "일식");
+        FoodCategory addedFoodCategory = foodCategory(3L, "WESTERN", "양식");
+        CourseDraftFoodCategory oldDraftFoodCategory = CourseDraftFoodCategory.builder()
+                .courseDraft(draft)
+                .foodCategory(oldFoodCategory)
+                .build();
+        CourseDraftFoodCategory keptDraftFoodCategory = CourseDraftFoodCategory.builder()
+                .courseDraft(draft)
+                .foodCategory(keptFoodCategory)
+                .build();
+
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+        given(foodCategoryRepository.findByIdInAndIsActiveTrue(List.of(2L, 3L)))
+                .willReturn(List.of(keptFoodCategory, addedFoodCategory));
+        given(courseDraftFoodCategoryRepository.findByCourseDraft(draft))
+                .willReturn(List.of(oldDraftFoodCategory, keptDraftFoodCategory));
+        given(courseDraftPlaceRepository.existsByCourseDraft(draft)).willReturn(true);
+
+        courseDraftService.saveFoodCategories(
+                10L,
+                1L,
+                new FoodCategorySaveRequest(List.of(2L, 3L))
+        );
+
+        verify(courseDraftPlaceRepository).deleteByCourseDraft(draft);
+    }
+
+    @Test
+    void keepsDraftPlacesWhenFoodCategoriesChangedButPlacesDoNotExist() {
+        CourseDraft draft = draft(CourseDraftStatus.BASE_PLACE_SELECTING);
+        FoodCategory oldFoodCategory = foodCategory(1L, "KOREAN", "한식");
+        FoodCategory keptFoodCategory = foodCategory(2L, "JAPANESE", "일식");
+        FoodCategory addedFoodCategory = foodCategory(3L, "WESTERN", "양식");
+        CourseDraftFoodCategory oldDraftFoodCategory = CourseDraftFoodCategory.builder()
+                .courseDraft(draft)
+                .foodCategory(oldFoodCategory)
+                .build();
+        CourseDraftFoodCategory keptDraftFoodCategory = CourseDraftFoodCategory.builder()
+                .courseDraft(draft)
+                .foodCategory(keptFoodCategory)
+                .build();
+
+        given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
+        given(foodCategoryRepository.findByIdInAndIsActiveTrue(List.of(2L, 3L)))
+                .willReturn(List.of(keptFoodCategory, addedFoodCategory));
+        given(courseDraftFoodCategoryRepository.findByCourseDraft(draft))
+                .willReturn(List.of(oldDraftFoodCategory, keptDraftFoodCategory));
+        given(courseDraftPlaceRepository.existsByCourseDraft(draft)).willReturn(false);
+
+        courseDraftService.saveFoodCategories(
+                10L,
+                1L,
+                new FoodCategorySaveRequest(List.of(2L, 3L))
+        );
+
+        verify(courseDraftPlaceRepository, never()).deleteByCourseDraft(draft);
+    }
+
+    @Test
     void keepsBasePlaceSelectingStatusWhenFoodCategoriesAreUpdatedFromBasePlaceScreen() {
         CourseDraft draft = draft(CourseDraftStatus.BASE_PLACE_SELECTING);
         FoodCategory foodCategory = foodCategory(1L, "KOREAN", "한식");
@@ -131,6 +196,8 @@ class CourseDraftFoodCategoryServiceTest {
 
         verify(courseDraftFoodCategoryRepository).deleteAll(List.of());
         verify(courseDraftFoodCategoryRepository, never()).save(any());
+        verify(courseDraftPlaceRepository, never()).existsByCourseDraft(draft);
+        verify(courseDraftPlaceRepository, never()).deleteByCourseDraft(draft);
         assertThat(response.draftStatus()).isEqualTo(CourseDraftStatus.BASE_PLACE_SELECTING);
     }
 

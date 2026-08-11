@@ -82,7 +82,7 @@ class MemberServiceTest {
                 .build();
 
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-        given(courseRepository.countByMemberId(1L)).willReturn(3L);
+        given(courseRepository.countByMemberIdAndDeletedAtIsNull(1L)).willReturn(3L);
 
         MemberResponse.Me response = memberService.getMyInfo(1L);
 
