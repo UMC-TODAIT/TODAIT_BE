@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -41,11 +42,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class HomeRecommendedPlaceServiceTest {
 
     private static final Long MEMBER_ID = 1L;
@@ -81,11 +79,11 @@ class HomeRecommendedPlaceServiceTest {
                 new ObjectMapper()
         );
 
-        given(memberRepository.findById(MEMBER_ID))
-                .willReturn(Optional.of(mock(Member.class)));
+        lenient().when(memberRepository.findById(MEMBER_ID))
+                .thenReturn(Optional.of(mock(Member.class)));
 
-        given(recommendationLogRepository.save(any(RecommendationLog.class)))
-                .willAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(recommendationLogRepository.save(any(RecommendationLog.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
@@ -529,29 +527,29 @@ class HomeRecommendedPlaceServiceTest {
             double longitude
     ) {
         Area area = mock(Area.class);
-        given(area.getId()).willReturn(id * 10);
-        given(area.getCode()).willReturn(areaCode);
-        given(area.getName()).willReturn(areaName(areaCode));
+        lenient().when(area.getId()).thenReturn(id * 10);
+        lenient().when(area.getCode()).thenReturn(areaCode);
+        lenient().when(area.getName()).thenReturn(areaName(areaCode));
 
         PlaceCategory category = mock(PlaceCategory.class);
-        given(category.getId()).willReturn(1L);
-        given(category.getCode()).willReturn("CAFE");
-        given(category.getName()).willReturn("카페");
+        lenient().when(category.getId()).thenReturn(1L);
+        lenient().when(category.getCode()).thenReturn("CAFE");
+        lenient().when(category.getName()).thenReturn("카페");
 
         Place place = mock(Place.class);
-        given(place.getId()).willReturn(id);
-        given(place.getName()).willReturn("테스트 장소 " + id);
-        given(place.getAddress()).willReturn("테스트 주소 " + id);
-        given(place.getRoadAddress()).willReturn("테스트 도로명 주소 " + id);
-        given(place.getLatitude()).willReturn(latitude);
-        given(place.getLongitude()).willReturn(longitude);
-        given(place.getArea()).willReturn(area);
-        given(place.getPlaceCategory()).willReturn(category);
-        given(place.getSubCategory()).willReturn("감성 카페");
-        given(place.getDefaultImageUrl()).willReturn("https://image/" + id);
-        given(place.getOperatorPriority()).willReturn(operatorPriority);
-        given(place.getCreatedAt())
-                .willReturn(LocalDateTime.of(2026, 7, 1, 0, 0));
+        lenient().when(place.getId()).thenReturn(id);
+        lenient().when(place.getName()).thenReturn("테스트 장소 " + id);
+        lenient().when(place.getAddress()).thenReturn("테스트 주소 " + id);
+        lenient().when(place.getRoadAddress()).thenReturn("테스트 도로명 주소 " + id);
+        lenient().when(place.getLatitude()).thenReturn(latitude);
+        lenient().when(place.getLongitude()).thenReturn(longitude);
+        lenient().when(place.getArea()).thenReturn(area);
+        lenient().when(place.getPlaceCategory()).thenReturn(category);
+        lenient().when(place.getSubCategory()).thenReturn("감성 카페");
+        lenient().when(place.getDefaultImageUrl()).thenReturn("https://image/" + id);
+        lenient().when(place.getOperatorPriority()).thenReturn(operatorPriority);
+        lenient().when(place.getCreatedAt())
+                .thenReturn(LocalDateTime.of(2026, 7, 1, 0, 0));
 
         return place;
     }

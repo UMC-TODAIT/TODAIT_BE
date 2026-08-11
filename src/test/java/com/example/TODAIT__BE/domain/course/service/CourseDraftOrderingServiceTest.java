@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -30,11 +31,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class CourseDraftOrderingServiceTest {
 
     private static final Long DRAFT_ID = 15L;
@@ -236,7 +234,7 @@ class CourseDraftOrderingServiceTest {
 
     private CourseDraft draft(CourseDraftStatus status, Long ownerId) {
         Member member = mock(Member.class);
-        given(member.getId()).willReturn(ownerId);
+        lenient().when(member.getId()).thenReturn(ownerId);
         return CourseDraft.builder()
                 .id(DRAFT_ID)
                 .member(member)
@@ -247,12 +245,12 @@ class CourseDraftOrderingServiceTest {
     private CourseDraftPlace place(
             Long id, Long placeId, int visitOrder, PlaceRole role, String name) {
         Place place = mock(Place.class);
-        given(place.getId()).willReturn(placeId);
-        given(place.getName()).willReturn(name);
-        given(place.getAddress()).willReturn("서울 마포구 연남동");
-        given(place.getRoadAddress()).willReturn("서울 마포구 연희로");
-        given(place.getLatitude()).willReturn(37.56);
-        given(place.getLongitude()).willReturn(126.92);
+        lenient().when(place.getId()).thenReturn(placeId);
+        lenient().when(place.getName()).thenReturn(name);
+        lenient().when(place.getAddress()).thenReturn("서울 마포구 연남동");
+        lenient().when(place.getRoadAddress()).thenReturn("서울 마포구 연희로");
+        lenient().when(place.getLatitude()).thenReturn(37.56);
+        lenient().when(place.getLongitude()).thenReturn(126.92);
         return CourseDraftPlace.builder()
                 .id(id)
                 .place(place)
