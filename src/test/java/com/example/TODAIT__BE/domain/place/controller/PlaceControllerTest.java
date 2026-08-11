@@ -64,6 +64,8 @@ class PlaceControllerTest {
         PlaceSearchResponse.SearchResult response = new PlaceSearchResponse.SearchResult(
                 "연남동 카페",
                 1,
+                2,
+                true,
                 List.of(new PlaceSearchResponse.PlaceItem(
                         "kakao-1",
                         1L,
@@ -83,16 +85,21 @@ class PlaceControllerTest {
                         true
                 ))
         );
-        given(placeSearchService.search(eq("연남동 카페"))).willReturn(response);
+        given(placeSearchService.search(eq("연남동 카페"), eq(1), eq(10)))
+                .willReturn(response);
 
         mockMvc.perform(get("/api/places/search")
                         .param("query", "연남동 카페")
+                        .param("cursor", "1")
+                        .param("size", "10")
                         .with(authentication(authMemberToken())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.isSuccess").value(true))
                 .andExpect(jsonPath("$.code").value("PLACE200"))
                 .andExpect(jsonPath("$.message").value("기준 장소 검색 결과 조회 성공"))
-                .andExpect(jsonPath("$.result.resultCount").value(1));
+                .andExpect(jsonPath("$.result.resultCount").value(1))
+                .andExpect(jsonPath("$.result.nextCursor").value(2))
+                .andExpect(jsonPath("$.result.hasNext").value(true));
     }
 
     @Test

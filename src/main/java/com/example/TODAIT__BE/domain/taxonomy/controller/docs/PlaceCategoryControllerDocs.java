@@ -18,6 +18,7 @@ public interface PlaceCategoryControllerDocs {
                     - 식당
                     - 액티비티
                     - 바
+                    - 기타
                     """
     )
     ResponseEntity<ApiResponse<PlaceCategoryListResponse>> getPlaceCategories();

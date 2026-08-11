@@ -35,8 +35,7 @@ public enum CourseDraftErrorCode implements BaseErrorCode {
     BASE_PLACE_SOURCE_MISSING(HttpStatus.BAD_REQUEST, "COURSE400_7", "기준 장소 정보가 필요합니다."),
     PLACE_ADD_DRAFT_STATUS_CONFLICT(HttpStatus.CONFLICT, "COURSE_PLACE409_3", "현재 임시 코스 상태에서는 장소를 추가할 수 없습니다."),
     BASE_PLACE_RESELECT_CONFLICT(HttpStatus.CONFLICT, "COURSE_PLACE409_4", "기준 장소는 다시 추가할 수 없습니다."),
-    SELECTED_PLACE_DUPLICATE(HttpStatus.CONFLICT, "COURSE_PLACE409_5", "이미 선택한 장소입니다."),
-    SELECTED_PLACE_CATEGORY_DUPLICATE(HttpStatus.CONFLICT, "COURSE_PLACE409_6", "카테고리별로 하나의 장소만 선택할 수 있습니다.");
+    SELECTED_PLACE_DUPLICATE(HttpStatus.CONFLICT, "COURSE_PLACE409_5", "이미 선택한 장소입니다.");
 
     private final HttpStatus status;
     private final String code;

@@ -412,21 +412,23 @@ class CourseDraftPlaceServiceTest {
     }
 
     @Test
-    void throwsWhenPlaceCategoryIsNotSupported() {
+    void allowsAnyActivePlaceCategory() {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.PLACE_SELECTING);
         Place basePlace = availablePlace(21L, placeCategory(1L, true));
         CourseDraftPlace base = draftPlace(50L, PlaceRole.BASE, 1, basePlace);
-        Place unsupportedCategoryPlace = availablePlace(32L, placeCategory(2L, true, "DESSERT"));
+        Place otherCategoryPlace = availablePlace(32L, placeCategory(2L, true, "OTHER"));
 
         given(courseDraftRepository.findByIdForUpdate(10L)).willReturn(Optional.of(draft));
         given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base));
-        given(placeRepository.findById(32L)).willReturn(Optional.of(unsupportedCategoryPlace));
+        given(placeRepository.findById(32L)).willReturn(Optional.of(otherCategoryPlace));
+        given(courseDraftPlaceRepository.save(any(CourseDraftPlace.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
 
-        assertThatThrownBy(() -> courseDraftService.addPlace(10L, 1L, new PlaceAddRequest(32L)))
-                .isInstanceOf(PlaceException.class)
-                .extracting("errorCode")
-                .isEqualTo(ExternalPlaceRegistrationErrorCode.PLACE_NOT_AVAILABLE);
+        PlaceAddResponse response =
+                courseDraftService.addPlace(10L, 1L, new PlaceAddRequest(32L));
+
+        assertThat(response.addedPlace().placeId()).isEqualTo(32L);
     }
 
     @Test
@@ -468,7 +470,7 @@ class CourseDraftPlaceServiceTest {
     }
 
     @Test
-    void throwsWhenCategoryIsAlreadyUsedByAnotherSelectedPlace() {
+    void allowsMultiplePlacesWithSameCategory() {
         CourseDraft draft = courseDraft(10L, member(1L), CourseDraftStatus.PLACE_SELECTING);
         PlaceCategory cafeCategory = placeCategory(1L, true);
         Place basePlace = availablePlace(21L, cafeCategory);
@@ -479,10 +481,12 @@ class CourseDraftPlaceServiceTest {
         given(courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
                 .willReturn(List.of(base));
         given(placeRepository.findById(33L)).willReturn(Optional.of(anotherCafePlace));
+        given(courseDraftPlaceRepository.save(any(CourseDraftPlace.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
 
-        assertThatThrownBy(() -> courseDraftService.addPlace(10L, 1L, new PlaceAddRequest(33L)))
-                .isInstanceOf(CourseException.class)
-                .extracting("errorCode")
-                .isEqualTo(CourseDraftErrorCode.SELECTED_PLACE_CATEGORY_DUPLICATE);
+        PlaceAddResponse response =
+                courseDraftService.addPlace(10L, 1L, new PlaceAddRequest(33L));
+
+        assertThat(response.addedPlace().placeId()).isEqualTo(33L);
     }
 }

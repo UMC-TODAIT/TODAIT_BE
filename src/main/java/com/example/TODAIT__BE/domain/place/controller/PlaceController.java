@@ -31,10 +31,20 @@ public class PlaceController implements PlaceControllerDocs {
                     name = "query",
                     required = false
             )
-            String query
+            String query,
+            @RequestParam(
+                    name = "cursor",
+                    required = false
+            )
+            Integer cursor,
+            @RequestParam(
+                    name = "size",
+                    required = false
+            )
+            Integer size
     ) {
         PlaceSearchResponse.SearchResult result =
-                placeSearchService.search(query);
+                placeSearchService.search(query, cursor, size);
 
         return ResponseEntity
                 .status(

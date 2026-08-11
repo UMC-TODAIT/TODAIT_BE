@@ -11,18 +11,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class PlaceSearchService {
 
-    private static final int EXTERNAL_SEARCH_SIZE = 15;
-    private static final int MAX_EXTERNAL_SEARCH_PAGES = 3;
-    private static final int MAX_RESULT_COUNT = 10;
+    private static final int DEFAULT_CURSOR = 1;
+    private static final int MAX_CURSOR = 45;
+    private static final int DEFAULT_SIZE = 10;
+    private static final int MIN_SIZE = 1;
+    private static final int MAX_SIZE = 15;
     private static final int MIN_QUERY_LENGTH = 2;
     private static final int MAX_QUERY_LENGTH = 100;
 
@@ -30,54 +29,54 @@ public class PlaceSearchService {
     private final PlaceSearchEnricher searchEnricher;
 
     @Transactional(readOnly = true)
-    public PlaceSearchResponse.SearchResult search(String query) {
+    public PlaceSearchResponse.SearchResult search(
+            String query,
+            Integer cursor,
+            Integer size
+    ) {
         String normalizedQuery =
                 validateAndNormalizeQuery(query);
+        int resolvedCursor = validateAndResolveCursor(cursor);
+        int resolvedSize = validateAndResolveSize(size);
 
-        List<PlaceSearchResponse.PlaceItem> places =
-                new ArrayList<>();
+        ExternalPlaceSearchResult searchResult =
+                placeSearchPort.searchByKeyword(
+                        normalizedQuery,
+                        resolvedCursor,
+                        resolvedSize
+                );
 
-        Set<String> seenExternalPlaceIds =
-                new HashSet<>();
-
-        for (int page = 1;
-             page <= MAX_EXTERNAL_SEARCH_PAGES
-                     && places.size() < MAX_RESULT_COUNT;
-             page++) {
-
-            ExternalPlaceSearchResult searchResult =
-                    placeSearchPort.searchByKeyword(
-                            normalizedQuery,
-                            page,
-                            EXTERNAL_SEARCH_SIZE
-                    );
-
-            List<ExternalPlaceCandidate> newCandidates =
-                    searchResult.candidates().stream()
-                            .filter(candidate ->
-                                    seenExternalPlaceIds.add(
-                                            candidate.externalPlaceId()
-                                    )
-                            )
-                            .toList();
-
-            List<PlaceSearchResponse.PlaceItem> enrichedPlaces =
-                    searchEnricher.enrich(newCandidates);
-
-            enrichedPlaces.stream()
-                    .limit(MAX_RESULT_COUNT - places.size())
-                    .forEach(places::add);
-
-            if (searchResult.end()) {
-                break;
-            }
-        }
+        List<ExternalPlaceCandidate> candidates = searchResult.candidates();
+        List<PlaceSearchResponse.PlaceItem> places = searchEnricher.enrich(candidates);
+        boolean hasNext = !searchResult.end();
 
         return new PlaceSearchResponse.SearchResult(
                 normalizedQuery,
                 places.size(),
+                hasNext ? resolvedCursor + 1 : null,
+                hasNext,
                 places
         );
+    }
+
+    private int validateAndResolveCursor(Integer cursor) {
+        int resolvedCursor = cursor == null ? DEFAULT_CURSOR : cursor;
+        if (resolvedCursor < DEFAULT_CURSOR || resolvedCursor > MAX_CURSOR) {
+            throw new PlaceException(
+                    PlaceSearchErrorCode.INVALID_PLACE_SEARCH_CURSOR
+            );
+        }
+        return resolvedCursor;
+    }
+
+    private int validateAndResolveSize(Integer size) {
+        int resolvedSize = size == null ? DEFAULT_SIZE : size;
+        if (resolvedSize < MIN_SIZE || resolvedSize > MAX_SIZE) {
+            throw new PlaceException(
+                    PlaceSearchErrorCode.INVALID_PLACE_SEARCH_SIZE
+            );
+        }
+        return resolvedSize;
     }
 
     private String validateAndNormalizeQuery(String query) {

@@ -72,7 +72,6 @@ public class PlaceSearchEnricher {
 
         PlaceSearchImageResolver.ImageSelection imageSelection = imageResolver.resolve(
                 registeredPlace,
-                category,
                 searchData.primaryImageUrlsByPlaceId()
         );
 

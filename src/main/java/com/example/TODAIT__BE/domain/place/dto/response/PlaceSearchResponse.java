@@ -14,6 +14,8 @@ public final class PlaceSearchResponse {
     public record SearchResult(
             String query,
             int resultCount,
+            Integer nextCursor,
+            boolean hasNext,
             List<PlaceItem> places
     ) {
     }
