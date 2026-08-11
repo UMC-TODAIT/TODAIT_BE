@@ -51,7 +51,11 @@ public class PlaceSearchService {
         List<PlaceSearchResponse.PlaceItem> places = searchEnricher.enrich(candidates);
         boolean hasNext = !searchResult.end() && resolvedCursor < MAX_CURSOR;
         Integer nextCursor = hasNext ? resolvedCursor + 1 : null;
-        PlaceSearchEmptyReason emptyReason = determineEmptyReason(candidates, places);
+        PlaceSearchEmptyReason emptyReason = determineEmptyReason(
+                candidates,
+                places,
+                hasNext
+        );
 
         return new PlaceSearchResponse.SearchResult(
                 normalizedQuery,
@@ -65,9 +69,10 @@ public class PlaceSearchService {
 
     private PlaceSearchEmptyReason determineEmptyReason(
             List<ExternalPlaceCandidate> candidates,
-            List<PlaceSearchResponse.PlaceItem> places
+            List<PlaceSearchResponse.PlaceItem> places,
+            boolean hasNext
     ) {
-        if (!places.isEmpty()) {
+        if (!places.isEmpty() || hasNext) {
             return null;
         }
 

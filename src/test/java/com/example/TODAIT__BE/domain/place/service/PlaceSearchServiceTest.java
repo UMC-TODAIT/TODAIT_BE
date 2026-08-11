@@ -49,7 +49,7 @@ class PlaceSearchServiceTest {
         assertThat(result.nextCursor()).isEqualTo(2);
         assertThat(result.hasNext()).isTrue();
         assertThat(result.places()).isEmpty();
-        assertThat(result.emptyReason()).isEqualTo(PlaceSearchEmptyReason.NO_SEARCH_RESULTS);
+        assertThat(result.emptyReason()).isNull();
         verify(placeSearchPort).searchByKeyword("성수 카페", 1, 10);
     }
 
