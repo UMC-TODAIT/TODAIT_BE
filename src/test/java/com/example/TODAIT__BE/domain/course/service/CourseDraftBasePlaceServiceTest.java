@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.lenient;
@@ -175,7 +176,7 @@ class CourseDraftBasePlaceServiceTest {
                 10L, 1L, new BasePlaceSaveRequest(22L, null)
         );
 
-        verify(courseDraftPlaceRepository).flush();
+        verify(courseDraftPlaceRepository, times(2)).flush();
         assertThat(existingSelected.getPlaceRole()).isEqualTo(PlaceRole.BASE);
         assertThat(existingSelected.getVisitOrder()).isEqualTo(1);
         assertThat(existingBase.getPlaceRole()).isEqualTo(PlaceRole.SELECTED);

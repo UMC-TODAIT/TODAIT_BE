@@ -691,6 +691,8 @@ public class CourseDraftService {
         courseDraftPlaceRepository.flush();
 
         selectedDraftPlace.updateRoleAndVisitOrder(PlaceRole.BASE, BASE_VISIT_ORDER);
+        courseDraftPlaceRepository.flush();
+
         baseDraftPlace.updateRoleAndVisitOrder(PlaceRole.SELECTED, selectedVisitOrder);
     }
 
