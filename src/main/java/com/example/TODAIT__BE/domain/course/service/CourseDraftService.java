@@ -402,7 +402,7 @@ public class CourseDraftService {
 
         CourseDraftStatus targetStatus = request.targetStatus();
         validateBackwardStatus(courseDraft.getStatus(), targetStatus);
-        cleanupAfterTargetStatus(courseDraft, targetStatus);
+        validateBeforeStatusChange(courseDraft, targetStatus);
         courseDraft.changeStatus(targetStatus);
 
         return StatusUpdateResponse.of(courseDraft);
@@ -427,23 +427,12 @@ public class CourseDraftService {
         }
     }
 
-    private void cleanupAfterTargetStatus(
+    private void validateBeforeStatusChange(
             CourseDraft courseDraft,
             CourseDraftStatus targetStatus
     ) {
         switch (targetStatus) {
-            case MOOD_SELECTING -> {
-                courseDraftPlaceRepository.deleteByCourseDraft(courseDraft);
-                courseDraftFoodCategoryRepository.deleteByCourseDraft(courseDraft);
-                courseDraftMoodTagRepository.deleteByCourseDraft(courseDraft);
-            }
-            case FOOD_SELECTING -> {
-                courseDraftPlaceRepository.deleteByCourseDraft(courseDraft);
-                courseDraftFoodCategoryRepository.deleteByCourseDraft(courseDraft);
-            }
-            case BASE_PLACE_SELECTING ->
-                    courseDraftPlaceRepository.deleteByCourseDraft(courseDraft);
-            case PLACE_SELECTING -> {
+            case MOOD_SELECTING, FOOD_SELECTING, BASE_PLACE_SELECTING, PLACE_SELECTING -> {
             }
             case ORDERING -> {
                 List<CourseDraftPlace> places = courseDraftPlaceRepository

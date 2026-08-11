@@ -67,7 +67,7 @@ class CourseDraftStatusUpdateServiceTest {
     }
 
     @Test
-    void movesBackToMoodSelectingAndClearsAllDraftSelections() {
+    void movesBackToMoodSelectingAndKeepsDraftSelections() {
         CourseDraft draft = draft(CourseDraftStatus.SAVING, MEMBER_ID);
         given(courseDraftRepository.findByIdForUpdate(DRAFT_ID))
                 .willReturn(Optional.of(draft));
@@ -80,9 +80,9 @@ class CourseDraftStatusUpdateServiceTest {
 
         assertThat(response.draftStatus()).isEqualTo(CourseDraftStatus.MOOD_SELECTING);
         assertThat(draft.getStatus()).isEqualTo(CourseDraftStatus.MOOD_SELECTING);
-        verify(courseDraftPlaceRepository).deleteByCourseDraft(draft);
-        verify(courseDraftFoodCategoryRepository).deleteByCourseDraft(draft);
-        verify(courseDraftMoodTagRepository).deleteByCourseDraft(draft);
+        verify(courseDraftPlaceRepository, never()).deleteByCourseDraft(draft);
+        verify(courseDraftFoodCategoryRepository, never()).deleteByCourseDraft(draft);
+        verify(courseDraftMoodTagRepository, never()).deleteByCourseDraft(draft);
     }
 
     @Test
@@ -98,8 +98,8 @@ class CourseDraftStatusUpdateServiceTest {
         );
 
         assertThat(draft.getStatus()).isEqualTo(CourseDraftStatus.FOOD_SELECTING);
-        verify(courseDraftPlaceRepository).deleteByCourseDraft(draft);
-        verify(courseDraftFoodCategoryRepository).deleteByCourseDraft(draft);
+        verify(courseDraftPlaceRepository, never()).deleteByCourseDraft(draft);
+        verify(courseDraftFoodCategoryRepository, never()).deleteByCourseDraft(draft);
         verify(courseDraftMoodTagRepository, never()).deleteByCourseDraft(draft);
     }
 
@@ -116,7 +116,7 @@ class CourseDraftStatusUpdateServiceTest {
         );
 
         assertThat(draft.getStatus()).isEqualTo(CourseDraftStatus.BASE_PLACE_SELECTING);
-        verify(courseDraftPlaceRepository).deleteByCourseDraft(draft);
+        verify(courseDraftPlaceRepository, never()).deleteByCourseDraft(draft);
         verify(courseDraftFoodCategoryRepository, never()).deleteByCourseDraft(draft);
         verify(courseDraftMoodTagRepository, never()).deleteByCourseDraft(draft);
     }
