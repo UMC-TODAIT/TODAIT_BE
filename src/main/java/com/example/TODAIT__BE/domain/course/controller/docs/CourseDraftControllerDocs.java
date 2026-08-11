@@ -5,6 +5,7 @@ import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.FoodC
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.MoodTagSaveRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceAddRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.StatusUpdateRequest;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlaceSaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CreateResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.FoodCategorySaveResponse;
@@ -13,6 +14,7 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.Ord
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceAddResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceOrderUpdateResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.SavingEnterResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.StatusUpdateResponse;
 import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
 import com.example.TODAIT__BE.global.security.principal.AuthMember;
 import io.swagger.v3.oas.annotations.Operation;
@@ -171,5 +173,23 @@ public interface CourseDraftControllerDocs {
             @PathVariable Long courseDraftId,
             @Parameter(hidden = true)
             AuthMember authMember
+    );
+
+    @Operation(
+            summary = "[단계 이동] 임시 코스 이전 단계 이동",
+            description = """
+                    임시 코스를 현재보다 앞선 작성 단계로 되돌립니다.
+
+                    대상 단계 이후에 저장된 관계 데이터는 서버가 정리합니다.
+                    COMPLETED 또는 ABANDONED Draft는 되돌릴 수 없습니다.
+                    """
+    )
+    @SecurityRequirement(name = "JWT TOKEN")
+    ResponseEntity<ApiResponse<StatusUpdateResponse>> updateStatus(
+            @PathVariable Long courseDraftId,
+            @Parameter(hidden = true)
+            AuthMember authMember,
+            @RequestBody
+            StatusUpdateRequest request
     );
 }

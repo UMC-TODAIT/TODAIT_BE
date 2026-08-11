@@ -299,6 +299,19 @@ public final class CourseDraftResponse {
         }
     }
 
+    public record StatusUpdateResponse(
+            Long courseDraftId,
+            CourseDraftStatus draftStatus
+    ) {
+
+        public static StatusUpdateResponse of(CourseDraft courseDraft) {
+            return new StatusUpdateResponse(
+                    courseDraft.getId(),
+                    courseDraft.getStatus()
+            );
+        }
+    }
+
     public record AreaSummary(
             Long areaId,
             String code,

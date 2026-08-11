@@ -1,5 +1,6 @@
 package com.example.TODAIT__BE.domain.course.dto.request;
 
+import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
@@ -60,5 +61,11 @@ public final class CourseDraftRequest {
                 Integer visitOrder
         ) {
         }
+    }
+
+    public record StatusUpdateRequest(
+            @NotNull
+            CourseDraftStatus targetStatus
+    ) {
     }
 }

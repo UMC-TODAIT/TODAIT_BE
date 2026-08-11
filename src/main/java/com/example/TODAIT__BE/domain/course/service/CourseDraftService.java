@@ -8,6 +8,7 @@ import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.MoodT
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceAddRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest.PlaceOrderItem;
+import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.StatusUpdateRequest;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlace;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlaceSaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CreateResponse;
@@ -19,6 +20,7 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.Ord
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceAddResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.PlaceOrderUpdateResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.SavingEnterResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.StatusUpdateResponse;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftFoodCategory;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftMoodTag;
@@ -388,9 +390,68 @@ public class CourseDraftService {
         );
     }
 
+    @Transactional
+    public StatusUpdateResponse updateStatus(
+            Long courseDraftId,
+            Long memberId,
+            StatusUpdateRequest request
+    ) {
+        CourseDraft courseDraft = getCourseDraftForUpdate(courseDraftId);
+
+        courseDraftValidator.validateOwner(courseDraft, memberId);
+
+        CourseDraftStatus targetStatus = request.targetStatus();
+        validateBackwardStatus(courseDraft.getStatus(), targetStatus);
+        cleanupAfterTargetStatus(courseDraft, targetStatus);
+        courseDraft.changeStatus(targetStatus);
+
+        return StatusUpdateResponse.of(courseDraft);
+    }
+
     private CourseDraft getCourseDraftForUpdate(Long courseDraftId) {
         return courseDraftRepository.findByIdForUpdate(courseDraftId)
                 .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
+    }
+
+    private void validateBackwardStatus(
+            CourseDraftStatus currentStatus,
+            CourseDraftStatus targetStatus
+    ) {
+        if (targetStatus == null
+                || currentStatus == CourseDraftStatus.COMPLETED
+                || currentStatus == CourseDraftStatus.ABANDONED
+                || targetStatus == CourseDraftStatus.COMPLETED
+                || targetStatus == CourseDraftStatus.ABANDONED
+                || targetStatus.ordinal() >= currentStatus.ordinal()) {
+            throw new CourseException(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
+        }
+    }
+
+    private void cleanupAfterTargetStatus(
+            CourseDraft courseDraft,
+            CourseDraftStatus targetStatus
+    ) {
+        switch (targetStatus) {
+            case MOOD_SELECTING -> {
+                courseDraftPlaceRepository.deleteByCourseDraft(courseDraft);
+                courseDraftFoodCategoryRepository.deleteByCourseDraft(courseDraft);
+                courseDraftMoodTagRepository.deleteByCourseDraft(courseDraft);
+            }
+            case FOOD_SELECTING -> {
+                courseDraftPlaceRepository.deleteByCourseDraft(courseDraft);
+                courseDraftFoodCategoryRepository.deleteByCourseDraft(courseDraft);
+            }
+            case BASE_PLACE_SELECTING ->
+                    courseDraftPlaceRepository.deleteByCourseDraft(courseDraft);
+            case PLACE_SELECTING -> {
+            }
+            case ORDERING -> {
+                List<CourseDraftPlace> places = courseDraftPlaceRepository
+                        .findByCourseDraftIdWithPlaceOrderByVisitOrderAsc(courseDraft.getId());
+                validateOrderingPlaceComposition(places);
+            }
+            default -> throw new CourseException(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
+        }
     }
 
     private List<MoodTag> validateAndGetMoodTags(List<Long> moodTagIds) {
