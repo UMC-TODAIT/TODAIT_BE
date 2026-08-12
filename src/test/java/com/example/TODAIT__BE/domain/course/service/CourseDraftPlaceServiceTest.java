@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceAddRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest;
@@ -196,7 +195,7 @@ class CourseDraftPlaceServiceTest {
         assertThat(selected.getVisitOrder()).isEqualTo(1);
         assertThat(base.getPlaceRole()).isEqualTo(PlaceRole.SELECTED);
         assertThat(base.getVisitOrder()).isEqualTo(2);
-        verify(courseDraftRepository).touchUpdatedAt(10L);
+        assertThat(draft.getUpdatedAt()).isNotNull();
     }
 
     @Test
@@ -335,7 +334,7 @@ class CourseDraftPlaceServiceTest {
         assertThat(response.addedPlace().placeRole()).isEqualTo(PlaceRole.SELECTED);
         assertThat(response.selectedPlaceCount()).isEqualTo(1);
         assertThat(response.totalPlaceCount()).isEqualTo(2);
-        verify(courseDraftRepository).touchUpdatedAt(10L);
+        assertThat(draft.getUpdatedAt()).isNotNull();
     }
 
     @Test

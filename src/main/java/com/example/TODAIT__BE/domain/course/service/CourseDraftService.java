@@ -67,6 +67,7 @@ import com.example.TODAIT__BE.domain.taxonomy.repository.AreaRepository;
 import com.example.TODAIT__BE.domain.taxonomy.repository.FoodCategoryRepository;
 import com.example.TODAIT__BE.domain.taxonomy.repository.MoodTagRepository;
 import com.example.TODAIT__BE.domain.taxonomy.repository.PlaceCategoryRepository;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -559,7 +560,7 @@ public class CourseDraftService {
     }
 
     private void touchCourseDraftUpdatedAt(CourseDraft courseDraft) {
-        courseDraftRepository.touchUpdatedAt(courseDraft.getId());
+        courseDraft.touchUpdatedAt(LocalDateTime.now());
     }
 
     private void validateExactlyOneSource(BasePlaceSaveRequest request) {
