@@ -12,7 +12,8 @@ import org.springframework.stereotype.Component;
 @Component
 @ConditionalOnProperty(
         prefix = "app.course-draft",
-        name = "cleanup-scheduler-enabled"
+        name = "cleanup-scheduler-enabled",
+        havingValue = "true"
 )
 @RequiredArgsConstructor
 public class CourseDraftCleanupScheduler {
