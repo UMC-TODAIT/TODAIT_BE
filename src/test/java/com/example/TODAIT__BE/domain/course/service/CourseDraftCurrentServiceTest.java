@@ -24,6 +24,7 @@ import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
+import java.time.Clock;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,7 +66,8 @@ class CourseDraftCurrentServiceTest {
                 null,
                 null,
                 null,
-                new CourseDraftValidator()
+                new CourseDraftValidator(),
+                Clock.systemDefaultZone()
         );
     }
 

@@ -41,6 +41,7 @@ import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.domain.taxonomy.repository.AreaRepository;
 import com.example.TODAIT__BE.domain.taxonomy.repository.PlaceCategoryRepository;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -88,7 +89,8 @@ class CourseDraftBasePlaceServiceTest {
                 areaRepository,
                 placeCategoryRepository,
                 externalPlaceRegistrationService,
-                new CourseDraftValidator()
+                new CourseDraftValidator(),
+                Clock.systemDefaultZone()
         );
     }
 

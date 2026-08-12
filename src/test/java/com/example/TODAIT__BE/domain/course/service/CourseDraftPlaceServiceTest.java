@@ -30,6 +30,7 @@ import com.example.TODAIT__BE.domain.place.exception.PlaceException;
 import com.example.TODAIT__BE.domain.place.repository.PlaceRepository;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
+import java.time.Clock;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,7 +68,8 @@ class CourseDraftPlaceServiceTest {
                         null,
                         null,
                         null,
-                        new CourseDraftValidator()
+                        new CourseDraftValidator(),
+                        Clock.systemDefaultZone()
                 );
     }
 
