@@ -11,4 +11,6 @@ public interface PlaceCategoryRepository extends JpaRepository<PlaceCategory, Lo
     List<PlaceCategory> findAllByIsActiveTrueOrderBySortOrderAsc();
 
     Optional<PlaceCategory> findByCode(String code);
+
+    Optional<PlaceCategory> findFirstByOrderBySortOrderDesc();
 }
