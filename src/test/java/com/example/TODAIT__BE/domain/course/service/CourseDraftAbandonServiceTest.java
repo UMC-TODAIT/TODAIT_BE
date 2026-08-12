@@ -7,6 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
+import com.example.TODAIT__BE.domain.course.config.CourseDraftProperties;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.AbandonResponse;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
@@ -24,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class CourseDraftAbandonServiceTest {
@@ -59,7 +59,8 @@ class CourseDraftAbandonServiceTest {
                 null,
                 null,
                 null,
-                new CourseDraftValidator()
+                new CourseDraftValidator(),
+                new CourseDraftProperties(7, "0 0 3 * * *", 500, 20)
         );
     }
 
@@ -68,8 +69,6 @@ class CourseDraftAbandonServiceTest {
         CourseDraft draft = draft(CourseDraftStatus.ORDERING, MEMBER_ID);
         given(courseDraftRepository.findByIdForUpdate(DRAFT_ID))
                 .willReturn(Optional.of(draft));
-        ReflectionTestUtils.setField(service, "terminalRetentionDays", 7);
-
         LocalDateTime before = LocalDateTime.now().plusDays(7).minusSeconds(5);
         AbandonResponse response = service.abandonCourseDraft(DRAFT_ID, MEMBER_ID);
         LocalDateTime after = LocalDateTime.now().plusDays(7).plusSeconds(5);

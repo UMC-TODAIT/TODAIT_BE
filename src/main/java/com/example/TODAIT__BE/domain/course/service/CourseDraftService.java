@@ -5,6 +5,7 @@ import static com.example.TODAIT__BE.domain.course.service.validator.CourseDraft
 import static com.example.TODAIT__BE.domain.course.service.validator.CourseDraftPlaceValidator.validateSavingPlaces;
 
 import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
+import com.example.TODAIT__BE.domain.course.config.CourseDraftProperties;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.BasePlaceSaveRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.BasePlaceSaveRequest.ExternalPlace;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.FoodCategorySaveRequest;
@@ -79,7 +80,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -107,9 +107,6 @@ public class CourseDraftService {
             CourseDraftStatus.SAVING
     );
 
-    @Value("${app.course-draft.terminal-retention-days:30}")
-    private int terminalRetentionDays = 30;
-
     private final CourseDraftRepository courseDraftRepository;
     private final MemberRepository memberRepository;
     private final CourseDraftMoodTagRepository courseDraftMoodTagRepository;
@@ -124,6 +121,7 @@ public class CourseDraftService {
     private final PlaceCategoryRepository placeCategoryRepository;
     private final ExternalPlaceRegistrationService externalPlaceRegistrationService;
     private final CourseDraftValidator courseDraftValidator;
+    private final CourseDraftProperties courseDraftProperties;
 
     @Transactional
     public CreateResponse createCourseDraft(Long memberId) {
@@ -439,7 +437,7 @@ public class CourseDraftService {
             throw new CourseException(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
         }
 
-        courseDraft.abandon(LocalDateTime.now().plusDays(terminalRetentionDays));
+        courseDraft.abandon(LocalDateTime.now().plusDays(courseDraftProperties.terminalRetentionDays()));
 
         return AbandonResponse.from(courseDraft);
     }

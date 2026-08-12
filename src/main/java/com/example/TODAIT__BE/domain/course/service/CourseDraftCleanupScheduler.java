@@ -1,5 +1,6 @@
 package com.example.TODAIT__BE.domain.course.service;
 
+import com.example.TODAIT__BE.domain.course.config.CourseDraftProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -9,9 +10,16 @@ import org.springframework.stereotype.Component;
 public class CourseDraftCleanupScheduler {
 
     private final CourseDraftCleanupService courseDraftCleanupService;
+    private final CourseDraftProperties courseDraftProperties;
 
     @Scheduled(cron = "${app.course-draft.cleanup-cron}", zone = "Asia/Seoul")
     public void cleanupExpiredTerminalDrafts() {
-        courseDraftCleanupService.cleanupExpiredTerminalDrafts();
+        int batchSize = courseDraftProperties.cleanupBatchSize();
+        for (int i = 0; i < courseDraftProperties.cleanupMaxBatches(); i++) {
+            int deleted = courseDraftCleanupService.cleanupExpiredTerminalDrafts();
+            if (deleted < batchSize) {
+                return;
+            }
+        }
     }
 }

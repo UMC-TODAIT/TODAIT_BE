@@ -88,7 +88,8 @@ class CourseDraftBasePlaceServiceTest {
                 areaRepository,
                 placeCategoryRepository,
                 externalPlaceRegistrationService,
-                new CourseDraftValidator()
+                new CourseDraftValidator(),
+                new com.example.TODAIT__BE.domain.course.config.CourseDraftProperties(30, "0 0 3 * * *", 500, 20)
         );
     }
 

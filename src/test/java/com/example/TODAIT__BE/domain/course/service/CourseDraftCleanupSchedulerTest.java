@@ -1,8 +1,11 @@
 package com.example.TODAIT__BE.domain.course.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.example.TODAIT__BE.domain.course.config.CourseDraftProperties;
 import java.lang.reflect.Method;
 import org.junit.jupiter.api.Test;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,10 +26,41 @@ class CourseDraftCleanupSchedulerTest {
     @Test
     void schedulerDelegatesToCleanupService() {
         CourseDraftCleanupService cleanupService = org.mockito.Mockito.mock(CourseDraftCleanupService.class);
-        CourseDraftCleanupScheduler scheduler = new CourseDraftCleanupScheduler(cleanupService);
+        CourseDraftCleanupScheduler scheduler = new CourseDraftCleanupScheduler(
+                cleanupService,
+                new CourseDraftProperties(30, "0 0 3 * * *", 500, 20)
+        );
 
         scheduler.cleanupExpiredTerminalDrafts();
 
         verify(cleanupService).cleanupExpiredTerminalDrafts();
+    }
+
+    @Test
+    void schedulerRepeatsUntilLastBatchIsNotFull() {
+        CourseDraftCleanupService cleanupService = org.mockito.Mockito.mock(CourseDraftCleanupService.class);
+        CourseDraftCleanupScheduler scheduler = new CourseDraftCleanupScheduler(
+                cleanupService,
+                new CourseDraftProperties(30, "0 0 3 * * *", 500, 20)
+        );
+        given(cleanupService.cleanupExpiredTerminalDrafts()).willReturn(500, 300);
+
+        scheduler.cleanupExpiredTerminalDrafts();
+
+        verify(cleanupService, times(2)).cleanupExpiredTerminalDrafts();
+    }
+
+    @Test
+    void schedulerStopsAtConfiguredMaxBatches() {
+        CourseDraftCleanupService cleanupService = org.mockito.Mockito.mock(CourseDraftCleanupService.class);
+        CourseDraftCleanupScheduler scheduler = new CourseDraftCleanupScheduler(
+                cleanupService,
+                new CourseDraftProperties(30, "0 0 3 * * *", 500, 3)
+        );
+        given(cleanupService.cleanupExpiredTerminalDrafts()).willReturn(500);
+
+        scheduler.cleanupExpiredTerminalDrafts();
+
+        verify(cleanupService, times(3)).cleanupExpiredTerminalDrafts();
     }
 }

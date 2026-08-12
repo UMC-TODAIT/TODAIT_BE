@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 @Table(
         name = "course_draft",
         indexes = {
-                @Index(name = "idx_draft_member_status", columnList = "member_id, status, created_at"),
+                @Index(name = "idx_draft_member_status", columnList = "member_id, status, updated_at, id"),
                 @Index(name = "idx_draft_cleanup", columnList = "status, expires_at, id")
         }
 )
@@ -69,11 +69,6 @@ public class CourseDraft extends BaseEntity {
 
     public void changeStatus(CourseDraftStatus status) {
         this.status = status;
-    }
-
-    public void completeWithCourse(Course course) {
-        this.status = CourseDraftStatus.COMPLETED;
-        this.course = course;
     }
 
     public void completeWithCourse(Course course, LocalDateTime expiresAt) {

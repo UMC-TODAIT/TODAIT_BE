@@ -50,7 +50,7 @@ class CourseDraftCleanupServiceTest {
                 courseDraftMoodTagRepository,
                 courseDraftFoodCategoryRepository,
                 recommendationLogRepository,
-                new CourseDraftProperties(30, "0 0 3 * * *", 500)
+                new CourseDraftProperties(30, "0 0 3 * * *", 500, 20)
         );
     }
 
@@ -113,7 +113,7 @@ class CourseDraftCleanupServiceTest {
                 courseDraftMoodTagRepository,
                 courseDraftFoodCategoryRepository,
                 recommendationLogRepository,
-                new CourseDraftProperties(30, "0 0 3 * * *", 7)
+                new CourseDraftProperties(30, "0 0 3 * * *", 7, 20)
         );
         given(courseDraftRepository.findExpiredTerminalDraftIds(
                 eq(terminalStatuses()),
