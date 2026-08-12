@@ -97,6 +97,7 @@ class CourseDraftMoodTagServiceTest {
         );
 
         verify(courseDraftRepository).findByIdForUpdate(10L);
+        verify(courseDraftRepository).touchUpdatedAt(10L);
         verify(courseDraftMoodTagRepository).deleteAll(List.of(oldDraftMoodTag));
 
         ArgumentCaptor<CourseDraftMoodTag> saveCaptor = ArgumentCaptor.forClass(CourseDraftMoodTag.class);
@@ -135,6 +136,7 @@ class CourseDraftMoodTagServiceTest {
         );
 
         verify(courseDraftPlaceRepository).deleteByCourseDraft(draft);
+        verify(courseDraftRepository).touchUpdatedAt(10L);
     }
 
     @Test
@@ -198,6 +200,7 @@ class CourseDraftMoodTagServiceTest {
         verify(courseDraftMoodTagRepository, never()).save(any());
         verify(courseDraftPlaceRepository, never()).existsByCourseDraft(draft);
         verify(courseDraftPlaceRepository, never()).deleteByCourseDraft(draft);
+        verify(courseDraftRepository, never()).touchUpdatedAt(10L);
         assertThat(response.draftStatus()).isEqualTo(CourseDraftStatus.FOOD_SELECTING);
     }
 

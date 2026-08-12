@@ -176,6 +176,7 @@ public class CourseDraftService {
 
         boolean moodTagsChanged = updateMoodTags(courseDraft, moodTags);
         deletePlacesIfPreferenceChanged(courseDraft, moodTagsChanged);
+        touchCourseDraftUpdatedAtIfChanged(courseDraft, moodTagsChanged);
 
         if (courseDraft.getStatus() == CourseDraftStatus.MOOD_SELECTING) {
             courseDraft.changeStatus(CourseDraftStatus.FOOD_SELECTING);
@@ -218,6 +219,7 @@ public class CourseDraftService {
 
         boolean foodCategoriesChanged = updateFoodCategories(courseDraft, foodCategories);
         deletePlacesIfPreferenceChanged(courseDraft, foodCategoriesChanged);
+        touchCourseDraftUpdatedAtIfChanged(courseDraft, foodCategoriesChanged);
 
         courseDraft.changeStatus(CourseDraftStatus.BASE_PLACE_SELECTING);
 
@@ -298,6 +300,7 @@ public class CourseDraftService {
                 .visitOrder(nextVisitOrder)
                 .placeRole(PlaceRole.SELECTED)
                 .build());
+        touchCourseDraftUpdatedAt(courseDraft);
 
         int selectedPlaceCount = (int) existingPlaces.stream()
                 .filter(draftPlace -> draftPlace.getPlaceRole() == PlaceRole.SELECTED)
@@ -365,6 +368,7 @@ public class CourseDraftService {
         validateVisitOrders(allPlaces, placeOrders);
 
         updateVisitOrders(targetPlaces, placeOrders);
+        touchCourseDraftUpdatedAt(courseDraft);
 
         List<DraftPlaceResponse> responses = allPlaces.stream()
                 .sorted(Comparator.comparing(CourseDraftPlace::getVisitOrder))
@@ -546,6 +550,16 @@ public class CourseDraftService {
         if (preferenceChanged && courseDraftPlaceRepository.existsByCourseDraft(courseDraft)) {
             courseDraftPlaceRepository.deleteByCourseDraft(courseDraft);
         }
+    }
+
+    private void touchCourseDraftUpdatedAtIfChanged(CourseDraft courseDraft, boolean changed) {
+        if (changed) {
+            touchCourseDraftUpdatedAt(courseDraft);
+        }
+    }
+
+    private void touchCourseDraftUpdatedAt(CourseDraft courseDraft) {
+        courseDraftRepository.touchUpdatedAt(courseDraft.getId());
     }
 
     private void validateExactlyOneSource(BasePlaceSaveRequest request) {
