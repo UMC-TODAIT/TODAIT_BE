@@ -102,6 +102,7 @@ class CourseDraftFoodCategoryServiceTest {
         ArgumentCaptor<CourseDraftFoodCategory> saveCaptor = ArgumentCaptor.forClass(CourseDraftFoodCategory.class);
         verify(courseDraftFoodCategoryRepository).save(saveCaptor.capture());
         assertThat(saveCaptor.getValue().getFoodCategory()).isEqualTo(addedFoodCategory);
+        assertThat(draft.getUpdatedAt()).isNotNull();
         assertThat(response.draftStatus()).isEqualTo(CourseDraftStatus.BASE_PLACE_SELECTING);
         assertThat(response.foodCategories()).extracting("foodCategoryId").containsExactly(2L, 3L);
     }
@@ -135,6 +136,7 @@ class CourseDraftFoodCategoryServiceTest {
         );
 
         verify(courseDraftPlaceRepository).deleteByCourseDraft(draft);
+        assertThat(draft.getUpdatedAt()).isNotNull();
     }
 
     @Test
@@ -198,6 +200,7 @@ class CourseDraftFoodCategoryServiceTest {
         verify(courseDraftFoodCategoryRepository, never()).save(any());
         verify(courseDraftPlaceRepository, never()).existsByCourseDraft(draft);
         verify(courseDraftPlaceRepository, never()).deleteByCourseDraft(draft);
+        assertThat(draft.getUpdatedAt()).isNull();
         assertThat(response.draftStatus()).isEqualTo(CourseDraftStatus.BASE_PLACE_SELECTING);
     }
 

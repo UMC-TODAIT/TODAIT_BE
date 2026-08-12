@@ -16,6 +16,7 @@ import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.Statu
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlace;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlaceSaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CreateResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CurrentResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.DraftPlaceResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.FoodCategorySaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.MoodTagSaveResponse;
@@ -66,6 +67,7 @@ import com.example.TODAIT__BE.domain.taxonomy.repository.AreaRepository;
 import com.example.TODAIT__BE.domain.taxonomy.repository.FoodCategoryRepository;
 import com.example.TODAIT__BE.domain.taxonomy.repository.MoodTagRepository;
 import com.example.TODAIT__BE.domain.taxonomy.repository.PlaceCategoryRepository;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -94,6 +96,14 @@ public class CourseDraftService {
     private static final double MIN_LONGITUDE = -180.0;
     private static final double MAX_LONGITUDE = 180.0;
     private static final String DEFAULT_SOURCE_TYPE = "OPERATOR";
+    private static final List<CourseDraftStatus> PROGRESS_STATUSES = List.of(
+            CourseDraftStatus.MOOD_SELECTING,
+            CourseDraftStatus.FOOD_SELECTING,
+            CourseDraftStatus.BASE_PLACE_SELECTING,
+            CourseDraftStatus.PLACE_SELECTING,
+            CourseDraftStatus.ORDERING,
+            CourseDraftStatus.SAVING
+    );
 
     private final CourseDraftRepository courseDraftRepository;
     private final MemberRepository memberRepository;
@@ -125,6 +135,14 @@ public class CourseDraftService {
                 courseDraftRepository.save(courseDraft);
 
         return CreateResponse.from(savedCourseDraft);
+    }
+
+    @Transactional(readOnly = true)
+    public CurrentResponse getCurrentCourseDraft(Long memberId) {
+        return courseDraftRepository
+                .findFirstByMemberIdAndStatusInOrderByUpdatedAtDescIdDesc(memberId, PROGRESS_STATUSES)
+                .map(this::toCurrentResponse)
+                .orElse(null);
     }
 
     @Transactional
@@ -159,6 +177,7 @@ public class CourseDraftService {
 
         boolean moodTagsChanged = updateMoodTags(courseDraft, moodTags);
         deletePlacesIfPreferenceChanged(courseDraft, moodTagsChanged);
+        touchCourseDraftUpdatedAtIfChanged(courseDraft, moodTagsChanged);
 
         if (courseDraft.getStatus() == CourseDraftStatus.MOOD_SELECTING) {
             courseDraft.changeStatus(CourseDraftStatus.FOOD_SELECTING);
@@ -201,6 +220,7 @@ public class CourseDraftService {
 
         boolean foodCategoriesChanged = updateFoodCategories(courseDraft, foodCategories);
         deletePlacesIfPreferenceChanged(courseDraft, foodCategoriesChanged);
+        touchCourseDraftUpdatedAtIfChanged(courseDraft, foodCategoriesChanged);
 
         courseDraft.changeStatus(CourseDraftStatus.BASE_PLACE_SELECTING);
 
@@ -281,6 +301,7 @@ public class CourseDraftService {
                 .visitOrder(nextVisitOrder)
                 .placeRole(PlaceRole.SELECTED)
                 .build());
+        touchCourseDraftUpdatedAt(courseDraft);
 
         int selectedPlaceCount = (int) existingPlaces.stream()
                 .filter(draftPlace -> draftPlace.getPlaceRole() == PlaceRole.SELECTED)
@@ -348,6 +369,7 @@ public class CourseDraftService {
         validateVisitOrders(allPlaces, placeOrders);
 
         updateVisitOrders(targetPlaces, placeOrders);
+        touchCourseDraftUpdatedAt(courseDraft);
 
         List<DraftPlaceResponse> responses = allPlaces.stream()
                 .sorted(Comparator.comparing(CourseDraftPlace::getVisitOrder))
@@ -409,6 +431,15 @@ public class CourseDraftService {
     private CourseDraft getCourseDraftForUpdate(Long courseDraftId) {
         return courseDraftRepository.findByIdForUpdate(courseDraftId)
                 .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
+    }
+
+    private CurrentResponse toCurrentResponse(CourseDraft courseDraft) {
+        return CurrentResponse.of(
+                courseDraft,
+                courseDraftMoodTagRepository.findByCourseDraftOrderByIdAsc(courseDraft),
+                courseDraftFoodCategoryRepository.findByCourseDraftOrderByIdAsc(courseDraft),
+                courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(courseDraft)
+        );
     }
 
     private void validateBackwardStatus(
@@ -520,6 +551,16 @@ public class CourseDraftService {
         if (preferenceChanged && courseDraftPlaceRepository.existsByCourseDraft(courseDraft)) {
             courseDraftPlaceRepository.deleteByCourseDraft(courseDraft);
         }
+    }
+
+    private void touchCourseDraftUpdatedAtIfChanged(CourseDraft courseDraft, boolean changed) {
+        if (changed) {
+            touchCourseDraftUpdatedAt(courseDraft);
+        }
+    }
+
+    private void touchCourseDraftUpdatedAt(CourseDraft courseDraft) {
+        courseDraft.touchUpdatedAt(LocalDateTime.now());
     }
 
     private void validateExactlyOneSource(BasePlaceSaveRequest request) {
