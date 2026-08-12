@@ -121,6 +121,7 @@ class ApiResponseCodeContractTest {
             entry("AuthSuccessCode.LOGOUT_COMPLETED", "AUTH200_3"),
             entry("AuthErrorCode.INVALID_REFRESH_TOKEN", "AUTH401_1"),
             entry("AuthErrorCode.REVOKED_REFRESH_TOKEN", "AUTH403_1"),
+            entry("AuthErrorCode.TOKEN_OPERATION_CONFLICT", "AUTH409_1"),
             entry("AuthErrorCode.EXPIRED_REFRESH_TOKEN", "AUTH410_1"),
             entry("OAuthSuccessCode.OAUTH_LOGIN_OK", "AUTH200_1"),
             entry("OAuthErrorCode.INVALID_KAKAO_ACCESS_TOKEN", "AUTH401_3"),

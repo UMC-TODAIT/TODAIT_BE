@@ -5,6 +5,7 @@ import com.example.TODAIT__BE.domain.member.entity.RefreshToken;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.RefreshTokenRepository;
 import com.example.TODAIT__BE.global.security.token.JwtTokenProvider;
+import com.example.TODAIT__BE.global.security.token.JwtTokenProvider.ParsedTokenClaims;
 import com.example.TODAIT__BE.global.security.token.RefreshTokenHasher;
 import com.example.TODAIT__BE.global.security.token.TokenType;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -25,6 +26,7 @@ import static com.example.TODAIT__BE.domain.member.service.MemberServiceTestFixt
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -102,39 +104,31 @@ class RefreshTokenValidatorTest {
     }
 
     @Test
-    void validateAndGetStoredTokenForUpdateWithExpectedMemberAlwaysValidatesJwt() {
-        given(jwtTokenProvider.getTokenType("access-token"))
-                .willReturn(TokenType.ACCESS);
+    void validatedRefreshTokenCanBeReusedWithoutRevalidatingJwt() {
+        RefreshToken storedToken = refreshToken(
+                activeMember(1L),
+                "refresh-token-hash",
+                LocalDateTime.now().plusHours(1)
+        );
+        givenValidRefreshJwt("refresh-token", 1L);
+        given(refreshTokenHasher.hash("refresh-token"))
+                .willReturn("refresh-token-hash");
+        given(refreshTokenRepository.findByTokenHashForUpdate("refresh-token-hash"))
+                .willReturn(Optional.of(storedToken));
 
-        assertThatThrownBy(() -> refreshTokenValidator
-                .validateAndGetStoredTokenForUpdate("access-token", 1L))
-                .isInstanceOf(MemberException.class)
-                .extracting("errorCode")
-                .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
+        RefreshTokenValidator.ValidatedRefreshToken validatedToken =
+                refreshTokenValidator.validate("refresh-token");
+        RefreshToken result = refreshTokenValidator
+                .validateAndGetStoredTokenForUpdate(validatedToken);
 
-        verify(refreshTokenHasher, never()).hash("access-token");
-        verify(refreshTokenRepository, never())
-                .findByTokenHashForUpdate("access-token-hash");
-    }
-
-    @Test
-    void validateAndGetStoredTokenForUpdateRejectsDifferentExpectedMemberBeforeDbLookup() {
-        givenValidRefreshJwt("refresh-token", 2L);
-
-        assertThatThrownBy(() -> refreshTokenValidator
-                .validateAndGetStoredTokenForUpdate("refresh-token", 1L))
-                .isInstanceOf(MemberException.class)
-                .extracting("errorCode")
-                .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
-
-        verify(refreshTokenHasher, never()).hash("refresh-token");
-        verify(refreshTokenRepository, never())
-                .findByTokenHashForUpdate("refresh-token-hash");
+        assertThat(result).isSameAs(storedToken);
+        verify(jwtTokenProvider, times(1)).parseTokenClaims("refresh-token");
     }
 
     @Test
     void validateAndGetStoredTokenRejectsNonRefreshTokenType() {
-        given(jwtTokenProvider.getTokenType("access-token")).willReturn(TokenType.ACCESS);
+        given(jwtTokenProvider.parseTokenClaims("access-token"))
+                .willReturn(new ParsedTokenClaims(TokenType.ACCESS, "1"));
 
         assertThatThrownBy(() -> refreshTokenValidator.validateAndGetStoredToken("access-token"))
                 .isInstanceOf(MemberException.class)
@@ -146,7 +140,7 @@ class RefreshTokenValidatorTest {
     void validateAndGetStoredTokenRejectsExpiredJwtRefreshToken() {
         willThrow(new ExpiredJwtException(null, null, "expired"))
                 .given(jwtTokenProvider)
-                .getTokenType("expired-refresh-token");
+                .parseTokenClaims("expired-refresh-token");
 
         assertThatThrownBy(() -> refreshTokenValidator.validateAndGetStoredToken("expired-refresh-token"))
                 .isInstanceOf(MemberException.class)
@@ -158,7 +152,7 @@ class RefreshTokenValidatorTest {
     void validateAndGetStoredTokenRejectsMalformedJwtRefreshToken() {
         willThrow(new JwtException("malformed"))
                 .given(jwtTokenProvider)
-                .getTokenType("malformed-refresh-token");
+                .parseTokenClaims("malformed-refresh-token");
 
         assertThatThrownBy(() -> refreshTokenValidator.validateAndGetStoredToken("malformed-refresh-token"))
                 .isInstanceOf(MemberException.class)
@@ -229,7 +223,10 @@ class RefreshTokenValidatorTest {
     }
 
     private void givenValidRefreshJwt(String token, Long memberId) {
-        given(jwtTokenProvider.getTokenType(token)).willReturn(TokenType.REFRESH);
-        given(jwtTokenProvider.getMemberId(token)).willReturn(memberId);
+        given(jwtTokenProvider.parseTokenClaims(token))
+                .willReturn(new ParsedTokenClaims(
+                        TokenType.REFRESH,
+                        String.valueOf(memberId)
+                ));
     }
 }

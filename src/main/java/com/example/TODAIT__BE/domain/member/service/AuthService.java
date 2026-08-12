@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -94,10 +95,11 @@ public class AuthService {
 
     @Transactional
     public void logout(AuthRequest.Logout request) {
-        try {
+        executeWithTokenLockHandling(() -> {
             String refreshToken = request.refreshToken();
-            Long memberId = refreshTokenValidator
-                    .validateAndExtractMemberId(refreshToken);
+            RefreshTokenValidator.ValidatedRefreshToken validatedToken =
+                    refreshTokenValidator.validate(refreshToken);
+            Long memberId = validatedToken.memberId();
 
             Member member = memberRepository.findByIdForUpdate(memberId)
                     .orElseThrow(() -> new MemberException(
@@ -105,27 +107,23 @@ public class AuthService {
                     ));
 
             refreshTokenValidator.validateAndGetStoredTokenForUpdate(
-                    refreshToken,
-                    memberId
+                    validatedToken
             );
 
             revokeActiveRefreshTokens(member);
-        } catch (PessimisticLockingFailureException
-                 | QueryTimeoutException
-                 | PessimisticLockException
-                 | LockTimeoutException exception) {
-            throw tokenOperationConflict(exception);
-        }
+            return null;
+        });
     }
 
     @Transactional
     public AuthResponse.Token refresh(
             AuthRequest.TokenRefresh request
     ){
-        try {
+        return executeWithTokenLockHandling(() -> {
             String refreshToken = request.refreshToken();
-            Long memberId = refreshTokenValidator
-                    .validateAndExtractMemberId(refreshToken);
+            RefreshTokenValidator.ValidatedRefreshToken validatedToken =
+                    refreshTokenValidator.validate(refreshToken);
+            Long memberId = validatedToken.memberId();
 
             Member member = memberRepository.findByIdForUpdate(memberId)
                     .orElseThrow(() -> new MemberException(
@@ -133,8 +131,7 @@ public class AuthService {
                     ));
 
             refreshTokenValidator.validateAndGetStoredTokenForUpdate(
-                    refreshToken,
-                    memberId
+                    validatedToken
             );
 
             memberLoginValidator.validateLoginAvailable(member);
@@ -142,27 +139,23 @@ public class AuthService {
             revokeActiveRefreshTokens(member);
 
             return createAndStoreTokenPair(member, LocalDateTime.now());
-        } catch (PessimisticLockingFailureException
-                 | QueryTimeoutException
-                 | PessimisticLockException
-                 | LockTimeoutException exception) {
-            throw tokenOperationConflict(exception);
-        }
+        });
     }
 
     @Transactional
     public AuthResponse.Token issueTokens(Member member){
-
-        Member managedMember = memberRepository.findByIdForUpdate(member.getId())
+        return executeWithTokenLockHandling(() -> {
+            Member managedMember = memberRepository.findByIdForUpdate(member.getId())
                 .orElseThrow(() -> new IllegalStateException("토큰 발급 대상 회원을 찾을 수 없습니다."));
 
-        LocalDateTime issuedAt = LocalDateTime.now();
+            LocalDateTime issuedAt = LocalDateTime.now();
 
-        managedMember.updateLastLoginAt(issuedAt);
+            managedMember.updateLastLoginAt(issuedAt);
 
-        revokeActiveRefreshTokens(managedMember);
+            revokeActiveRefreshTokens(managedMember);
 
-        return createAndStoreTokenPair(managedMember, issuedAt);
+            return createAndStoreTokenPair(managedMember, issuedAt);
+        });
     }
 
     private void revokeActiveRefreshTokens(Member member) {
@@ -171,11 +164,18 @@ public class AuthService {
         activeTokens.forEach(RefreshToken::revoke);
     }
 
-    private MemberException tokenOperationConflict(RuntimeException cause) {
-        return new MemberException(
-                AuthErrorCode.TOKEN_OPERATION_CONFLICT,
-                cause
-        );
+    private <T> T executeWithTokenLockHandling(Supplier<T> operation) {
+        try {
+            return operation.get();
+        } catch (PessimisticLockingFailureException
+                 | QueryTimeoutException
+                 | PessimisticLockException
+                 | LockTimeoutException exception) {
+            throw new MemberException(
+                    AuthErrorCode.TOKEN_OPERATION_CONFLICT,
+                    exception
+            );
+        }
     }
 
     private AuthResponse.Token createAndStoreTokenPair(
