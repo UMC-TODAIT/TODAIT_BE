@@ -16,6 +16,7 @@ import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.Statu
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlace;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlaceSaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CreateResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CurrentResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.DraftPlaceResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.FoodCategorySaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.MoodTagSaveResponse;
@@ -94,6 +95,14 @@ public class CourseDraftService {
     private static final double MIN_LONGITUDE = -180.0;
     private static final double MAX_LONGITUDE = 180.0;
     private static final String DEFAULT_SOURCE_TYPE = "OPERATOR";
+    private static final List<CourseDraftStatus> PROGRESS_STATUSES = List.of(
+            CourseDraftStatus.MOOD_SELECTING,
+            CourseDraftStatus.FOOD_SELECTING,
+            CourseDraftStatus.BASE_PLACE_SELECTING,
+            CourseDraftStatus.PLACE_SELECTING,
+            CourseDraftStatus.ORDERING,
+            CourseDraftStatus.SAVING
+    );
 
     private final CourseDraftRepository courseDraftRepository;
     private final MemberRepository memberRepository;
@@ -125,6 +134,14 @@ public class CourseDraftService {
                 courseDraftRepository.save(courseDraft);
 
         return CreateResponse.from(savedCourseDraft);
+    }
+
+    @Transactional(readOnly = true)
+    public CurrentResponse getCurrentCourseDraft(Long memberId) {
+        return courseDraftRepository
+                .findFirstByMemberIdAndStatusInOrderByUpdatedAtDescIdDesc(memberId, PROGRESS_STATUSES)
+                .map(this::toCurrentResponse)
+                .orElse(null);
     }
 
     @Transactional
@@ -409,6 +426,15 @@ public class CourseDraftService {
     private CourseDraft getCourseDraftForUpdate(Long courseDraftId) {
         return courseDraftRepository.findByIdForUpdate(courseDraftId)
                 .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
+    }
+
+    private CurrentResponse toCurrentResponse(CourseDraft courseDraft) {
+        return CurrentResponse.of(
+                courseDraft,
+                courseDraftMoodTagRepository.findByCourseDraftOrderByIdAsc(courseDraft),
+                courseDraftFoodCategoryRepository.findByCourseDraftOrderByIdAsc(courseDraft),
+                courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(courseDraft)
+        );
     }
 
     private void validateBackwardStatus(

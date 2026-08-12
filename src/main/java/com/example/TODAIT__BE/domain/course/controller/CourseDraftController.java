@@ -10,6 +10,7 @@ import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.Place
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.StatusUpdateRequest;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlaceSaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CreateResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CurrentResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.FoodCategorySaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.MoodTagSaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.OrderingEntryResponse;
@@ -24,6 +25,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -48,6 +50,17 @@ public class CourseDraftController implements CourseDraftControllerDocs {
         return ResponseEntity
                 .status(CourseDraftSuccessCode.COURSE_DRAFT_CREATE_OK.getStatus())
                 .body(ApiResponse.onSuccess(CourseDraftSuccessCode.COURSE_DRAFT_CREATE_OK, result));
+    }
+
+    @GetMapping("/current")
+    @Override
+    public ResponseEntity<ApiResponse<CurrentResponse>> getCurrentCourseDraft(
+            @AuthenticationPrincipal AuthMember authMember
+    ) {
+        CurrentResponse result = courseDraftService.getCurrentCourseDraft(authMember.memberId());
+        return ResponseEntity
+                .status(CourseDraftSuccessCode.COURSE_DRAFT_CURRENT_OK.getStatus())
+                .body(ApiResponse.onSuccess(CourseDraftSuccessCode.COURSE_DRAFT_CURRENT_OK, result));
     }
 
     @PutMapping("/{courseDraftId}/mood-tags")
