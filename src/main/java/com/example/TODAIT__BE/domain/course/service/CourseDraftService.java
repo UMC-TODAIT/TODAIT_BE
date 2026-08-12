@@ -13,9 +13,11 @@ import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.Place
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest.PlaceOrderItem;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.StatusUpdateRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.AbandonResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlace;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlaceSaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CreateResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CurrentResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.DraftPlaceResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.FoodCategorySaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.MoodTagSaveResponse;
@@ -66,6 +68,7 @@ import com.example.TODAIT__BE.domain.taxonomy.repository.AreaRepository;
 import com.example.TODAIT__BE.domain.taxonomy.repository.FoodCategoryRepository;
 import com.example.TODAIT__BE.domain.taxonomy.repository.MoodTagRepository;
 import com.example.TODAIT__BE.domain.taxonomy.repository.PlaceCategoryRepository;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -76,6 +79,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,6 +98,17 @@ public class CourseDraftService {
     private static final double MIN_LONGITUDE = -180.0;
     private static final double MAX_LONGITUDE = 180.0;
     private static final String DEFAULT_SOURCE_TYPE = "OPERATOR";
+    private static final List<CourseDraftStatus> PROGRESS_STATUSES = List.of(
+            CourseDraftStatus.MOOD_SELECTING,
+            CourseDraftStatus.FOOD_SELECTING,
+            CourseDraftStatus.BASE_PLACE_SELECTING,
+            CourseDraftStatus.PLACE_SELECTING,
+            CourseDraftStatus.ORDERING,
+            CourseDraftStatus.SAVING
+    );
+
+    @Value("${app.course-draft.terminal-retention-days:30}")
+    private int terminalRetentionDays = 30;
 
     private final CourseDraftRepository courseDraftRepository;
     private final MemberRepository memberRepository;
@@ -125,6 +140,14 @@ public class CourseDraftService {
                 courseDraftRepository.save(courseDraft);
 
         return CreateResponse.from(savedCourseDraft);
+    }
+
+    @Transactional(readOnly = true)
+    public CurrentResponse getCurrentCourseDraft(Long memberId) {
+        return courseDraftRepository
+                .findFirstByMemberIdAndStatusInOrderByUpdatedAtDescIdDesc(memberId, PROGRESS_STATUSES)
+                .map(this::toCurrentResponse)
+                .orElse(null);
     }
 
     @Transactional
@@ -406,9 +429,33 @@ public class CourseDraftService {
         return StatusUpdateResponse.of(courseDraft);
     }
 
+    @Transactional
+    public AbandonResponse abandonCourseDraft(Long courseDraftId, Long memberId) {
+        CourseDraft courseDraft = getCourseDraftForUpdate(courseDraftId);
+
+        courseDraftValidator.validateOwner(courseDraft, memberId);
+        if (courseDraft.getStatus() == CourseDraftStatus.COMPLETED
+                || courseDraft.getStatus() == CourseDraftStatus.ABANDONED) {
+            throw new CourseException(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
+        }
+
+        courseDraft.abandon(LocalDateTime.now().plusDays(terminalRetentionDays));
+
+        return AbandonResponse.from(courseDraft);
+    }
+
     private CourseDraft getCourseDraftForUpdate(Long courseDraftId) {
         return courseDraftRepository.findByIdForUpdate(courseDraftId)
                 .orElseThrow(() -> new CourseException(CourseDraftErrorCode.COURSE_DRAFT_NOT_FOUND));
+    }
+
+    private CurrentResponse toCurrentResponse(CourseDraft courseDraft) {
+        return CurrentResponse.of(
+                courseDraft,
+                courseDraftMoodTagRepository.findByCourseDraftOrderByIdAsc(courseDraft),
+                courseDraftFoodCategoryRepository.findByCourseDraftOrderByIdAsc(courseDraft),
+                courseDraftPlaceRepository.findByCourseDraftWithPlaceOrderByVisitOrderAsc(courseDraft)
+        );
     }
 
     private void validateBackwardStatus(

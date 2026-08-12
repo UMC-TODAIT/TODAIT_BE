@@ -84,6 +84,10 @@ app:
   kakao:
     local:
       rest-api-key: ${KAKAO_REST_API_KEY}
+  course-draft:
+    terminal-retention-days: ${COURSE_DRAFT_TERMINAL_RETENTION_DAYS:30}
+    cleanup-cron: ${COURSE_DRAFT_CLEANUP_CRON:0 0 3 * * *}
+    cleanup-batch-size: ${COURSE_DRAFT_CLEANUP_BATCH_SIZE:500}
 
 jwt:
   secret: ${JWT_SECRET}

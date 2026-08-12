@@ -1,0 +1,130 @@
+package com.example.TODAIT__BE.domain.course.service;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
+import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.AbandonResponse;
+import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
+import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
+import com.example.TODAIT__BE.domain.course.exception.CourseException;
+import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRepository;
+import com.example.TODAIT__BE.domain.course.repository.CourseDraftMoodTagRepository;
+import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
+import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
+import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
+import com.example.TODAIT__BE.domain.member.entity.Member;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+
+@ExtendWith(MockitoExtension.class)
+class CourseDraftAbandonServiceTest {
+
+    private static final Long DRAFT_ID = 10L;
+    private static final Long MEMBER_ID = 1L;
+
+    @Mock
+    private CourseDraftRepository courseDraftRepository;
+    @Mock
+    private CourseDraftMoodTagRepository courseDraftMoodTagRepository;
+    @Mock
+    private CourseDraftFoodCategoryRepository courseDraftFoodCategoryRepository;
+    @Mock
+    private CourseDraftPlaceRepository courseDraftPlaceRepository;
+
+    private CourseDraftService service;
+
+    @BeforeEach
+    void setUp() {
+        service = new CourseDraftService(
+                courseDraftRepository,
+                null,
+                courseDraftMoodTagRepository,
+                courseDraftFoodCategoryRepository,
+                courseDraftPlaceRepository,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                new CourseDraftValidator()
+        );
+    }
+
+    @Test
+    void abandonsProgressDraftAndKeepsChildSelections() {
+        CourseDraft draft = draft(CourseDraftStatus.ORDERING, MEMBER_ID);
+        given(courseDraftRepository.findByIdForUpdate(DRAFT_ID))
+                .willReturn(Optional.of(draft));
+        ReflectionTestUtils.setField(service, "terminalRetentionDays", 7);
+
+        LocalDateTime before = LocalDateTime.now().plusDays(7).minusSeconds(5);
+        AbandonResponse response = service.abandonCourseDraft(DRAFT_ID, MEMBER_ID);
+        LocalDateTime after = LocalDateTime.now().plusDays(7).plusSeconds(5);
+
+        assertThat(draft.getStatus()).isEqualTo(CourseDraftStatus.ABANDONED);
+        assertThat(draft.getExpiresAt()).isBetween(before, after);
+        assertThat(response.courseDraftId()).isEqualTo(DRAFT_ID);
+        assertThat(response.draftStatus()).isEqualTo(CourseDraftStatus.ABANDONED);
+        assertThat(response.expiresAt()).isEqualTo(draft.getExpiresAt());
+        verify(courseDraftMoodTagRepository, never()).deleteByCourseDraft(draft);
+        verify(courseDraftFoodCategoryRepository, never()).deleteByCourseDraft(draft);
+        verify(courseDraftPlaceRepository, never()).deleteByCourseDraft(draft);
+    }
+
+    @Test
+    void rejectsCompletedDraft() {
+        CourseDraft draft = draft(CourseDraftStatus.COMPLETED, MEMBER_ID);
+        given(courseDraftRepository.findByIdForUpdate(DRAFT_ID))
+                .willReturn(Optional.of(draft));
+
+        assertThatThrownBy(() -> service.abandonCourseDraft(DRAFT_ID, MEMBER_ID))
+                .isInstanceOf(CourseException.class)
+                .extracting("errorCode")
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
+    }
+
+    @Test
+    void rejectsAlreadyAbandonedDraft() {
+        CourseDraft draft = draft(CourseDraftStatus.ABANDONED, MEMBER_ID);
+        given(courseDraftRepository.findByIdForUpdate(DRAFT_ID))
+                .willReturn(Optional.of(draft));
+
+        assertThatThrownBy(() -> service.abandonCourseDraft(DRAFT_ID, MEMBER_ID))
+                .isInstanceOf(CourseException.class)
+                .extracting("errorCode")
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
+    }
+
+    @Test
+    void rejectsNonOwner() {
+        CourseDraft draft = draft(CourseDraftStatus.ORDERING, 999L);
+        given(courseDraftRepository.findByIdForUpdate(DRAFT_ID))
+                .willReturn(Optional.of(draft));
+
+        assertThatThrownBy(() -> service.abandonCourseDraft(DRAFT_ID, MEMBER_ID))
+                .isInstanceOf(CourseException.class)
+                .extracting("errorCode")
+                .isEqualTo(CourseDraftErrorCode.COURSE_DRAFT_ACCESS_DENIED);
+    }
+
+    private CourseDraft draft(CourseDraftStatus status, Long memberId) {
+        return CourseDraft.builder()
+                .id(DRAFT_ID)
+                .member(Member.builder().id(memberId).build())
+                .status(status)
+                .build();
+    }
+}

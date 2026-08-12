@@ -6,8 +6,10 @@ import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.MoodT
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceAddRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.StatusUpdateRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.AbandonResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlaceSaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CreateResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CurrentResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.FoodCategorySaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.MoodTagSaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.OrderingEntryResponse;
@@ -45,6 +47,24 @@ public interface CourseDraftControllerDocs {
     @SecurityRequirement(name = "JWT TOKEN")
     ResponseEntity<ApiResponse<CreateResponse>>
     createCourseDraft(
+            @Parameter(hidden = true)
+            AuthMember authMember
+    );
+
+    @Operation(
+            summary = "[임시 코스 조회] 진행 중인 임시 코스 조회",
+            description = """
+                    로그인 사용자의 최신 진행 중 임시 코스를 조회합니다.
+
+                    COMPLETED, ABANDONED 상태는 제외하며,
+                    진행 중 Draft가 없으면 200 OK와 result=null을 반환합니다.
+
+                    여러 Draft가 진행 중이면 updatedAt DESC, id DESC 기준 최신 1건을 반환합니다.
+                    """
+    )
+    @SecurityRequirement(name = "JWT TOKEN")
+    ResponseEntity<ApiResponse<CurrentResponse>>
+    getCurrentCourseDraft(
             @Parameter(hidden = true)
             AuthMember authMember
     );
@@ -195,5 +215,22 @@ public interface CourseDraftControllerDocs {
             AuthMember authMember,
             @RequestBody
             StatusUpdateRequest request
+    );
+
+    @Operation(
+            summary = "[임시 코스 포기] 진행 중인 임시 코스 포기",
+            description = """
+                    작성 중인 임시 코스를 ABANDONED 상태로 전환합니다.
+
+                    DB 행과 하위 mood/food/place 데이터는 즉시 삭제하지 않고,
+                    expiresAt에는 터미널 Draft 보관 기간이 반영됩니다.
+                    COMPLETED 또는 ABANDONED 상태에서는 409를 반환합니다.
+                    """
+    )
+    @SecurityRequirement(name = "JWT TOKEN")
+    ResponseEntity<ApiResponse<AbandonResponse>> abandonCourseDraft(
+            @PathVariable Long courseDraftId,
+            @Parameter(hidden = true)
+            AuthMember authMember
     );
 }

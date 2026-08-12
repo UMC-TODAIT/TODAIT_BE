@@ -1,6 +1,8 @@
 package com.example.TODAIT__BE.domain.course.dto.response;
 
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
+import com.example.TODAIT__BE.domain.course.entity.CourseDraftFoodCategory;
+import com.example.TODAIT__BE.domain.course.entity.CourseDraftMoodTag;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
@@ -87,6 +89,78 @@ public final class CourseDraftResponse {
     ) {
         public static FoodCategoryItem from(FoodCategory foodCategory) {
             return new FoodCategoryItem(foodCategory.getId(), foodCategory.getCode(), foodCategory.getName());
+        }
+    }
+
+    public record CurrentResponse(
+            Long courseDraftId,
+            CourseDraftStatus draftStatus,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt,
+            List<MoodTagItem> moodTags,
+            List<FoodCategoryItem> foodCategories,
+            List<CurrentDraftPlace> places
+    ) {
+
+        public static CurrentResponse of(
+                CourseDraft courseDraft,
+                List<CourseDraftMoodTag> moodTags,
+                List<CourseDraftFoodCategory> foodCategories,
+                List<CourseDraftPlace> places
+        ) {
+            return new CurrentResponse(
+                    courseDraft.getId(),
+                    courseDraft.getStatus(),
+                    courseDraft.getCreatedAt(),
+                    courseDraft.getUpdatedAt(),
+                    moodTags.stream()
+                            .map(CourseDraftMoodTag::getMoodTag)
+                            .map(MoodTagItem::from)
+                            .toList(),
+                    foodCategories.stream()
+                            .map(CourseDraftFoodCategory::getFoodCategory)
+                            .map(FoodCategoryItem::from)
+                            .toList(),
+                    places.stream()
+                            .map(CurrentDraftPlace::from)
+                            .toList()
+            );
+        }
+    }
+
+    public record CurrentDraftPlace(
+            Long courseDraftPlaceId,
+            Long placeId,
+            PlaceRole placeRole,
+            Integer visitOrder,
+            String name,
+            String address,
+            String roadAddress,
+            Double latitude,
+            Double longitude,
+            String imageUrl,
+            AreaSummary area,
+            CategorySummary category,
+            String subCategory
+    ) {
+
+        public static CurrentDraftPlace from(CourseDraftPlace draftPlace) {
+            Place place = draftPlace.getPlace();
+            return new CurrentDraftPlace(
+                    draftPlace.getId(),
+                    place.getId(),
+                    draftPlace.getPlaceRole(),
+                    draftPlace.getVisitOrder(),
+                    place.getName(),
+                    place.getAddress(),
+                    place.getRoadAddress(),
+                    place.getLatitude(),
+                    place.getLongitude(),
+                    place.getDefaultImageUrl(),
+                    AreaSummary.from(place.getArea()),
+                    CategorySummary.from(place.getPlaceCategory()),
+                    place.getSubCategory()
+            );
         }
     }
 
@@ -307,6 +381,21 @@ public final class CourseDraftResponse {
             return new StatusUpdateResponse(
                     courseDraft.getId(),
                     courseDraft.getStatus()
+            );
+        }
+    }
+
+    public record AbandonResponse(
+            Long courseDraftId,
+            CourseDraftStatus draftStatus,
+            LocalDateTime expiresAt
+    ) {
+
+        public static AbandonResponse from(CourseDraft courseDraft) {
+            return new AbandonResponse(
+                    courseDraft.getId(),
+                    courseDraft.getStatus(),
+                    courseDraft.getExpiresAt()
             );
         }
     }

@@ -3,13 +3,18 @@ package com.example.TODAIT__BE.domain.course.repository;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftFoodCategory;
 import java.util.List;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface CourseDraftFoodCategoryRepository extends JpaRepository<CourseDraftFoodCategory, Long> {
 
     List<CourseDraftFoodCategory> findByCourseDraft(CourseDraft courseDraft);
+
+    @EntityGraph(attributePaths = "foodCategory")
+    List<CourseDraftFoodCategory> findByCourseDraftOrderByIdAsc(CourseDraft courseDraft);
 
     void deleteByCourseDraft(CourseDraft courseDraft);
 
@@ -21,4 +26,8 @@ public interface CourseDraftFoodCategoryRepository extends JpaRepository<CourseD
     List<Long> findFoodCategoryIdsByCourseDraftId(
             @Param("courseDraftId") Long courseDraftId
     );
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("delete from CourseDraftFoodCategory cdfc where cdfc.courseDraft.id in :courseDraftIds")
+    int deleteByCourseDraftIdIn(@Param("courseDraftIds") List<Long> courseDraftIds);
 }

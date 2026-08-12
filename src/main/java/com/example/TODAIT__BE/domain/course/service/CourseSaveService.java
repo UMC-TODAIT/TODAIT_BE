@@ -5,6 +5,7 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.Food
 import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.MoodTagItem;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.CoursePlaceItem;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.SaveResponse;
+import com.example.TODAIT__BE.domain.course.config.CourseDraftProperties;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftFoodCategory;
@@ -34,6 +35,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,6 +56,7 @@ public class CourseSaveService {
     private final CourseRepository courseRepository;
     private final CourseDraftValidator courseDraftValidator;
     private final CourseSaveSupport courseSaveSupport;
+    private final CourseDraftProperties courseDraftProperties;
 
     @Transactional
     public SaveResponse saveCourse(Long courseDraftId, Long memberId, SaveRequest request) {
@@ -95,7 +98,10 @@ public class CourseSaveService {
                 courseSaveSupport.saveFoodCategories(course, draftFoodCategories);
         List<CoursePlaceItem> placeResponses = courseSaveSupport.savePlaces(course, draftPlaces);
 
-        courseDraft.completeWithCourse(course);
+        courseDraft.completeWithCourse(
+                course,
+                LocalDateTime.now().plusDays(courseDraftProperties.terminalRetentionDays())
+        );
         courseDraftRepository.save(courseDraft);
 
         return SaveResponse.of(course, moodTagResponses, foodCategoryResponses, placeResponses);
