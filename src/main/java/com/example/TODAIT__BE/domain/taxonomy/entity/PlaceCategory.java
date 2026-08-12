@@ -34,4 +34,20 @@ public class PlaceCategory extends BaseEntity {
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
+
+    public static PlaceCategory of(
+            String code,
+            String name,
+            String description,
+            Integer sortOrder,
+            Boolean isActive
+    ) {
+        PlaceCategory placeCategory = new PlaceCategory();
+        placeCategory.code = code;
+        placeCategory.name = name;
+        placeCategory.description = description;
+        placeCategory.sortOrder = sortOrder;
+        placeCategory.isActive = isActive;
+        return placeCategory;
+    }
 }
