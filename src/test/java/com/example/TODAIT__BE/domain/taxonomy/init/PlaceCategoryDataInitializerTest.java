@@ -1,9 +1,9 @@
 package com.example.TODAIT__BE.domain.taxonomy.init;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -16,6 +16,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
 class PlaceCategoryDataInitializerTest {
@@ -61,6 +62,20 @@ class PlaceCategoryDataInitializerTest {
                 ArgumentCaptor.forClass(PlaceCategory.class);
         verify(placeCategoryRepository).save(captor.capture());
         assertThat(captor.getValue().getSortOrder()).isEqualTo(1);
+    }
+
+    @Test
+    void swallowsUniqueViolationWhenCreatedConcurrently() {
+        // 동시 기동으로 존재 확인 통과 후 다른 인스턴스가 먼저 저장한 상황
+        given(placeCategoryRepository.findByCode("OTHER"))
+                .willReturn(Optional.empty());
+        given(placeCategoryRepository.findFirstByOrderBySortOrderDesc())
+                .willReturn(Optional.of(PlaceCategory.of("BAR", "바", null, 4, true)));
+        given(placeCategoryRepository.save(any()))
+                .willThrow(new DataIntegrityViolationException("duplicate key: OTHER"));
+
+        // 유니크 충돌이 전파되어 기동이 실패하지 않아야 한다.
+        assertThatCode(() -> initializer.run(null)).doesNotThrowAnyException();
     }
 
     @Test

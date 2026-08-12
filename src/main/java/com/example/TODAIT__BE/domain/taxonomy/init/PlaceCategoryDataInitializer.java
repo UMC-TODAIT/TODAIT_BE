@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 앱 기동 시 '기타(OTHER)' 장소 카테고리가 없으면 생성한다.
@@ -29,7 +29,6 @@ public class PlaceCategoryDataInitializer implements ApplicationRunner {
     private final PlaceCategoryRepository placeCategoryRepository;
 
     @Override
-    @Transactional
     public void run(ApplicationArguments args) {
         if (placeCategoryRepository.findByCode(ETC_CODE).isPresent()) {
             return;
@@ -40,9 +39,15 @@ public class PlaceCategoryDataInitializer implements ApplicationRunner {
                 .map(category -> category.getSortOrder() + 1)
                 .orElse(1);
 
-        placeCategoryRepository.save(
-                PlaceCategory.of(ETC_CODE, ETC_NAME, ETC_DESCRIPTION, nextSortOrder, true)
-        );
-        log.info("[place-category] '기타(OTHER)' 카테고리를 생성했습니다. sortOrder={}", nextSortOrder);
+        try {
+            placeCategoryRepository.save(
+                    PlaceCategory.of(ETC_CODE, ETC_NAME, ETC_DESCRIPTION, nextSortOrder, true)
+            );
+            log.info("[place-category] '기타(OTHER)' 카테고리를 생성했습니다. sortOrder={}", nextSortOrder);
+        } catch (DataIntegrityViolationException e) {
+            // 다중 인스턴스 동시 기동 등으로 이미 생성된 경우, code 유니크 충돌을
+            // 정상 상황으로 간주하고 무시한다. (멱등 보장)
+            log.info("[place-category] '기타(OTHER)' 카테고리가 이미 존재하여 생성을 건너뜁니다.");
+        }
     }
 }
