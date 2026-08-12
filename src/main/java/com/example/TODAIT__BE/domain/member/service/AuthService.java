@@ -19,7 +19,11 @@ import com.example.TODAIT__BE.domain.member.service.validator.RefreshTokenValida
 import com.example.TODAIT__BE.domain.member.service.validator.TermAgreementValidator;
 import com.example.TODAIT__BE.global.security.token.JwtTokenProvider;
 import com.example.TODAIT__BE.global.security.token.RefreshTokenHasher;
+import jakarta.persistence.LockTimeoutException;
+import jakarta.persistence.PessimisticLockException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.PessimisticLockingFailureException;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,46 +94,60 @@ public class AuthService {
 
     @Transactional
     public void logout(AuthRequest.Logout request) {
-        String refreshToken = request.refreshToken();
-        Long memberId = refreshTokenValidator
-                .validateAndExtractMemberId(refreshToken);
+        try {
+            String refreshToken = request.refreshToken();
+            Long memberId = refreshTokenValidator
+                    .validateAndExtractMemberId(refreshToken);
 
-        Member member = memberRepository.findByIdForUpdate(memberId)
-                .orElseThrow(() -> new MemberException(
-                        AuthErrorCode.INVALID_REFRESH_TOKEN
-                ));
+            Member member = memberRepository.findByIdForUpdate(memberId)
+                    .orElseThrow(() -> new MemberException(
+                            AuthErrorCode.INVALID_REFRESH_TOKEN
+                    ));
 
-        refreshTokenValidator.validateAndGetStoredTokenForUpdate(
-                refreshToken,
-                memberId
-        );
+            refreshTokenValidator.validateAndGetStoredTokenForUpdate(
+                    refreshToken,
+                    memberId
+            );
 
-        revokeActiveRefreshTokens(member);
+            revokeActiveRefreshTokens(member);
+        } catch (PessimisticLockingFailureException
+                 | QueryTimeoutException
+                 | PessimisticLockException
+                 | LockTimeoutException exception) {
+            throw tokenOperationConflict(exception);
+        }
     }
 
     @Transactional
     public AuthResponse.Token refresh(
             AuthRequest.TokenRefresh request
     ){
-        String refreshToken = request.refreshToken();
-        Long memberId = refreshTokenValidator
-                .validateAndExtractMemberId(refreshToken);
+        try {
+            String refreshToken = request.refreshToken();
+            Long memberId = refreshTokenValidator
+                    .validateAndExtractMemberId(refreshToken);
 
-        Member member = memberRepository.findByIdForUpdate(memberId)
-                .orElseThrow(() -> new MemberException(
-                        AuthErrorCode.INVALID_REFRESH_TOKEN
-                ));
+            Member member = memberRepository.findByIdForUpdate(memberId)
+                    .orElseThrow(() -> new MemberException(
+                            AuthErrorCode.INVALID_REFRESH_TOKEN
+                    ));
 
-        refreshTokenValidator.validateAndGetStoredTokenForUpdate(
-                refreshToken,
-                memberId
-        );
+            refreshTokenValidator.validateAndGetStoredTokenForUpdate(
+                    refreshToken,
+                    memberId
+            );
 
-        memberLoginValidator.validateLoginAvailable(member);
+            memberLoginValidator.validateLoginAvailable(member);
 
-        revokeActiveRefreshTokens(member);
+            revokeActiveRefreshTokens(member);
 
-        return createAndStoreTokenPair(member, LocalDateTime.now());
+            return createAndStoreTokenPair(member, LocalDateTime.now());
+        } catch (PessimisticLockingFailureException
+                 | QueryTimeoutException
+                 | PessimisticLockException
+                 | LockTimeoutException exception) {
+            throw tokenOperationConflict(exception);
+        }
     }
 
     @Transactional
@@ -151,6 +169,13 @@ public class AuthService {
         List<RefreshToken> activeTokens = refreshTokenRepository
                 .findAllByMemberAndRevokedAtIsNull(member);
         activeTokens.forEach(RefreshToken::revoke);
+    }
+
+    private MemberException tokenOperationConflict(RuntimeException cause) {
+        return new MemberException(
+                AuthErrorCode.TOKEN_OPERATION_CONFLICT,
+                cause
+        );
     }
 
     private AuthResponse.Token createAndStoreTokenPair(

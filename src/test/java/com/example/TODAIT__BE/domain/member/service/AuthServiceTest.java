@@ -28,6 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
@@ -277,6 +278,26 @@ class AuthServiceTest {
     }
 
     @Test
+    void logoutMapsRefreshTokenLockFailureToConflict() {
+        AuthRequest.Logout request = new AuthRequest.Logout("refresh-token");
+        Member member = activeMember(1L);
+
+        given(refreshTokenValidator.validateAndExtractMemberId(request.refreshToken()))
+                .willReturn(member.getId());
+        given(memberRepository.findByIdForUpdate(member.getId()))
+                .willReturn(Optional.of(member));
+        given(refreshTokenValidator.validateAndGetStoredTokenForUpdate(
+                request.refreshToken(),
+                member.getId()
+        )).willThrow(new CannotAcquireLockException("lock timeout"));
+
+        assertThatThrownBy(() -> authService.logout(request))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(AuthErrorCode.TOKEN_OPERATION_CONFLICT);
+    }
+
+    @Test
     void refreshRotatesValidRefreshToken() {
         AuthRequest.TokenRefresh request = new AuthRequest.TokenRefresh("refresh-token");
         Member member = activeMember(1L);
@@ -337,6 +358,22 @@ class AuthServiceTest {
                 .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
+    }
+
+    @Test
+    void refreshMapsMemberLockFailureToConflict() {
+        AuthRequest.TokenRefresh request = new AuthRequest.TokenRefresh("refresh-token");
+        Member member = activeMember(1L);
+
+        given(refreshTokenValidator.validateAndExtractMemberId(request.refreshToken()))
+                .willReturn(member.getId());
+        given(memberRepository.findByIdForUpdate(member.getId()))
+                .willThrow(new CannotAcquireLockException("lock timeout"));
+
+        assertThatThrownBy(() -> authService.refresh(request))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(AuthErrorCode.TOKEN_OPERATION_CONFLICT);
     }
 
     @Test
