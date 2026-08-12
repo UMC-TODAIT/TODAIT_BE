@@ -162,6 +162,7 @@ class ApiResponseCodeContractTest {
             entry("CourseDraftSuccessCode.PLACE_ADD_OK", "COURSE201_1"),
             entry("CourseDraftSuccessCode.COURSE_DRAFT_STATUS_UPDATE_OK", "COURSE200_12"),
             entry("CourseDraftSuccessCode.COURSE_DRAFT_ABANDON_OK", "COURSE200_13"),
+            entry("CourseDraftSuccessCode.COURSE_DRAFT_CURRENT_OK", "COURSE200_14"),
             entry("CourseSaveSuccessCode.COURSE_SAVE_OK", "COURSE_SAVE201"),
             entry("RecommendedCourseSuccessCode.RECOMMENDED_COURSE_DETAIL_OK", "COURSE200_3"),
             entry("RecommendedCourseSuccessCode.RECOMMENDED_COURSE_SAVE_OK", "COURSE202"),
