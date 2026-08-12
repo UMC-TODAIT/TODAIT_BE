@@ -3,26 +3,28 @@ package com.example.TODAIT__BE.domain.course.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
-import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.parser.PartTree;
 
 class CourseDraftRepositoryTest {
 
     @Test
-    void currentDraftLookupUsesMemberStatusAndLatestUpdatedOrdering() throws NoSuchMethodException {
-        Method method = CourseDraftRepository.class.getMethod(
+    void currentDraftLookupUsesMemberStatusAndLatestUpdatedOrdering() {
+        PartTree partTree = new PartTree(
                 "findFirstByMemberIdAndStatusInOrderByUpdatedAtDescIdDesc",
-                Long.class,
-                List.class
+                CourseDraft.class
         );
 
-        assertThat(method.getReturnType()).isEqualTo(Optional.class);
-        assertThat(method.getGenericReturnType().getTypeName())
-                .contains(CourseDraft.class.getSimpleName());
-        assertThat(method.getGenericParameterTypes()[1].getTypeName())
-                .contains(CourseDraftStatus.class.getSimpleName());
+        assertThat(partTree.isLimiting()).isTrue();
+        assertThat(partTree.getMaxResults()).isEqualTo(1);
+        assertThat(partTree.getParts())
+                .extracting(part -> part.getProperty().toDotPath())
+                .containsExactly("member.id", "status");
+        assertThat(partTree.getSort())
+                .isEqualTo(Sort.by(
+                        Sort.Order.desc("updatedAt"),
+                        Sort.Order.desc("id")
+                ));
     }
 }
