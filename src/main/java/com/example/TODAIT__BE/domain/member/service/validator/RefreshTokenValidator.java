@@ -36,7 +36,13 @@ public class RefreshTokenValidator {
             String token,
             Long expectedMemberId
     ) {
-        return validateAndGetStoredToken(token, expectedMemberId, true);
+        Long tokenMemberId = validateAndExtractMemberId(token);
+
+        if (!tokenMemberId.equals(expectedMemberId)) {
+            throw new MemberException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        return validateAndGetStoredToken(token, tokenMemberId, true);
     }
 
     private RefreshToken validateAndGetStoredToken(

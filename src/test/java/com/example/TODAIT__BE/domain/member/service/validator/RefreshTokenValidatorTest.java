@@ -24,6 +24,8 @@ import static com.example.TODAIT__BE.domain.member.service.MemberServiceTestFixt
 import static com.example.TODAIT__BE.domain.member.service.MemberServiceTestFixtures.refreshToken;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class RefreshTokenValidatorTest {
@@ -97,6 +99,37 @@ class RefreshTokenValidatorTest {
                 .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(AuthErrorCode.REVOKED_REFRESH_TOKEN);
+    }
+
+    @Test
+    void validateAndGetStoredTokenForUpdateWithExpectedMemberAlwaysValidatesJwt() {
+        given(jwtTokenProvider.getTokenType("access-token"))
+                .willReturn(TokenType.ACCESS);
+
+        assertThatThrownBy(() -> refreshTokenValidator
+                .validateAndGetStoredTokenForUpdate("access-token", 1L))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
+
+        verify(refreshTokenHasher, never()).hash("access-token");
+        verify(refreshTokenRepository, never())
+                .findByTokenHashForUpdate("access-token-hash");
+    }
+
+    @Test
+    void validateAndGetStoredTokenForUpdateRejectsDifferentExpectedMemberBeforeDbLookup() {
+        givenValidRefreshJwt("refresh-token", 2L);
+
+        assertThatThrownBy(() -> refreshTokenValidator
+                .validateAndGetStoredTokenForUpdate("refresh-token", 1L))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(AuthErrorCode.INVALID_REFRESH_TOKEN);
+
+        verify(refreshTokenHasher, never()).hash("refresh-token");
+        verify(refreshTokenRepository, never())
+                .findByTokenHashForUpdate("refresh-token-hash");
     }
 
     @Test
