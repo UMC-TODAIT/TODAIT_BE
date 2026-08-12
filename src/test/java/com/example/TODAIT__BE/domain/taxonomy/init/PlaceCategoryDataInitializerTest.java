@@ -17,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(MockitoExtension.class)
 class PlaceCategoryDataInitializerTest {
@@ -65,17 +66,32 @@ class PlaceCategoryDataInitializerTest {
     }
 
     @Test
-    void swallowsUniqueViolationWhenCreatedConcurrently() {
-        // 동시 기동으로 존재 확인 통과 후 다른 인스턴스가 먼저 저장한 상황
-        given(placeCategoryRepository.findByCode("OTHER"))
-                .willReturn(Optional.empty());
-        given(placeCategoryRepository.findFirstByOrderBySortOrderDesc())
-                .willReturn(Optional.of(PlaceCategory.of("BAR", "바", null, 4, true)));
-        given(placeCategoryRepository.save(any()))
-                .willThrow(new DataIntegrityViolationException("duplicate key: OTHER"));
+    void ignoresIntegrityViolationWhenOtherWasCreatedConcurrently() {
+        PlaceCategory existing =
+                PlaceCategory.of("OTHER", "기타", null, 5, true);
 
-        // 유니크 충돌이 전파되어 기동이 실패하지 않아야 한다.
-        assertThatCode(() -> initializer.run(null)).doesNotThrowAnyException();
+        given(placeCategoryRepository.findByCode("OTHER"))
+                .willReturn(
+                        Optional.empty(),
+                        Optional.of(existing)
+                );
+
+        given(placeCategoryRepository.findFirstByOrderBySortOrderDesc())
+                .willReturn(
+                        Optional.of(
+                                PlaceCategory.of("BAR", "바", null, 4, true)
+                        )
+                );
+
+        given(placeCategoryRepository.save(any()))
+                .willThrow(
+                        new DataIntegrityViolationException(
+                                "duplicate key: OTHER"
+                        )
+                );
+
+        assertThatCode(() -> initializer.run(null))
+                .doesNotThrowAnyException();
     }
 
     @Test
@@ -104,5 +120,27 @@ class PlaceCategoryDataInitializerTest {
 
         verify(placeCategoryRepository, never()).save(any());
         verify(placeCategoryRepository, never()).findFirstByOrderBySortOrderDesc();
+    }
+
+    @Test
+    void rethrowsIntegrityViolationWhenOtherWasNotCreated() {
+        given(placeCategoryRepository.findByCode("OTHER"))
+                .willReturn(Optional.empty());
+
+        given(placeCategoryRepository.findFirstByOrderBySortOrderDesc())
+                .willReturn(
+                        Optional.of(
+                                PlaceCategory.of("BAR", "바", null, 4, true)
+                        )
+                );
+
+        DataIntegrityViolationException exception =
+                new DataIntegrityViolationException("unexpected db error");
+
+        given(placeCategoryRepository.save(any()))
+                .willThrow(exception);
+
+        assertThatThrownBy(() -> initializer.run(null))
+                .isSameAs(exception);
     }
 }

@@ -62,9 +62,18 @@ public class PlaceCategoryDataInitializer implements ApplicationRunner {
             );
             log.info("[place-category] '기타(OTHER)' 카테고리를 생성했습니다. sortOrder={}", nextSortOrder);
         } catch (DataIntegrityViolationException e) {
-            // 다중 인스턴스 동시 기동 등으로 이미 생성된 경우, code 유니크 충돌을
-            // 정상 상황으로 간주하고 무시한다. (멱등 보장)
-            log.info("[place-category] '기타(OTHER)' 카테고리가 이미 존재하여 생성을 건너뜁니다.");
+            Optional<PlaceCategory> existing =
+                    placeCategoryRepository.findByCode(ETC_CODE);
+
+            if (existing.isPresent()) {
+                reactivateIfInactive(existing.get());
+                log.info(
+                        "[place-category] '기타(OTHER)' 카테고리가 다른 인스턴스에서 이미 생성되었습니다."
+                );
+                return;
+            }
+
+            throw e;
         }
     }
 }
