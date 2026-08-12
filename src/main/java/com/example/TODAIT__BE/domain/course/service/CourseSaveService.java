@@ -5,6 +5,7 @@ import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.Food
 import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.MoodTagItem;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.CoursePlaceItem;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.SaveResponse;
+import com.example.TODAIT__BE.domain.course.config.CourseDraftProperties;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftFoodCategory;
@@ -29,6 +30,8 @@ import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -54,6 +57,8 @@ public class CourseSaveService {
     private final CourseRepository courseRepository;
     private final CourseDraftValidator courseDraftValidator;
     private final CourseSaveSupport courseSaveSupport;
+    private final CourseDraftProperties courseDraftProperties;
+    private final Clock clock;
 
     @Transactional
     public SaveResponse saveCourse(Long courseDraftId, Long memberId, SaveRequest request) {
@@ -95,7 +100,10 @@ public class CourseSaveService {
                 courseSaveSupport.saveFoodCategories(course, draftFoodCategories);
         List<CoursePlaceItem> placeResponses = courseSaveSupport.savePlaces(course, draftPlaces);
 
-        courseDraft.completeWithCourse(course);
+        courseDraft.completeWithCourse(
+                course,
+                LocalDateTime.now(clock).plusDays(courseDraftProperties.terminalRetentionDays())
+        );
         courseDraftRepository.save(courseDraft);
 
         return SaveResponse.of(course, moodTagResponses, foodCategoryResponses, placeResponses);

@@ -5,6 +5,7 @@ import static com.example.TODAIT__BE.domain.course.service.validator.CourseDraft
 import static com.example.TODAIT__BE.domain.course.service.validator.CourseDraftPlaceValidator.validateSavingPlaces;
 
 import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
+import com.example.TODAIT__BE.domain.course.config.CourseDraftProperties;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.BasePlaceSaveRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.BasePlaceSaveRequest.ExternalPlace;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.FoodCategorySaveRequest;
@@ -98,7 +99,6 @@ public class CourseDraftService {
     private static final double MIN_LONGITUDE = -180.0;
     private static final double MAX_LONGITUDE = 180.0;
     private static final String DEFAULT_SOURCE_TYPE = "OPERATOR";
-    private static final int TERMINAL_RETENTION_DAYS = 30;
     private static final List<CourseDraftStatus> PROGRESS_STATUSES = List.of(
             CourseDraftStatus.MOOD_SELECTING,
             CourseDraftStatus.FOOD_SELECTING,
@@ -122,6 +122,7 @@ public class CourseDraftService {
     private final PlaceCategoryRepository placeCategoryRepository;
     private final ExternalPlaceRegistrationService externalPlaceRegistrationService;
     private final CourseDraftValidator courseDraftValidator;
+    private final CourseDraftProperties courseDraftProperties;
     private final Clock clock;
 
     @Transactional
@@ -442,7 +443,7 @@ public class CourseDraftService {
             throw new CourseException(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
         }
 
-        courseDraft.abandon(LocalDateTime.now(clock).plusDays(TERMINAL_RETENTION_DAYS));
+        courseDraft.abandon(LocalDateTime.now(clock).plusDays(courseDraftProperties.terminalRetentionDays()));
 
         return AbandonResponse.from(courseDraft);
     }

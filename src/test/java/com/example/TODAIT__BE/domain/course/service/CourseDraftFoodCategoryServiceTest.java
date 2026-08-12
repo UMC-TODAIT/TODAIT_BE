@@ -67,6 +67,7 @@ class CourseDraftFoodCategoryServiceTest {
                 null,
                 null,
                 new CourseDraftValidator(),
+                new com.example.TODAIT__BE.domain.course.config.CourseDraftProperties(30, "0 0 3 * * *", 500, 20, true),
                 Clock.systemDefaultZone()
         );
     }

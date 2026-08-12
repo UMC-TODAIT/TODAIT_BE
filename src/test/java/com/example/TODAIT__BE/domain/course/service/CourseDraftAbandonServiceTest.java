@@ -7,6 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.example.TODAIT__BE.domain.course.code.CourseDraftErrorCode;
+import com.example.TODAIT__BE.domain.course.config.CourseDraftProperties;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.AbandonResponse;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.enums.CourseDraftStatus;
@@ -66,6 +67,7 @@ class CourseDraftAbandonServiceTest {
                 null,
                 null,
                 new CourseDraftValidator(),
+                new CourseDraftProperties(7, "0 0 3 * * *", 500, 20, true),
                 FIXED_CLOCK
         );
     }
@@ -75,14 +77,14 @@ class CourseDraftAbandonServiceTest {
         CourseDraft draft = draft(CourseDraftStatus.ORDERING, MEMBER_ID);
         given(courseDraftRepository.findByIdForUpdate(DRAFT_ID))
                 .willReturn(Optional.of(draft));
-
         AbandonResponse response = service.abandonCourseDraft(DRAFT_ID, MEMBER_ID);
+        LocalDateTime expectedExpiresAt = LocalDateTime.now(FIXED_CLOCK).plusDays(7);
 
         assertThat(draft.getStatus()).isEqualTo(CourseDraftStatus.ABANDONED);
-        assertThat(draft.getExpiresAt()).isEqualTo(FIXED_NOW.plusDays(30));
+        assertThat(draft.getExpiresAt()).isEqualTo(expectedExpiresAt);
         assertThat(response.courseDraftId()).isEqualTo(DRAFT_ID);
         assertThat(response.draftStatus()).isEqualTo(CourseDraftStatus.ABANDONED);
-        assertThat(response.expiresAt()).isEqualTo(draft.getExpiresAt());
+        assertThat(response.expiresAt()).isEqualTo(expectedExpiresAt);
         verify(courseDraftMoodTagRepository, never()).deleteByCourseDraft(draft);
         verify(courseDraftFoodCategoryRepository, never()).deleteByCourseDraft(draft);
         verify(courseDraftPlaceRepository, never()).deleteByCourseDraft(draft);

@@ -223,7 +223,7 @@ public interface CourseDraftControllerDocs {
                     작성 중인 임시 코스를 ABANDONED 상태로 전환합니다.
 
                     DB 행과 하위 mood/food/place 데이터는 즉시 삭제하지 않고,
-                    expiresAt은 포기 시점부터 30일 뒤로 설정합니다.
+                    expiresAt에는 터미널 Draft 보관 기간이 반영됩니다.
                     COMPLETED 또는 ABANDONED 상태에서는 409를 반환합니다.
                     """
     )

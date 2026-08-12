@@ -11,6 +11,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -21,7 +22,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "course_draft")
+@Table(
+        name = "course_draft",
+        indexes = {
+                @Index(name = "idx_draft_member_status", columnList = "member_id, status, updated_at, id"),
+                @Index(name = "idx_draft_cleanup", columnList = "status, expires_at, id")
+        }
+)
 @Getter
 @Builder
 @AllArgsConstructor
@@ -68,9 +75,10 @@ public class CourseDraft extends BaseEntity {
         super.touchUpdatedAt(updatedAt);
     }
 
-    public void completeWithCourse(Course course) {
+    public void completeWithCourse(Course course, LocalDateTime expiresAt) {
         this.status = CourseDraftStatus.COMPLETED;
         this.course = course;
+        this.expiresAt = expiresAt;
     }
 
     public void abandon(LocalDateTime expiresAt) {

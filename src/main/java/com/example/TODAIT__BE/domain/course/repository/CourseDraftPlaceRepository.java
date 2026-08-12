@@ -4,6 +4,7 @@ import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftPlace;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -38,4 +39,8 @@ public interface CourseDraftPlaceRepository extends JpaRepository<CourseDraftPla
     List<CourseDraftPlace> findByCourseDraftIdWithPlaceOrderByVisitOrderAsc(
             @Param("courseDraftId") Long courseDraftId
     );
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("delete from CourseDraftPlace cdp where cdp.courseDraft.id in :courseDraftIds")
+    int deleteByCourseDraftIdIn(@Param("courseDraftIds") List<Long> courseDraftIds);
 }

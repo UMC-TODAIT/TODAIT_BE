@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 
 import com.example.TODAIT__BE.domain.course.dto.request.CourseSaveRequest.SaveRequest;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseSaveResponse.SaveResponse;
+import com.example.TODAIT__BE.domain.course.config.CourseDraftProperties;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraft;
 import com.example.TODAIT__BE.domain.course.entity.CourseDraftFoodCategory;
@@ -44,6 +45,9 @@ import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -60,6 +64,11 @@ import org.springframework.http.HttpStatus;
 
 @ExtendWith(MockitoExtension.class)
 class CourseSaveServiceTest {
+
+    private static final Clock FIXED_CLOCK = Clock.fixed(
+            Instant.parse("2026-08-12T03:00:00Z"),
+            ZoneId.of("Asia/Seoul")
+    );
 
     @Mock
     private CourseDraftRepository courseDraftRepository;
@@ -92,7 +101,9 @@ class CourseSaveServiceTest {
                         courseMoodTagRepository,
                         courseFoodCategoryRepository,
                         coursePlaceRepository
-                )
+                ),
+                new CourseDraftProperties(30, "0 0 3 * * *", 500, 20, true),
+                FIXED_CLOCK
         );
     }
 
@@ -558,6 +569,7 @@ class CourseSaveServiceTest {
         assertThat(response.places().get(1).memo()).isEqualTo("place memo");
         assertThat(draft.getStatus()).isEqualTo(CourseDraftStatus.COMPLETED);
         assertThat(draft.getCourse()).isNotNull();
+        assertThat(draft.getExpiresAt()).isNotNull();
 
         ArgumentCaptor<Course> courseCaptor = ArgumentCaptor.forClass(Course.class);
         verify(courseRepository).save(courseCaptor.capture());
