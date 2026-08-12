@@ -12,14 +12,15 @@ class CourseDraftPropertiesTest {
 
     @Test
     void acceptsPositiveRetentionAndCleanupSettings() {
-        CourseDraftProperties properties = new CourseDraftProperties(30, "0 0 3 * * *", 500, 20);
+        CourseDraftProperties properties = new CourseDraftProperties(30, "0 0 3 * * *", 500, 20, true);
 
         assertThat(validator.validate(properties)).isEmpty();
+        assertThat(properties.cleanupSchedulerEnabled()).isTrue();
     }
 
     @Test
     void rejectsInvalidRetentionAndCleanupSettings() {
-        CourseDraftProperties properties = new CourseDraftProperties(0, "", 0, 0);
+        CourseDraftProperties properties = new CourseDraftProperties(0, "", 0, 0, true);
 
         assertThat(validator.validate(properties))
                 .extracting(violation -> violation.getPropertyPath().toString())

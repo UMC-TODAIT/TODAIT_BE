@@ -15,6 +15,7 @@ public record CourseDraftProperties(
         @Min(1)
         int cleanupBatchSize,
         @Min(1)
-        int cleanupMaxBatches
+        int cleanupMaxBatches,
+        boolean cleanupSchedulerEnabled
 ) {
 }

@@ -102,7 +102,7 @@ class CourseSaveServiceTest {
                         courseFoodCategoryRepository,
                         coursePlaceRepository
                 ),
-                new CourseDraftProperties(30, "0 0 3 * * *", 500, 20),
+                new CourseDraftProperties(30, "0 0 3 * * *", 500, 20, true),
                 FIXED_CLOCK
         );
     }

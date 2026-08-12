@@ -67,7 +67,7 @@ class CourseDraftAbandonServiceTest {
                 null,
                 null,
                 new CourseDraftValidator(),
-                new CourseDraftProperties(7, "0 0 3 * * *", 500, 20),
+                new CourseDraftProperties(7, "0 0 3 * * *", 500, 20, true),
                 FIXED_CLOCK
         );
     }

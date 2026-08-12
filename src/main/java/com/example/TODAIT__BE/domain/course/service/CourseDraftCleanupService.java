@@ -11,10 +11,12 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CourseDraftCleanupService {
@@ -51,6 +53,12 @@ public class CourseDraftCleanupService {
         courseDraftMoodTagRepository.deleteByCourseDraftIdIn(draftIds);
         courseDraftFoodCategoryRepository.deleteByCourseDraftIdIn(draftIds);
         int deleted = courseDraftRepository.deleteExpiredTerminalDraftsByIdIn(draftIds, TERMINAL_STATUSES, now);
+        log.info(
+                "courseDraftCleanup service completed now={} fetchedCount={} deletedCount={}",
+                now,
+                draftIds.size(),
+                deleted
+        );
         return new CleanupResult(draftIds.size(), deleted);
     }
 

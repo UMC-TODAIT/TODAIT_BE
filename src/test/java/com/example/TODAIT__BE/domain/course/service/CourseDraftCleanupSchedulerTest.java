@@ -9,6 +9,7 @@ import com.example.TODAIT__BE.domain.course.config.CourseDraftProperties;
 import com.example.TODAIT__BE.domain.course.service.CourseDraftCleanupService.CleanupResult;
 import java.lang.reflect.Method;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 
 class CourseDraftCleanupSchedulerTest {
@@ -25,11 +26,23 @@ class CourseDraftCleanupSchedulerTest {
     }
 
     @Test
+    void schedulerCanBeDisabledByConfiguration() {
+        ConditionalOnProperty conditionalOnProperty =
+                CourseDraftCleanupScheduler.class.getAnnotation(ConditionalOnProperty.class);
+
+        assertThat(conditionalOnProperty).isNotNull();
+        assertThat(conditionalOnProperty.prefix()).isEqualTo("app.course-draft");
+        assertThat(conditionalOnProperty.name()).containsExactly("cleanup-scheduler-enabled");
+        assertThat(conditionalOnProperty.havingValue()).isEqualTo("true");
+        assertThat(conditionalOnProperty.matchIfMissing()).isTrue();
+    }
+
+    @Test
     void schedulerDelegatesToCleanupService() {
         CourseDraftCleanupService cleanupService = org.mockito.Mockito.mock(CourseDraftCleanupService.class);
         CourseDraftCleanupScheduler scheduler = new CourseDraftCleanupScheduler(
                 cleanupService,
-                new CourseDraftProperties(30, "0 0 3 * * *", 500, 20)
+                new CourseDraftProperties(30, "0 0 3 * * *", 500, 20, true)
         );
         given(cleanupService.cleanupExpiredTerminalDrafts()).willReturn(new CleanupResult(0, 0));
 
@@ -43,7 +56,7 @@ class CourseDraftCleanupSchedulerTest {
         CourseDraftCleanupService cleanupService = org.mockito.Mockito.mock(CourseDraftCleanupService.class);
         CourseDraftCleanupScheduler scheduler = new CourseDraftCleanupScheduler(
                 cleanupService,
-                new CourseDraftProperties(30, "0 0 3 * * *", 500, 20)
+                new CourseDraftProperties(30, "0 0 3 * * *", 500, 20, true)
         );
         given(cleanupService.cleanupExpiredTerminalDrafts())
                 .willReturn(new CleanupResult(500, 100), new CleanupResult(300, 300));
@@ -58,7 +71,7 @@ class CourseDraftCleanupSchedulerTest {
         CourseDraftCleanupService cleanupService = org.mockito.Mockito.mock(CourseDraftCleanupService.class);
         CourseDraftCleanupScheduler scheduler = new CourseDraftCleanupScheduler(
                 cleanupService,
-                new CourseDraftProperties(30, "0 0 3 * * *", 500, 3)
+                new CourseDraftProperties(30, "0 0 3 * * *", 500, 3, true)
         );
         given(cleanupService.cleanupExpiredTerminalDrafts()).willReturn(new CleanupResult(500, 100));
 
