@@ -53,7 +53,6 @@ import com.example.TODAIT__BE.domain.place.repository.PlaceDataSourceRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceRepository;
 import com.example.TODAIT__BE.domain.place.repository.PlaceSourceRepository;
 import com.example.TODAIT__BE.domain.place.service.ExternalPlaceRegistrationService;
-import com.example.TODAIT__BE.domain.place.service.support.PlaceCategoryDefaultImage;
 import com.example.TODAIT__BE.domain.taxonomy.code.AreaErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;
@@ -259,7 +258,7 @@ public class CourseDraftService {
 
         Place place = placeRepository.findById(request.placeId())
                 .orElseThrow(() -> new PlaceException(PlaceDetailErrorCode.PLACE_NOT_FOUND));
-        validateSelectedPlaceAvailable(place);
+        validatePlaceAvailable(place);
 
         if (place.getId().equals(basePlace.getPlace().getId())) {
             throw new CourseException(CourseDraftErrorCode.BASE_PLACE_RESELECT_CONFLICT);
@@ -269,13 +268,6 @@ public class CourseDraftService {
                 .anyMatch(draftPlace -> draftPlace.getPlace().getId().equals(place.getId()));
         if (alreadySelected) {
             throw new CourseException(CourseDraftErrorCode.SELECTED_PLACE_DUPLICATE);
-        }
-
-        boolean categoryAlreadyUsed = existingPlaces.stream()
-                .anyMatch(draftPlace ->
-                        draftPlace.getPlace().getPlaceCategory().getId().equals(place.getPlaceCategory().getId()));
-        if (categoryAlreadyUsed) {
-            throw new CourseException(CourseDraftErrorCode.SELECTED_PLACE_CATEGORY_DUPLICATE);
         }
 
         int nextVisitOrder = existingPlaces.stream()
@@ -702,14 +694,6 @@ public class CourseDraftService {
                 .filter(visitOrder -> visitOrder != null)
                 .max(Integer::compareTo)
                 .orElse(BASE_VISIT_ORDER) + 1;
-    }
-
-    private void validateSelectedPlaceAvailable(Place place) {
-        validatePlaceAvailable(place);
-        PlaceCategory placeCategory = place.getPlaceCategory();
-        if (!PlaceCategoryDefaultImage.isSupported(placeCategory.getCode())) {
-            throw new PlaceException(ExternalPlaceRegistrationErrorCode.PLACE_NOT_AVAILABLE);
-        }
     }
 
     private void validatePlaceAvailable(Place place) {

@@ -1,5 +1,6 @@
 package com.example.TODAIT__BE.domain.place.dto.response;
 
+import com.example.TODAIT__BE.domain.place.enums.PlaceSearchEmptyReason;
 import com.example.TODAIT__BE.domain.place.enums.PlaceSearchImageType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -14,6 +15,9 @@ public final class PlaceSearchResponse {
     public record SearchResult(
             String query,
             int resultCount,
+            Integer nextCursor,
+            boolean hasNext,
+            PlaceSearchEmptyReason emptyReason,
             List<PlaceItem> places
     ) {
     }

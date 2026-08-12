@@ -145,7 +145,7 @@ public class KakaoPlaceSearchAdapter implements PlaceSearchPort {
             return "ACTIVITY";
         }
 
-        return null;
+        return "OTHER";
     }
 
     private String extractSubCategory(String categoryName) {

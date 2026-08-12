@@ -1,9 +1,12 @@
 package com.example.TODAIT__BE.domain.place.service.support;
 
+import com.example.TODAIT__BE.domain.place.code.PlaceSearchErrorCode;
+
 import com.example.TODAIT__BE.domain.place.dto.response.PlaceSearchResponse;
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
 import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
+import com.example.TODAIT__BE.domain.place.exception.PlaceException;
 import com.example.TODAIT__BE.domain.place.service.port.ExternalPlaceCandidate;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
@@ -57,14 +60,15 @@ public class PlaceSearchEnricher {
             PlaceSearchDataLoader.SearchData searchData
     ) {
         Area area = resolveArea(candidate.areaCode(), activeAreasByCode);
+
+        if (area == null) {
+            return null;
+        }
+
         PlaceCategory category = resolveCategory(
                 candidate.placeCategoryCode(),
                 activeCategoriesByCode
         );
-
-        if (area == null || category == null) {
-            return null;
-        }
 
         Place registeredPlace = searchData.registeredPlacesByExternalId()
                 .get(candidate.externalPlaceId());
@@ -72,7 +76,6 @@ public class PlaceSearchEnricher {
 
         PlaceSearchImageResolver.ImageSelection imageSelection = imageResolver.resolve(
                 registeredPlace,
-                category,
                 searchData.primaryImageUrlsByPlaceId()
         );
 
@@ -130,10 +133,20 @@ public class PlaceSearchEnricher {
             Map<String, PlaceCategory> activeCategoriesByCode
     ) {
         if (placeCategoryCode == null || placeCategoryCode.isBlank()) {
-            return null;
+            throw new PlaceException(
+                    PlaceSearchErrorCode.PLACE_CATEGORY_CONFIGURATION_MISSING
+            );
         }
 
-        return activeCategoriesByCode.get(placeCategoryCode.trim());
+        PlaceCategory category = activeCategoriesByCode.get(placeCategoryCode.trim());
+
+        if (category == null) {
+            throw new PlaceException(
+                    PlaceSearchErrorCode.PLACE_CATEGORY_CONFIGURATION_MISSING
+            );
+        }
+
+        return category;
     }
 
     private boolean isDetailAvailable(

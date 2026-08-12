@@ -2,7 +2,6 @@ package com.example.TODAIT__BE.domain.place.service.support;
 
 import com.example.TODAIT__BE.domain.place.entity.Place;
 import com.example.TODAIT__BE.domain.place.enums.PlaceSearchImageType;
-import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -12,7 +11,6 @@ public class PlaceSearchImageResolver {
 
     public ImageSelection resolve(
             Place registeredPlace,
-            PlaceCategory category,
             Map<Long, String> primaryImageUrlsByPlaceId
     ) {
         if (registeredPlace != null) {
@@ -36,12 +34,7 @@ public class PlaceSearchImageResolver {
             }
         }
 
-        return new ImageSelection(
-                PlaceCategoryDefaultImage.getImageUrl(
-                        category.getCode()
-                ),
-                PlaceSearchImageType.CATEGORY_DEFAULT
-        );
+        return new ImageSelection(null, null);
     }
 
     private boolean hasText(String value) {
