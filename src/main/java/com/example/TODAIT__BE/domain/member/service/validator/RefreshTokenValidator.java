@@ -5,6 +5,7 @@ import com.example.TODAIT__BE.domain.member.entity.RefreshToken;
 import com.example.TODAIT__BE.domain.member.exception.MemberException;
 import com.example.TODAIT__BE.domain.member.repository.RefreshTokenRepository;
 import com.example.TODAIT__BE.global.security.token.JwtTokenProvider;
+import com.example.TODAIT__BE.global.security.token.JwtTokenProvider.ParsedTokenClaims;
 import com.example.TODAIT__BE.global.security.token.RefreshTokenHasher;
 import com.example.TODAIT__BE.global.security.token.TokenType;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -23,14 +24,33 @@ public class RefreshTokenValidator {
     private final RefreshTokenHasher refreshTokenHasher;
 
     public RefreshToken validateAndGetStoredToken(String token) {
-        Long memberId = validateAndExtractMemberId(token);
-        String tokenHash = refreshTokenHasher.hash(token);
+        ValidatedRefreshToken validatedToken = validate(token);
+        return validateAndGetStoredToken(validatedToken, false);
+    }
 
-        RefreshToken storedToken = refreshTokenRepository
-                .findByTokenHash(tokenHash)
+    public RefreshToken validateAndGetStoredTokenForUpdate(String token) {
+        ValidatedRefreshToken validatedToken = validate(token);
+        return validateAndGetStoredToken(validatedToken, true);
+    }
+
+    public RefreshToken validateAndGetStoredTokenForUpdate(
+            ValidatedRefreshToken validatedToken
+    ) {
+        return validateAndGetStoredToken(validatedToken, true);
+    }
+
+    private RefreshToken validateAndGetStoredToken(
+            ValidatedRefreshToken validatedToken,
+            boolean lockForUpdate
+    ) {
+        String tokenHash = refreshTokenHasher.hash(validatedToken.token());
+
+        RefreshToken storedToken = (lockForUpdate
+                ? refreshTokenRepository.findByTokenHashForUpdate(tokenHash)
+                : refreshTokenRepository.findByTokenHash(tokenHash))
                 .orElseThrow(() -> new MemberException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
-        if (!storedToken.getMember().getId().equals(memberId)) {
+        if (!storedToken.getMember().getId().equals(validatedToken.memberId())) {
             throw new MemberException(AuthErrorCode.INVALID_REFRESH_TOKEN);
         }
 
@@ -45,16 +65,40 @@ public class RefreshTokenValidator {
         return storedToken;
     }
 
-    private Long validateAndExtractMemberId(String token) {
+    public ValidatedRefreshToken validate(String token) {
         try {
-            if (TokenType.REFRESH != jwtTokenProvider.getTokenType(token)) {
+            ParsedTokenClaims claims = jwtTokenProvider.parseTokenClaims(token);
+
+            if (TokenType.REFRESH != claims.tokenType()) {
                 throw new MemberException(AuthErrorCode.INVALID_REFRESH_TOKEN);
             }
-            return jwtTokenProvider.getMemberId(token);
+            return new ValidatedRefreshToken(
+                    token,
+                    Long.valueOf(claims.subject())
+            );
         } catch (ExpiredJwtException e) {
             throw new MemberException(AuthErrorCode.EXPIRED_REFRESH_TOKEN);
         } catch (JwtException | IllegalArgumentException e) {
             throw new MemberException(AuthErrorCode.INVALID_REFRESH_TOKEN);
+        }
+    }
+
+    public static final class ValidatedRefreshToken {
+
+        private final String token;
+        private final Long memberId;
+
+        private ValidatedRefreshToken(String token, Long memberId) {
+            this.token = token;
+            this.memberId = memberId;
+        }
+
+        private String token() {
+            return token;
+        }
+
+        public Long memberId() {
+            return memberId;
         }
     }
 }

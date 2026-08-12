@@ -1,5 +1,6 @@
 package com.example.TODAIT__BE.domain.member.service;
 
+import com.example.TODAIT__BE.domain.member.code.AuthErrorCode;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.dto.request.AuthRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
@@ -18,7 +19,11 @@ import com.example.TODAIT__BE.domain.member.service.validator.RefreshTokenValida
 import com.example.TODAIT__BE.domain.member.service.validator.TermAgreementValidator;
 import com.example.TODAIT__BE.global.security.token.JwtTokenProvider;
 import com.example.TODAIT__BE.global.security.token.RefreshTokenHasher;
+import jakarta.persistence.LockTimeoutException;
+import jakarta.persistence.PessimisticLockException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.PessimisticLockingFailureException;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -89,48 +95,99 @@ public class AuthService {
 
     @Transactional
     public void logout(AuthRequest.Logout request) {
-        RefreshToken storedToken = refreshTokenValidator.validateAndGetStoredToken(request.refreshToken());
-        storedToken.revoke();
+        executeWithTokenLockHandling(() -> {
+            String refreshToken = request.refreshToken();
+            RefreshTokenValidator.ValidatedRefreshToken validatedToken =
+                    refreshTokenValidator.validate(refreshToken);
+            Long memberId = validatedToken.memberId();
+
+            Member member = memberRepository.findByIdForUpdate(memberId)
+                    .orElseThrow(() -> new MemberException(
+                            AuthErrorCode.INVALID_REFRESH_TOKEN
+                    ));
+
+            refreshTokenValidator.validateAndGetStoredTokenForUpdate(
+                    validatedToken
+            );
+
+            revokeActiveRefreshTokens(member);
+            return null;
+        });
     }
 
-    @Transactional(readOnly = true)
-    public AuthResponse.AccessToken refresh(
+    @Transactional
+    public AuthResponse.Token refresh(
             AuthRequest.TokenRefresh request
     ){
-        RefreshToken storedToken = refreshTokenValidator.validateAndGetStoredToken(request.refreshToken());
-        Member member = storedToken.getMember();
+        return executeWithTokenLockHandling(() -> {
+            String refreshToken = request.refreshToken();
+            RefreshTokenValidator.ValidatedRefreshToken validatedToken =
+                    refreshTokenValidator.validate(refreshToken);
+            Long memberId = validatedToken.memberId();
 
-        memberLoginValidator.validateLoginAvailable(member);
+            Member member = memberRepository.findByIdForUpdate(memberId)
+                    .orElseThrow(() -> new MemberException(
+                            AuthErrorCode.INVALID_REFRESH_TOKEN
+                    ));
 
-        String newAccessToken = jwtTokenProvider.createAccessToken(
-                member.getId(),
-                member.getRole()
-        );
+            refreshTokenValidator.validateAndGetStoredTokenForUpdate(
+                    validatedToken
+            );
 
-        return AuthResponse.AccessToken.builder()
-                .accessToken(newAccessToken)
-                .build();
+            memberLoginValidator.validateLoginAvailable(member);
+
+            revokeActiveRefreshTokens(member);
+
+            return createAndStoreTokenPair(member, LocalDateTime.now());
+        });
     }
 
     @Transactional
     public AuthResponse.Token issueTokens(Member member){
-
-        Member managedMember = memberRepository.findByIdForUpdate(member.getId())
+        return executeWithTokenLockHandling(() -> {
+            Member managedMember = memberRepository.findByIdForUpdate(member.getId())
                 .orElseThrow(() -> new IllegalStateException("토큰 발급 대상 회원을 찾을 수 없습니다."));
 
-        LocalDateTime issuedAt = LocalDateTime.now();
+            LocalDateTime issuedAt = LocalDateTime.now();
 
-        managedMember.updateLastLoginAt(issuedAt);
+            managedMember.updateLastLoginAt(issuedAt);
 
-        String accessToken = jwtTokenProvider.createAccessToken(
-                managedMember.getId(),
-                managedMember.getRole()
-        );
-        String refreshToken = jwtTokenProvider.createRefreshToken(managedMember.getId());
-        String refreshTokenHash = refreshTokenHasher.hash(refreshToken);
+            revokeActiveRefreshTokens(managedMember);
 
-        List<RefreshToken> activeTokens = refreshTokenRepository.findAllByMemberAndRevokedAtIsNull(managedMember);
+            return createAndStoreTokenPair(managedMember, issuedAt);
+        });
+    }
+
+    private void revokeActiveRefreshTokens(Member member) {
+        List<RefreshToken> activeTokens = refreshTokenRepository
+                .findAllByMemberAndRevokedAtIsNull(member);
         activeTokens.forEach(RefreshToken::revoke);
+    }
+
+    private <T> T executeWithTokenLockHandling(Supplier<T> operation) {
+        try {
+            return operation.get();
+        } catch (PessimisticLockingFailureException
+                 | QueryTimeoutException
+                 | PessimisticLockException
+                 | LockTimeoutException exception) {
+            throw new MemberException(
+                    AuthErrorCode.TOKEN_OPERATION_CONFLICT,
+                    exception
+            );
+        }
+    }
+
+    private AuthResponse.Token createAndStoreTokenPair(
+            Member member,
+            LocalDateTime issuedAt
+    ) {
+        String accessToken = jwtTokenProvider.createAccessToken(
+                member.getId(),
+                member.getRole()
+        );
+        String refreshToken = jwtTokenProvider.createRefreshToken(member.getId());
+        String refreshTokenHash = refreshTokenHasher.hash(refreshToken);
 
         LocalDateTime expiresAt = issuedAt.plus(
                 Duration.ofMillis(
@@ -139,7 +196,7 @@ public class AuthService {
         );
 
         RefreshToken newRefreshToken = RefreshToken.builder()
-                .member(managedMember)
+                .member(member)
                 .tokenHash(refreshTokenHash)
                 .expiresAt(expiresAt)
                 .build();

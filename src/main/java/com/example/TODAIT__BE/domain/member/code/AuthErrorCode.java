@@ -21,6 +21,12 @@ public enum AuthErrorCode implements BaseErrorCode {
             "폐기된 Refresh Token입니다."
     ),
 
+    TOKEN_OPERATION_CONFLICT(
+            HttpStatus.CONFLICT,
+            "AUTH409_1",
+            "토큰 처리 요청이 충돌했습니다. 잠시 후 다시 시도해 주세요."
+    ),
+
     EXPIRED_REFRESH_TOKEN(
             HttpStatus.GONE,
             "AUTH410_1",

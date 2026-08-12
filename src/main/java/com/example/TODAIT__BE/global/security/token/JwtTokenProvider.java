@@ -150,6 +150,16 @@ public class JwtTokenProvider {
         return Long.valueOf(getSubject(token));
     }
 
+    public ParsedTokenClaims parseTokenClaims(String token) {
+        Claims claims = parseClaims(token);
+        String tokenType = claims.get("tokenType", String.class);
+
+        return new ParsedTokenClaims(
+                TokenType.fromClaim(tokenType),
+                claims.getSubject()
+        );
+    }
+
     public String getRole(String token) {
         return parseClaims(token).get("role", String.class);
     }
@@ -174,6 +184,12 @@ public class JwtTokenProvider {
     public String getProfileImageUrl(String token) {
         return parseClaims(token)
                 .get("profileImageUrl", String.class);
+    }
+
+    public record ParsedTokenClaims(
+            TokenType tokenType,
+            String subject
+    ) {
     }
 }
 

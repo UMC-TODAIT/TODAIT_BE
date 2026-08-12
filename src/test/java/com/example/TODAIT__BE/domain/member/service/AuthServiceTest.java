@@ -19,15 +19,19 @@ import com.example.TODAIT__BE.domain.member.service.support.MemberRegistrationSe
 import com.example.TODAIT__BE.domain.member.service.validator.MemberDuplicateValidator;
 import com.example.TODAIT__BE.domain.member.service.validator.MemberLoginValidator;
 import com.example.TODAIT__BE.domain.member.service.validator.RefreshTokenValidator;
+import com.example.TODAIT__BE.domain.member.service.validator.RefreshTokenValidator.ValidatedRefreshToken;
 import com.example.TODAIT__BE.domain.member.service.validator.TermAgreementValidator;
 import com.example.TODAIT__BE.global.security.token.JwtTokenProvider;
+import com.example.TODAIT__BE.global.security.token.JwtTokenProvider.ParsedTokenClaims;
 import com.example.TODAIT__BE.global.security.token.RefreshTokenHasher;
+import com.example.TODAIT__BE.global.security.token.TokenType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
@@ -242,21 +246,33 @@ class AuthServiceTest {
     @Test
     void logoutRevokesValidRefreshToken() {
         AuthRequest.Logout request = new AuthRequest.Logout("refresh-token");
-        RefreshToken storedToken = refreshToken(activeMember(1L), "refresh-token-hash", LocalDateTime.now().plusHours(1));
+        Member member = activeMember(1L);
+        RefreshToken storedToken = refreshToken(member, "refresh-token-hash", LocalDateTime.now().plusHours(1));
+        ValidatedRefreshToken validatedRefreshToken =
+                createValidatedRefreshToken(request.refreshToken(), member.getId());
 
-        given(refreshTokenValidator.validateAndGetStoredToken(request.refreshToken()))
+        given(refreshTokenValidator.validate(request.refreshToken()))
+                .willReturn(validatedRefreshToken);
+        given(memberRepository.findByIdForUpdate(member.getId()))
+                .willReturn(Optional.of(member));
+        given(refreshTokenValidator.validateAndGetStoredTokenForUpdate(
+                validatedRefreshToken
+        ))
                 .willReturn(storedToken);
+        given(refreshTokenRepository.findAllByMemberAndRevokedAtIsNull(member))
+                .willReturn(List.of(storedToken));
 
         authService.logout(request);
 
         assertThat(storedToken.isRevoked()).isTrue();
+        verify(memberRepository).findByIdForUpdate(member.getId());
     }
 
     @Test
     void logoutPropagatesRefreshTokenValidationFailure() {
         AuthRequest.Logout request = new AuthRequest.Logout("invalid-refresh-token");
 
-        given(refreshTokenValidator.validateAndGetStoredToken(request.refreshToken()))
+        given(refreshTokenValidator.validate(request.refreshToken()))
                 .willThrow(new MemberException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
         assertThatThrownBy(() -> authService.logout(request))
@@ -266,27 +282,82 @@ class AuthServiceTest {
     }
 
     @Test
-    void refreshIssuesNewAccessTokenForValidRefreshToken() {
+    void logoutMapsRefreshTokenLockFailureToConflict() {
+        AuthRequest.Logout request = new AuthRequest.Logout("refresh-token");
+        Member member = activeMember(1L);
+        ValidatedRefreshToken validatedRefreshToken =
+                createValidatedRefreshToken(request.refreshToken(), member.getId());
+
+        given(refreshTokenValidator.validate(request.refreshToken()))
+                .willReturn(validatedRefreshToken);
+        given(memberRepository.findByIdForUpdate(member.getId()))
+                .willReturn(Optional.of(member));
+        given(refreshTokenValidator.validateAndGetStoredTokenForUpdate(
+                validatedRefreshToken
+        )).willThrow(new CannotAcquireLockException("lock timeout"));
+
+        assertThatThrownBy(() -> authService.logout(request))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(AuthErrorCode.TOKEN_OPERATION_CONFLICT);
+    }
+
+    @Test
+    void refreshRotatesValidRefreshToken() {
         AuthRequest.TokenRefresh request = new AuthRequest.TokenRefresh("refresh-token");
         Member member = activeMember(1L);
         RefreshToken storedToken = refreshToken(member, "refresh-token-hash", LocalDateTime.now().plusHours(1));
+        RefreshToken anotherActiveToken = refreshToken(
+                member,
+                "another-refresh-token-hash",
+                LocalDateTime.now().plusHours(1)
+        );
+        ValidatedRefreshToken validatedRefreshToken =
+                createValidatedRefreshToken(request.refreshToken(), member.getId());
 
-        given(refreshTokenValidator.validateAndGetStoredToken(request.refreshToken()))
+        given(refreshTokenValidator.validate(request.refreshToken()))
+                .willReturn(validatedRefreshToken);
+        given(memberRepository.findByIdForUpdate(member.getId()))
+                .willReturn(Optional.of(member));
+        given(refreshTokenValidator.validateAndGetStoredTokenForUpdate(
+                validatedRefreshToken
+        ))
                 .willReturn(storedToken);
+        given(refreshTokenRepository.findAllByMemberAndRevokedAtIsNull(member))
+                .willReturn(List.of(storedToken, anotherActiveToken));
         given(jwtTokenProvider.createAccessToken(member.getId(), member.getRole()))
                 .willReturn("new-access-token");
+        given(jwtTokenProvider.createRefreshToken(member.getId()))
+                .willReturn("new-refresh-token");
+        given(refreshTokenHasher.hash("new-refresh-token"))
+                .willReturn("new-refresh-token-hash");
+        given(jwtTokenProvider.getRefreshTokenExpiration()).willReturn(3600000L);
 
-        AuthResponse.AccessToken response = authService.refresh(request);
+        AuthResponse.Token response = authService.refresh(request);
 
         assertThat(response.accessToken()).isEqualTo("new-access-token");
+        assertThat(response.refreshToken()).isEqualTo("new-refresh-token");
+        assertThat(storedToken.isRevoked()).isTrue();
+        assertThat(anotherActiveToken.isRevoked()).isTrue();
+
+        ArgumentCaptor<RefreshToken> tokenCaptor =
+                ArgumentCaptor.forClass(RefreshToken.class);
+        verify(refreshTokenRepository).save(tokenCaptor.capture());
+        assertThat(tokenCaptor.getValue().getMember()).isSameAs(member);
+        assertThat(tokenCaptor.getValue().getTokenHash())
+                .isEqualTo("new-refresh-token-hash");
+
         verify(memberLoginValidator).validateLoginAvailable(member);
+        verify(memberRepository).findByIdForUpdate(member.getId());
+        verify(refreshTokenRepository)
+                .findAllByMemberAndRevokedAtIsNull(member);
     }
 
     @Test
     void refreshPropagatesRefreshTokenValidationFailure() {
         AuthRequest.TokenRefresh request = new AuthRequest.TokenRefresh("invalid-refresh-token");
 
-        given(refreshTokenValidator.validateAndGetStoredToken(request.refreshToken()))
+        given(refreshTokenValidator.validate(request.refreshToken()))
                 .willThrow(new MemberException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
         assertThatThrownBy(() -> authService.refresh(request))
@@ -296,12 +367,38 @@ class AuthServiceTest {
     }
 
     @Test
+    void refreshMapsMemberLockFailureToConflict() {
+        AuthRequest.TokenRefresh request = new AuthRequest.TokenRefresh("refresh-token");
+        Member member = activeMember(1L);
+        ValidatedRefreshToken validatedRefreshToken =
+                createValidatedRefreshToken(request.refreshToken(), member.getId());
+
+        given(refreshTokenValidator.validate(request.refreshToken()))
+                .willReturn(validatedRefreshToken);
+        given(memberRepository.findByIdForUpdate(member.getId()))
+                .willThrow(new CannotAcquireLockException("lock timeout"));
+
+        assertThatThrownBy(() -> authService.refresh(request))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(AuthErrorCode.TOKEN_OPERATION_CONFLICT);
+    }
+
+    @Test
     void refreshRejectsInactiveMember() {
         AuthRequest.TokenRefresh request = new AuthRequest.TokenRefresh("refresh-token");
         Member blockedMember = member(1L, "blocked", MemberStatus.BLOCKED);
         RefreshToken storedToken = refreshToken(blockedMember, "refresh-token-hash", LocalDateTime.now().plusHours(1));
+        ValidatedRefreshToken validatedRefreshToken =
+                createValidatedRefreshToken(request.refreshToken(), blockedMember.getId());
 
-        given(refreshTokenValidator.validateAndGetStoredToken(request.refreshToken()))
+        given(refreshTokenValidator.validate(request.refreshToken()))
+                .willReturn(validatedRefreshToken);
+        given(memberRepository.findByIdForUpdate(blockedMember.getId()))
+                .willReturn(Optional.of(blockedMember));
+        given(refreshTokenValidator.validateAndGetStoredTokenForUpdate(
+                validatedRefreshToken
+        ))
                 .willReturn(storedToken);
         willThrow(new MemberException(MemberErrorCode.INVALID_MEMBER_STATUS))
                 .given(memberLoginValidator)
@@ -311,6 +408,8 @@ class AuthServiceTest {
                 .isInstanceOf(MemberException.class)
                 .extracting("errorCode")
                 .isEqualTo(MemberErrorCode.INVALID_MEMBER_STATUS);
+        assertThat(storedToken.isRevoked()).isFalse();
+        verify(refreshTokenRepository, never()).save(any(RefreshToken.class));
     }
 
     @Test
@@ -350,6 +449,19 @@ class AuthServiceTest {
                 .isEqualTo(MemberErrorCode.INVALID_ONBOARDING_TOKEN);
     }
 
+    @Test
+    void issueTokensMapsMemberLockFailureToConflict() {
+        Member member = activeMember(1L);
+
+        given(memberRepository.findByIdForUpdate(member.getId()))
+                .willThrow(new CannotAcquireLockException("lock timeout"));
+
+        assertThatThrownBy(() -> authService.issueTokens(member))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(AuthErrorCode.TOKEN_OPERATION_CONFLICT);
+    }
+
     private void givenIssueTokens(Member member) {
         given(memberRepository.findByIdForUpdate(member.getId())).willReturn(Optional.of(member));
         given(jwtTokenProvider.createAccessToken(member.getId(), member.getRole()))
@@ -360,6 +472,25 @@ class AuthServiceTest {
         given(refreshTokenRepository.findAllByMemberAndRevokedAtIsNull(member))
                 .willReturn(List.of());
         given(jwtTokenProvider.getRefreshTokenExpiration()).willReturn(3600000L);
+    }
+
+    private ValidatedRefreshToken createValidatedRefreshToken(
+            String token,
+            Long memberId
+    ) {
+        given(jwtTokenProvider.parseTokenClaims(token))
+                .willReturn(new ParsedTokenClaims(
+                        TokenType.REFRESH,
+                        memberId.toString()
+                ));
+
+        RefreshTokenValidator actualValidator = new RefreshTokenValidator(
+                jwtTokenProvider,
+                refreshTokenRepository,
+                refreshTokenHasher
+        );
+
+        return actualValidator.validate(token);
     }
 
     private AuthRequest.SignUp signupRequest(String email, String nickname) {
