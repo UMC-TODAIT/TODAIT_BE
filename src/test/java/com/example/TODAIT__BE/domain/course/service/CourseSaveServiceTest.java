@@ -45,6 +45,9 @@ import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -61,6 +64,11 @@ import org.springframework.http.HttpStatus;
 
 @ExtendWith(MockitoExtension.class)
 class CourseSaveServiceTest {
+
+    private static final Clock FIXED_CLOCK = Clock.fixed(
+            Instant.parse("2026-08-12T03:00:00Z"),
+            ZoneId.of("Asia/Seoul")
+    );
 
     @Mock
     private CourseDraftRepository courseDraftRepository;
@@ -94,7 +102,8 @@ class CourseSaveServiceTest {
                         courseFoodCategoryRepository,
                         coursePlaceRepository
                 ),
-                new CourseDraftProperties(30, "0 0 3 * * *", 500, 20)
+                new CourseDraftProperties(30, "0 0 3 * * *", 500, 20),
+                FIXED_CLOCK
         );
     }
 

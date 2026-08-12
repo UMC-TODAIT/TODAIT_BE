@@ -14,8 +14,12 @@ import com.example.TODAIT__BE.domain.course.repository.CourseDraftFoodCategoryRe
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepository;
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
+import com.example.TODAIT__BE.domain.course.service.CourseDraftCleanupService.CleanupResult;
 import com.example.TODAIT__BE.domain.recommendation.repository.RecommendationLogRepository;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +32,11 @@ import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class CourseDraftCleanupServiceTest {
+
+    private static final Clock FIXED_CLOCK = Clock.fixed(
+            Instant.parse("2026-08-12T03:00:00Z"),
+            ZoneId.of("Asia/Seoul")
+    );
 
     @Mock
     private CourseDraftRepository courseDraftRepository;
@@ -50,7 +59,8 @@ class CourseDraftCleanupServiceTest {
                 courseDraftMoodTagRepository,
                 courseDraftFoodCategoryRepository,
                 recommendationLogRepository,
-                new CourseDraftProperties(30, "0 0 3 * * *", 500, 20)
+                new CourseDraftProperties(30, "0 0 3 * * *", 500, 20),
+                FIXED_CLOCK
         );
     }
 
@@ -62,9 +72,10 @@ class CourseDraftCleanupServiceTest {
                 any(Pageable.class)
         )).willReturn(List.of());
 
-        int deleted = service.cleanupExpiredTerminalDrafts();
+        CleanupResult result = service.cleanupExpiredTerminalDrafts();
 
-        assertThat(deleted).isZero();
+        assertThat(result.fetchedCount()).isZero();
+        assertThat(result.deletedCount()).isZero();
         verify(recommendationLogRepository, never()).clearCourseDraftReferences(any());
         verify(courseDraftPlaceRepository, never()).deleteByCourseDraftIdIn(any());
         verify(courseDraftMoodTagRepository, never()).deleteByCourseDraftIdIn(any());
@@ -86,9 +97,10 @@ class CourseDraftCleanupServiceTest {
                 any(LocalDateTime.class)
         )).willReturn(2);
 
-        int deleted = service.cleanupExpiredTerminalDrafts();
+        CleanupResult result = service.cleanupExpiredTerminalDrafts();
 
-        assertThat(deleted).isEqualTo(2);
+        assertThat(result.fetchedCount()).isEqualTo(2);
+        assertThat(result.deletedCount()).isEqualTo(2);
 
         InOrder order = inOrder(
                 recommendationLogRepository,
@@ -113,7 +125,8 @@ class CourseDraftCleanupServiceTest {
                 courseDraftMoodTagRepository,
                 courseDraftFoodCategoryRepository,
                 recommendationLogRepository,
-                new CourseDraftProperties(30, "0 0 3 * * *", 7, 20)
+                new CourseDraftProperties(30, "0 0 3 * * *", 7, 20),
+                FIXED_CLOCK
         );
         given(courseDraftRepository.findExpiredTerminalDraftIds(
                 eq(terminalStatuses()),

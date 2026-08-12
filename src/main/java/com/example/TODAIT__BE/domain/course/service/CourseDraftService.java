@@ -69,6 +69,7 @@ import com.example.TODAIT__BE.domain.taxonomy.repository.AreaRepository;
 import com.example.TODAIT__BE.domain.taxonomy.repository.FoodCategoryRepository;
 import com.example.TODAIT__BE.domain.taxonomy.repository.MoodTagRepository;
 import com.example.TODAIT__BE.domain.taxonomy.repository.PlaceCategoryRepository;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -122,6 +123,7 @@ public class CourseDraftService {
     private final ExternalPlaceRegistrationService externalPlaceRegistrationService;
     private final CourseDraftValidator courseDraftValidator;
     private final CourseDraftProperties courseDraftProperties;
+    private final Clock clock;
 
     @Transactional
     public CreateResponse createCourseDraft(Long memberId) {
@@ -437,7 +439,7 @@ public class CourseDraftService {
             throw new CourseException(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
         }
 
-        courseDraft.abandon(LocalDateTime.now().plusDays(courseDraftProperties.terminalRetentionDays()));
+        courseDraft.abandon(LocalDateTime.now(clock).plusDays(courseDraftProperties.terminalRetentionDays()));
 
         return AbandonResponse.from(courseDraft);
     }

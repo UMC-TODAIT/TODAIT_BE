@@ -6,6 +6,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.example.TODAIT__BE.domain.course.config.CourseDraftProperties;
+import com.example.TODAIT__BE.domain.course.service.CourseDraftCleanupService.CleanupResult;
 import java.lang.reflect.Method;
 import org.junit.jupiter.api.Test;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -30,6 +31,7 @@ class CourseDraftCleanupSchedulerTest {
                 cleanupService,
                 new CourseDraftProperties(30, "0 0 3 * * *", 500, 20)
         );
+        given(cleanupService.cleanupExpiredTerminalDrafts()).willReturn(new CleanupResult(0, 0));
 
         scheduler.cleanupExpiredTerminalDrafts();
 
@@ -43,7 +45,8 @@ class CourseDraftCleanupSchedulerTest {
                 cleanupService,
                 new CourseDraftProperties(30, "0 0 3 * * *", 500, 20)
         );
-        given(cleanupService.cleanupExpiredTerminalDrafts()).willReturn(500, 300);
+        given(cleanupService.cleanupExpiredTerminalDrafts())
+                .willReturn(new CleanupResult(500, 100), new CleanupResult(300, 300));
 
         scheduler.cleanupExpiredTerminalDrafts();
 
@@ -57,7 +60,7 @@ class CourseDraftCleanupSchedulerTest {
                 cleanupService,
                 new CourseDraftProperties(30, "0 0 3 * * *", 500, 3)
         );
-        given(cleanupService.cleanupExpiredTerminalDrafts()).willReturn(500);
+        given(cleanupService.cleanupExpiredTerminalDrafts()).willReturn(new CleanupResult(500, 100));
 
         scheduler.cleanupExpiredTerminalDrafts();
 

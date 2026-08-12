@@ -28,6 +28,7 @@ import com.example.TODAIT__BE.domain.place.enums.PlaceExposureStatus;
 import com.example.TODAIT__BE.domain.place.enums.PlaceReviewStatus;
 import com.example.TODAIT__BE.domain.place.exception.PlaceException;
 import com.example.TODAIT__BE.domain.place.repository.PlaceRepository;
+import java.time.Clock;
 import com.example.TODAIT__BE.domain.taxonomy.entity.Area;
 import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import java.util.List;
@@ -68,7 +69,8 @@ class CourseDraftPlaceServiceTest {
                         null,
                         null,
                         new CourseDraftValidator(),
-                        new com.example.TODAIT__BE.domain.course.config.CourseDraftProperties(30, "0 0 3 * * *", 500, 20)
+                        new com.example.TODAIT__BE.domain.course.config.CourseDraftProperties(30, "0 0 3 * * *", 500, 20),
+                        Clock.systemDefaultZone()
                 );
     }
 

@@ -30,12 +30,13 @@ import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +58,7 @@ public class CourseSaveService {
     private final CourseDraftValidator courseDraftValidator;
     private final CourseSaveSupport courseSaveSupport;
     private final CourseDraftProperties courseDraftProperties;
+    private final Clock clock;
 
     @Transactional
     public SaveResponse saveCourse(Long courseDraftId, Long memberId, SaveRequest request) {
@@ -100,7 +102,7 @@ public class CourseSaveService {
 
         courseDraft.completeWithCourse(
                 course,
-                LocalDateTime.now().plusDays(courseDraftProperties.terminalRetentionDays())
+                LocalDateTime.now(clock).plusDays(courseDraftProperties.terminalRetentionDays())
         );
         courseDraftRepository.save(courseDraft);
 
