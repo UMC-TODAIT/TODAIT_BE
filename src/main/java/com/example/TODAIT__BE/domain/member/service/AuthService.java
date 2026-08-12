@@ -1,5 +1,6 @@
 package com.example.TODAIT__BE.domain.member.service;
 
+import com.example.TODAIT__BE.domain.member.code.AuthErrorCode;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.dto.request.AuthRequest;
 import com.example.TODAIT__BE.domain.member.dto.response.AuthResponse;
@@ -89,22 +90,44 @@ public class AuthService {
 
     @Transactional
     public void logout(AuthRequest.Logout request) {
-        RefreshToken storedToken = refreshTokenValidator
-                .validateAndGetStoredTokenForUpdate(request.refreshToken());
-        storedToken.revoke();
+        String refreshToken = request.refreshToken();
+        Long memberId = refreshTokenValidator
+                .validateAndExtractMemberId(refreshToken);
+
+        Member member = memberRepository.findByIdForUpdate(memberId)
+                .orElseThrow(() -> new MemberException(
+                        AuthErrorCode.INVALID_REFRESH_TOKEN
+                ));
+
+        refreshTokenValidator.validateAndGetStoredTokenForUpdate(
+                refreshToken,
+                memberId
+        );
+
+        revokeActiveRefreshTokens(member);
     }
 
     @Transactional
     public AuthResponse.Token refresh(
             AuthRequest.TokenRefresh request
     ){
-        RefreshToken storedToken = refreshTokenValidator
-                .validateAndGetStoredTokenForUpdate(request.refreshToken());
-        Member member = storedToken.getMember();
+        String refreshToken = request.refreshToken();
+        Long memberId = refreshTokenValidator
+                .validateAndExtractMemberId(refreshToken);
+
+        Member member = memberRepository.findByIdForUpdate(memberId)
+                .orElseThrow(() -> new MemberException(
+                        AuthErrorCode.INVALID_REFRESH_TOKEN
+                ));
+
+        refreshTokenValidator.validateAndGetStoredTokenForUpdate(
+                refreshToken,
+                memberId
+        );
 
         memberLoginValidator.validateLoginAvailable(member);
 
-        storedToken.revoke();
+        revokeActiveRefreshTokens(member);
 
         return createAndStoreTokenPair(member, LocalDateTime.now());
     }
@@ -119,10 +142,15 @@ public class AuthService {
 
         managedMember.updateLastLoginAt(issuedAt);
 
-        List<RefreshToken> activeTokens = refreshTokenRepository.findAllByMemberAndRevokedAtIsNull(managedMember);
-        activeTokens.forEach(RefreshToken::revoke);
+        revokeActiveRefreshTokens(managedMember);
 
         return createAndStoreTokenPair(managedMember, issuedAt);
+    }
+
+    private void revokeActiveRefreshTokens(Member member) {
+        List<RefreshToken> activeTokens = refreshTokenRepository
+                .findAllByMemberAndRevokedAtIsNull(member);
+        activeTokens.forEach(RefreshToken::revoke);
     }
 
     private AuthResponse.Token createAndStoreTokenPair(

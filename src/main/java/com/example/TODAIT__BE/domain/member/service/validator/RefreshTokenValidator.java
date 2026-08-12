@@ -23,18 +23,27 @@ public class RefreshTokenValidator {
     private final RefreshTokenHasher refreshTokenHasher;
 
     public RefreshToken validateAndGetStoredToken(String token) {
-        return validateAndGetStoredToken(token, false);
+        Long memberId = validateAndExtractMemberId(token);
+        return validateAndGetStoredToken(token, memberId, false);
     }
 
     public RefreshToken validateAndGetStoredTokenForUpdate(String token) {
-        return validateAndGetStoredToken(token, true);
+        Long memberId = validateAndExtractMemberId(token);
+        return validateAndGetStoredToken(token, memberId, true);
+    }
+
+    public RefreshToken validateAndGetStoredTokenForUpdate(
+            String token,
+            Long expectedMemberId
+    ) {
+        return validateAndGetStoredToken(token, expectedMemberId, true);
     }
 
     private RefreshToken validateAndGetStoredToken(
             String token,
+            Long expectedMemberId,
             boolean lockForUpdate
     ) {
-        Long memberId = validateAndExtractMemberId(token);
         String tokenHash = refreshTokenHasher.hash(token);
 
         RefreshToken storedToken = (lockForUpdate
@@ -42,7 +51,7 @@ public class RefreshTokenValidator {
                 : refreshTokenRepository.findByTokenHash(tokenHash))
                 .orElseThrow(() -> new MemberException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
-        if (!storedToken.getMember().getId().equals(memberId)) {
+        if (!storedToken.getMember().getId().equals(expectedMemberId)) {
             throw new MemberException(AuthErrorCode.INVALID_REFRESH_TOKEN);
         }
 
@@ -57,7 +66,7 @@ public class RefreshTokenValidator {
         return storedToken;
     }
 
-    private Long validateAndExtractMemberId(String token) {
+    public Long validateAndExtractMemberId(String token) {
         try {
             if (TokenType.REFRESH != jwtTokenProvider.getTokenType(token)) {
                 throw new MemberException(AuthErrorCode.INVALID_REFRESH_TOKEN);
