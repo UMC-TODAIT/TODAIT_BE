@@ -13,6 +13,7 @@ import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.Place
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest.PlaceOrderItem;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.StatusUpdateRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.AbandonResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlace;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlaceSaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CreateResponse;
@@ -66,6 +67,7 @@ import com.example.TODAIT__BE.domain.taxonomy.repository.AreaRepository;
 import com.example.TODAIT__BE.domain.taxonomy.repository.FoodCategoryRepository;
 import com.example.TODAIT__BE.domain.taxonomy.repository.MoodTagRepository;
 import com.example.TODAIT__BE.domain.taxonomy.repository.PlaceCategoryRepository;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -94,6 +96,7 @@ public class CourseDraftService {
     private static final double MIN_LONGITUDE = -180.0;
     private static final double MAX_LONGITUDE = 180.0;
     private static final String DEFAULT_SOURCE_TYPE = "OPERATOR";
+    private static final int TERMINAL_RETENTION_DAYS = 30;
 
     private final CourseDraftRepository courseDraftRepository;
     private final MemberRepository memberRepository;
@@ -404,6 +407,21 @@ public class CourseDraftService {
         courseDraft.changeStatus(targetStatus);
 
         return StatusUpdateResponse.of(courseDraft);
+    }
+
+    @Transactional
+    public AbandonResponse abandonCourseDraft(Long courseDraftId, Long memberId) {
+        CourseDraft courseDraft = getCourseDraftForUpdate(courseDraftId);
+
+        courseDraftValidator.validateOwner(courseDraft, memberId);
+        if (courseDraft.getStatus() == CourseDraftStatus.COMPLETED
+                || courseDraft.getStatus() == CourseDraftStatus.ABANDONED) {
+            throw new CourseException(CourseDraftErrorCode.COURSE_DRAFT_STATUS_CONFLICT);
+        }
+
+        courseDraft.abandon(LocalDateTime.now().plusDays(TERMINAL_RETENTION_DAYS));
+
+        return AbandonResponse.from(courseDraft);
     }
 
     private CourseDraft getCourseDraftForUpdate(Long courseDraftId) {

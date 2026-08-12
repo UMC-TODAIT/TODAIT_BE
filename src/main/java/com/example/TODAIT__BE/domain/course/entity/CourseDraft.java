@@ -68,4 +68,9 @@ public class CourseDraft extends BaseEntity {
         this.status = CourseDraftStatus.COMPLETED;
         this.course = course;
     }
+
+    public void abandon(LocalDateTime expiresAt) {
+        this.status = CourseDraftStatus.ABANDONED;
+        this.expiresAt = expiresAt;
+    }
 }

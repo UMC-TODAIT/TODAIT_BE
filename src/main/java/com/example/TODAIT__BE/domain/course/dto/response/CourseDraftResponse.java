@@ -311,6 +311,21 @@ public final class CourseDraftResponse {
         }
     }
 
+    public record AbandonResponse(
+            Long courseDraftId,
+            CourseDraftStatus draftStatus,
+            LocalDateTime expiresAt
+    ) {
+
+        public static AbandonResponse from(CourseDraft courseDraft) {
+            return new AbandonResponse(
+                    courseDraft.getId(),
+                    courseDraft.getStatus(),
+                    courseDraft.getExpiresAt()
+            );
+        }
+    }
+
     public record AreaSummary(
             Long areaId,
             String code,

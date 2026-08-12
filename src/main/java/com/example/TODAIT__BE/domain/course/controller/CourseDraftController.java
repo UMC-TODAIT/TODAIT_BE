@@ -8,6 +8,7 @@ import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.MoodT
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceAddRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.StatusUpdateRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.AbandonResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlaceSaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CreateResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.FoodCategorySaveResponse;
@@ -24,6 +25,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -170,5 +172,19 @@ public class CourseDraftController implements CourseDraftControllerDocs {
         return ResponseEntity
                 .status(CourseDraftSuccessCode.COURSE_DRAFT_STATUS_UPDATE_OK.getStatus())
                 .body(ApiResponse.onSuccess(CourseDraftSuccessCode.COURSE_DRAFT_STATUS_UPDATE_OK, result));
+    }
+
+    @DeleteMapping("/{courseDraftId}")
+    @Override
+    public ResponseEntity<ApiResponse<AbandonResponse>> abandonCourseDraft(
+            @PathVariable Long courseDraftId,
+            @AuthenticationPrincipal AuthMember authMember
+    ) {
+        AbandonResponse result =
+                courseDraftService.abandonCourseDraft(courseDraftId, authMember.memberId());
+
+        return ResponseEntity
+                .status(CourseDraftSuccessCode.COURSE_DRAFT_ABANDON_OK.getStatus())
+                .body(ApiResponse.onSuccess(CourseDraftSuccessCode.COURSE_DRAFT_ABANDON_OK, result));
     }
 }

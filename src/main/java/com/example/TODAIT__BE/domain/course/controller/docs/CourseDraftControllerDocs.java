@@ -6,6 +6,7 @@ import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.MoodT
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceAddRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.PlaceOrderUpdateRequest;
 import com.example.TODAIT__BE.domain.course.dto.request.CourseDraftRequest.StatusUpdateRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.AbandonResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.BasePlaceSaveResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.CreateResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.CourseDraftResponse.FoodCategorySaveResponse;
@@ -195,5 +196,22 @@ public interface CourseDraftControllerDocs {
             AuthMember authMember,
             @RequestBody
             StatusUpdateRequest request
+    );
+
+    @Operation(
+            summary = "[임시 코스 포기] 진행 중인 임시 코스 포기",
+            description = """
+                    작성 중인 임시 코스를 ABANDONED 상태로 전환합니다.
+
+                    DB 행과 하위 mood/food/place 데이터는 즉시 삭제하지 않고,
+                    expiresAt은 포기 시점부터 30일 뒤로 설정합니다.
+                    COMPLETED 또는 ABANDONED 상태에서는 409를 반환합니다.
+                    """
+    )
+    @SecurityRequirement(name = "JWT TOKEN")
+    ResponseEntity<ApiResponse<AbandonResponse>> abandonCourseDraft(
+            @PathVariable Long courseDraftId,
+            @Parameter(hidden = true)
+            AuthMember authMember
     );
 }
