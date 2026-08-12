@@ -89,7 +89,8 @@ public class AuthService {
 
     @Transactional
     public void logout(AuthRequest.Logout request) {
-        RefreshToken storedToken = refreshTokenValidator.validateAndGetStoredToken(request.refreshToken());
+        RefreshToken storedToken = refreshTokenValidator
+                .validateAndGetStoredTokenForUpdate(request.refreshToken());
         storedToken.revoke();
     }
 

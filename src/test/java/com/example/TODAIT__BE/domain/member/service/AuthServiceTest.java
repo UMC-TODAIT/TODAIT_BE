@@ -244,7 +244,7 @@ class AuthServiceTest {
         AuthRequest.Logout request = new AuthRequest.Logout("refresh-token");
         RefreshToken storedToken = refreshToken(activeMember(1L), "refresh-token-hash", LocalDateTime.now().plusHours(1));
 
-        given(refreshTokenValidator.validateAndGetStoredToken(request.refreshToken()))
+        given(refreshTokenValidator.validateAndGetStoredTokenForUpdate(request.refreshToken()))
                 .willReturn(storedToken);
 
         authService.logout(request);
@@ -256,7 +256,7 @@ class AuthServiceTest {
     void logoutPropagatesRefreshTokenValidationFailure() {
         AuthRequest.Logout request = new AuthRequest.Logout("invalid-refresh-token");
 
-        given(refreshTokenValidator.validateAndGetStoredToken(request.refreshToken()))
+        given(refreshTokenValidator.validateAndGetStoredTokenForUpdate(request.refreshToken()))
                 .willThrow(new MemberException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
         assertThatThrownBy(() -> authService.logout(request))
