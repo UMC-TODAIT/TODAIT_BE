@@ -25,6 +25,7 @@ import com.example.TODAIT__BE.domain.taxonomy.code.FoodCategoryErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.FoodCategory;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.domain.taxonomy.repository.FoodCategoryRepository;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -65,7 +66,8 @@ class CourseDraftFoodCategoryServiceTest {
                 null,
                 null,
                 null,
-                new CourseDraftValidator()
+                new CourseDraftValidator(),
+                Clock.systemDefaultZone()
         );
     }
 

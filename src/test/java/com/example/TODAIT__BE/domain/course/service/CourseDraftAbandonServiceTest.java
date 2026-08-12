@@ -17,7 +17,9 @@ import com.example.TODAIT__BE.domain.course.repository.CourseDraftPlaceRepositor
 import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.member.entity.Member;
+import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,11 @@ class CourseDraftAbandonServiceTest {
 
     private static final Long DRAFT_ID = 10L;
     private static final Long MEMBER_ID = 1L;
+    private static final ZoneId TEST_ZONE = ZoneId.of("Asia/Seoul");
+    private static final LocalDateTime FIXED_NOW =
+            LocalDateTime.of(2026, 8, 12, 12, 0);
+    private static final Clock FIXED_CLOCK =
+            Clock.fixed(FIXED_NOW.atZone(TEST_ZONE).toInstant(), TEST_ZONE);
 
     @Mock
     private CourseDraftRepository courseDraftRepository;
@@ -58,7 +65,8 @@ class CourseDraftAbandonServiceTest {
                 null,
                 null,
                 null,
-                new CourseDraftValidator()
+                new CourseDraftValidator(),
+                FIXED_CLOCK
         );
     }
 
@@ -68,12 +76,10 @@ class CourseDraftAbandonServiceTest {
         given(courseDraftRepository.findByIdForUpdate(DRAFT_ID))
                 .willReturn(Optional.of(draft));
 
-        LocalDateTime before = LocalDateTime.now().plusDays(30).minusSeconds(5);
         AbandonResponse response = service.abandonCourseDraft(DRAFT_ID, MEMBER_ID);
-        LocalDateTime after = LocalDateTime.now().plusDays(30).plusSeconds(5);
 
         assertThat(draft.getStatus()).isEqualTo(CourseDraftStatus.ABANDONED);
-        assertThat(draft.getExpiresAt()).isBetween(before, after);
+        assertThat(draft.getExpiresAt()).isEqualTo(FIXED_NOW.plusDays(30));
         assertThat(response.courseDraftId()).isEqualTo(DRAFT_ID);
         assertThat(response.draftStatus()).isEqualTo(CourseDraftStatus.ABANDONED);
         assertThat(response.expiresAt()).isEqualTo(draft.getExpiresAt());

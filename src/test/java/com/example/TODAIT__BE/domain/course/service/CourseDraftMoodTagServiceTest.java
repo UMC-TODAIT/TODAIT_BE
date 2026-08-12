@@ -25,6 +25,7 @@ import com.example.TODAIT__BE.domain.taxonomy.code.MoodTagErrorCode;
 import com.example.TODAIT__BE.domain.taxonomy.entity.MoodTag;
 import com.example.TODAIT__BE.domain.taxonomy.exception.TaxonomyException;
 import com.example.TODAIT__BE.domain.taxonomy.repository.MoodTagRepository;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -65,7 +66,8 @@ class CourseDraftMoodTagServiceTest {
                 null,
                 null,
                 null,
-                new CourseDraftValidator()
+                new CourseDraftValidator(),
+                Clock.systemDefaultZone()
         );
     }
 
