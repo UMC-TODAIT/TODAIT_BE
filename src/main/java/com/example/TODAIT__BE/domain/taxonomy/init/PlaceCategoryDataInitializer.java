@@ -4,6 +4,7 @@ import com.example.TODAIT__BE.domain.taxonomy.entity.PlaceCategory;
 import com.example.TODAIT__BE.domain.taxonomy.repository.PlaceCategoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import java.util.Optional;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -30,10 +31,26 @@ public class PlaceCategoryDataInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (placeCategoryRepository.findByCode(ETC_CODE).isPresent()) {
+        Optional<PlaceCategory> existing = placeCategoryRepository.findByCode(ETC_CODE);
+        if (existing.isPresent()) {
+            // 이미 존재하지만 비활성이면 활성화한다. 그렇지 않으면 활성 목록에서
+            // 계속 누락되어 /api/place-categories·검색 enricher가 OTHER를 놓친다.
+            reactivateIfInactive(existing.get());
             return;
         }
+        createEtcCategory();
+    }
 
+    private void reactivateIfInactive(PlaceCategory etcCategory) {
+        if (Boolean.TRUE.equals(etcCategory.getIsActive())) {
+            return;
+        }
+        etcCategory.activate();
+        placeCategoryRepository.save(etcCategory);
+        log.info("[place-category] 비활성 상태였던 '기타(OTHER)' 카테고리를 활성화했습니다.");
+    }
+
+    private void createEtcCategory() {
         int nextSortOrder = placeCategoryRepository
                 .findFirstByOrderBySortOrderDesc()
                 .map(category -> category.getSortOrder() + 1)

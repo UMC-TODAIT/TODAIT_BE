@@ -79,7 +79,23 @@ class PlaceCategoryDataInitializerTest {
     }
 
     @Test
-    void doesNothingWhenEtcCategoryAlreadyExists() {
+    void reactivatesEtcCategoryWhenExistingButInactive() {
+        PlaceCategory inactive = PlaceCategory.of("OTHER", "기타", "desc", 5, false);
+        given(placeCategoryRepository.findByCode("OTHER"))
+                .willReturn(Optional.of(inactive));
+
+        initializer.run(null);
+
+        ArgumentCaptor<PlaceCategory> captor =
+                ArgumentCaptor.forClass(PlaceCategory.class);
+        verify(placeCategoryRepository).save(captor.capture());
+        assertThat(captor.getValue().getIsActive()).isTrue();
+        // 재활성화 경로에서는 신규 sortOrder 계산이 필요 없다.
+        verify(placeCategoryRepository, never()).findFirstByOrderBySortOrderDesc();
+    }
+
+    @Test
+    void doesNothingWhenEtcCategoryAlreadyActive() {
         given(placeCategoryRepository.findByCode("OTHER"))
                 .willReturn(Optional.of(
                         PlaceCategory.of("OTHER", "기타", null, 5, true)));

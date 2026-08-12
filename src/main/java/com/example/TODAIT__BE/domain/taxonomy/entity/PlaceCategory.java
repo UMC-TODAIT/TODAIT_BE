@@ -50,4 +50,8 @@ public class PlaceCategory extends BaseEntity {
         placeCategory.isActive = isActive;
         return placeCategory;
     }
+
+    public void activate() {
+        this.isActive = true;
+    }
 }
