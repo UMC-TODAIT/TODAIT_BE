@@ -62,7 +62,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/members/nickname-availability",
-                                "/course-images/**"
+                                "/course-images/**",
+                                "/place-images/**"
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.PATCH,
