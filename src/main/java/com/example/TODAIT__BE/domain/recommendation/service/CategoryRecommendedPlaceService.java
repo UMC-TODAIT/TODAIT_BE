@@ -79,7 +79,8 @@ public class CategoryRecommendedPlaceService {
                     "CAFE",
                     "ACTIVITY",
                     "RESTAURANT",
-                    "BAR"
+                    "BAR",
+                    "OTHER"
             );
 
     @Transactional
