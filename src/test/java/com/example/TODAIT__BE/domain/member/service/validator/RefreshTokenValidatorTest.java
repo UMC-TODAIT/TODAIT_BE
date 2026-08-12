@@ -58,6 +58,48 @@ class RefreshTokenValidatorTest {
     }
 
     @Test
+    void validateAndGetStoredTokenForUpdateUsesLockedRepositoryQuery() {
+        RefreshToken storedToken = refreshToken(
+                activeMember(1L),
+                "refresh-token-hash",
+                LocalDateTime.now().plusHours(1)
+        );
+
+        givenValidRefreshJwt("refresh-token", 1L);
+        given(refreshTokenHasher.hash("refresh-token"))
+                .willReturn("refresh-token-hash");
+        given(refreshTokenRepository.findByTokenHashForUpdate("refresh-token-hash"))
+                .willReturn(Optional.of(storedToken));
+
+        RefreshToken result = refreshTokenValidator
+                .validateAndGetStoredTokenForUpdate("refresh-token");
+
+        assertThat(result).isSameAs(storedToken);
+    }
+
+    @Test
+    void validateAndGetStoredTokenForUpdateRejectsRevokedToken() {
+        RefreshToken storedToken = refreshToken(
+                activeMember(1L),
+                "refresh-token-hash",
+                LocalDateTime.now().plusHours(1)
+        );
+        storedToken.revoke();
+
+        givenValidRefreshJwt("refresh-token", 1L);
+        given(refreshTokenHasher.hash("refresh-token"))
+                .willReturn("refresh-token-hash");
+        given(refreshTokenRepository.findByTokenHashForUpdate("refresh-token-hash"))
+                .willReturn(Optional.of(storedToken));
+
+        assertThatThrownBy(() -> refreshTokenValidator
+                .validateAndGetStoredTokenForUpdate("refresh-token"))
+                .isInstanceOf(MemberException.class)
+                .extracting("errorCode")
+                .isEqualTo(AuthErrorCode.REVOKED_REFRESH_TOKEN);
+    }
+
+    @Test
     void validateAndGetStoredTokenRejectsNonRefreshTokenType() {
         given(jwtTokenProvider.getTokenType("access-token")).willReturn(TokenType.ACCESS);
 

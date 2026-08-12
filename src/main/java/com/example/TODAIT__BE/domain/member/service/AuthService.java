@@ -93,23 +93,19 @@ public class AuthService {
         storedToken.revoke();
     }
 
-    @Transactional(readOnly = true)
-    public AuthResponse.AccessToken refresh(
+    @Transactional
+    public AuthResponse.Token refresh(
             AuthRequest.TokenRefresh request
     ){
-        RefreshToken storedToken = refreshTokenValidator.validateAndGetStoredToken(request.refreshToken());
+        RefreshToken storedToken = refreshTokenValidator
+                .validateAndGetStoredTokenForUpdate(request.refreshToken());
         Member member = storedToken.getMember();
 
         memberLoginValidator.validateLoginAvailable(member);
 
-        String newAccessToken = jwtTokenProvider.createAccessToken(
-                member.getId(),
-                member.getRole()
-        );
+        storedToken.revoke();
 
-        return AuthResponse.AccessToken.builder()
-                .accessToken(newAccessToken)
-                .build();
+        return createAndStoreTokenPair(member, LocalDateTime.now());
     }
 
     @Transactional
@@ -122,15 +118,22 @@ public class AuthService {
 
         managedMember.updateLastLoginAt(issuedAt);
 
-        String accessToken = jwtTokenProvider.createAccessToken(
-                managedMember.getId(),
-                managedMember.getRole()
-        );
-        String refreshToken = jwtTokenProvider.createRefreshToken(managedMember.getId());
-        String refreshTokenHash = refreshTokenHasher.hash(refreshToken);
-
         List<RefreshToken> activeTokens = refreshTokenRepository.findAllByMemberAndRevokedAtIsNull(managedMember);
         activeTokens.forEach(RefreshToken::revoke);
+
+        return createAndStoreTokenPair(managedMember, issuedAt);
+    }
+
+    private AuthResponse.Token createAndStoreTokenPair(
+            Member member,
+            LocalDateTime issuedAt
+    ) {
+        String accessToken = jwtTokenProvider.createAccessToken(
+                member.getId(),
+                member.getRole()
+        );
+        String refreshToken = jwtTokenProvider.createRefreshToken(member.getId());
+        String refreshTokenHash = refreshTokenHasher.hash(refreshToken);
 
         LocalDateTime expiresAt = issuedAt.plus(
                 Duration.ofMillis(
@@ -139,7 +142,7 @@ public class AuthService {
         );
 
         RefreshToken newRefreshToken = RefreshToken.builder()
-                .member(managedMember)
+                .member(member)
                 .tokenHash(refreshTokenHash)
                 .expiresAt(expiresAt)
                 .build();

@@ -23,10 +23,10 @@ public class TokenController implements TokenControllerDocs {
 
     @Override
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<AuthResponse.AccessToken>> refresh(
+    public ResponseEntity<ApiResponse<AuthResponse.Token>> refresh(
             @Valid @RequestBody AuthRequest.TokenRefresh request
             ){
-        AuthResponse.AccessToken response = authService.refresh(request);
+        AuthResponse.Token response = authService.refresh(request);
 
         return ResponseEntity
                 .status(AuthSuccessCode.TOKEN_REFRESHED.getStatus())

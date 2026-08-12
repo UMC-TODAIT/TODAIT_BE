@@ -23,11 +23,23 @@ public class RefreshTokenValidator {
     private final RefreshTokenHasher refreshTokenHasher;
 
     public RefreshToken validateAndGetStoredToken(String token) {
+        return validateAndGetStoredToken(token, false);
+    }
+
+    public RefreshToken validateAndGetStoredTokenForUpdate(String token) {
+        return validateAndGetStoredToken(token, true);
+    }
+
+    private RefreshToken validateAndGetStoredToken(
+            String token,
+            boolean lockForUpdate
+    ) {
         Long memberId = validateAndExtractMemberId(token);
         String tokenHash = refreshTokenHasher.hash(token);
 
-        RefreshToken storedToken = refreshTokenRepository
-                .findByTokenHash(tokenHash)
+        RefreshToken storedToken = (lockForUpdate
+                ? refreshTokenRepository.findByTokenHashForUpdate(tokenHash)
+                : refreshTokenRepository.findByTokenHash(tokenHash))
                 .orElseThrow(() -> new MemberException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
         if (!storedToken.getMember().getId().equals(memberId)) {

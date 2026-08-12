@@ -15,15 +15,18 @@ import org.springframework.http.ResponseEntity;
 @SecurityRequirements
 public interface TokenControllerDocs {
     @Operation(
-            summary = "[토큰] Access Token 재발급",
+            summary = "[토큰] Access Token 및 Refresh Token 재발급",
             description = """
-                    Refresh Token을 검증하여 새로운 Access Token을 발급합니다.
+                    Refresh Token을 검증하여 새로운 Access Token과 Refresh Token을 발급합니다.
+
+                    재발급에 사용한 기존 Refresh Token은 즉시 폐기되므로,
+                    클라이언트는 응답으로 받은 두 토큰을 모두 교체하여 저장해야 합니다.
 
                     - 만료된 Refresh Token: 재로그인 필요
                     - 폐기된 Refresh Token: 재로그인 필요
                     """
     )
-    ResponseEntity<ApiResponse<AuthResponse.AccessToken>> refresh(
+    ResponseEntity<ApiResponse<AuthResponse.Token>> refresh(
             AuthRequest.TokenRefresh request
     );
 }
