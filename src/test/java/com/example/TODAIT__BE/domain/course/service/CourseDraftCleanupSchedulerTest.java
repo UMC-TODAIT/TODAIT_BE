@@ -34,7 +34,7 @@ class CourseDraftCleanupSchedulerTest {
         assertThat(conditionalOnProperty.prefix()).isEqualTo("app.course-draft");
         assertThat(conditionalOnProperty.name()).containsExactly("cleanup-scheduler-enabled");
         assertThat(conditionalOnProperty.havingValue()).isEqualTo("true");
-        assertThat(conditionalOnProperty.matchIfMissing()).isTrue();
+        assertThat(conditionalOnProperty.matchIfMissing()).isFalse();
     }
 
     @Test
