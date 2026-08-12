@@ -105,6 +105,7 @@ class CourseDraftMoodTagServiceTest {
         ArgumentCaptor<CourseDraftMoodTag> saveCaptor = ArgumentCaptor.forClass(CourseDraftMoodTag.class);
         verify(courseDraftMoodTagRepository).save(saveCaptor.capture());
         assertThat(saveCaptor.getValue().getMoodTag()).isEqualTo(addedMoodTag);
+        assertThat(draft.getUpdatedAt()).isNotNull();
         assertThat(response.draftStatus()).isEqualTo(CourseDraftStatus.FOOD_SELECTING);
         assertThat(response.moodTags()).extracting("moodTagId").containsExactly(2L, 3L);
     }
@@ -138,6 +139,7 @@ class CourseDraftMoodTagServiceTest {
         );
 
         verify(courseDraftPlaceRepository).deleteByCourseDraft(draft);
+        assertThat(draft.getUpdatedAt()).isNotNull();
     }
 
     @Test
@@ -201,6 +203,7 @@ class CourseDraftMoodTagServiceTest {
         verify(courseDraftMoodTagRepository, never()).save(any());
         verify(courseDraftPlaceRepository, never()).existsByCourseDraft(draft);
         verify(courseDraftPlaceRepository, never()).deleteByCourseDraft(draft);
+        assertThat(draft.getUpdatedAt()).isNull();
         assertThat(response.draftStatus()).isEqualTo(CourseDraftStatus.FOOD_SELECTING);
     }
 

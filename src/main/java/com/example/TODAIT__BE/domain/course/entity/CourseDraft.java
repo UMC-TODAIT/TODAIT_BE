@@ -71,6 +71,10 @@ public class CourseDraft extends BaseEntity {
         this.status = status;
     }
 
+    public void touchUpdatedAt(LocalDateTime updatedAt) {
+        super.touchUpdatedAt(updatedAt);
+    }
+
     public void completeWithCourse(Course course, LocalDateTime expiresAt) {
         this.status = CourseDraftStatus.COMPLETED;
         this.course = course;

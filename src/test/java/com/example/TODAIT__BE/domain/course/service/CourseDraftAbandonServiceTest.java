@@ -19,7 +19,6 @@ import com.example.TODAIT__BE.domain.course.repository.CourseDraftRepository;
 import com.example.TODAIT__BE.domain.course.service.validator.CourseDraftValidator;
 import com.example.TODAIT__BE.domain.member.entity.Member;
 import java.time.Clock;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Optional;
@@ -34,10 +33,11 @@ class CourseDraftAbandonServiceTest {
 
     private static final Long DRAFT_ID = 10L;
     private static final Long MEMBER_ID = 1L;
-    private static final Clock FIXED_CLOCK = Clock.fixed(
-            Instant.parse("2026-08-12T03:00:00Z"),
-            ZoneId.of("Asia/Seoul")
-    );
+    private static final ZoneId TEST_ZONE = ZoneId.of("Asia/Seoul");
+    private static final LocalDateTime FIXED_NOW =
+            LocalDateTime.of(2026, 8, 12, 12, 0);
+    private static final Clock FIXED_CLOCK =
+            Clock.fixed(FIXED_NOW.atZone(TEST_ZONE).toInstant(), TEST_ZONE);
 
     @Mock
     private CourseDraftRepository courseDraftRepository;
