@@ -22,7 +22,7 @@ public interface CategoryRecommendedPlaceControllerDocs {
                     특정 장소 카테고리의 추천 장소 목록을 조회합니다.
 
                     - 호출 가능 상태: PLACE_SELECTING
-                    - 지원 카테고리: CAFE, ACTIVITY, RESTAURANT, BAR
+                    - 지원 카테고리: CAFE, ACTIVITY, RESTAURANT, BAR, OTHER
                     - size 기본값: 10
                     - size 허용 범위: 1~20
                     - 기준 장소, 분위기 태그, 음식 카테고리는 임시 코스에 저장된 값을 사용합니다.
@@ -44,8 +44,8 @@ public interface CategoryRecommendedPlaceControllerDocs {
             Long courseDraftId,
 
             @Parameter(
-                    description = "조회할 장소 카테고리 코드",
-                    example = "CAFE",
+                    description = "조회할 장소 카테고리 코드 (CAFE, ACTIVITY, RESTAURANT, BAR, OTHER)",
+                    example = "OTHER",
                     required = true
             )
             String placeCategoryCode,
