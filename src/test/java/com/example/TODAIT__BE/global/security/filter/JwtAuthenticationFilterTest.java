@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -60,6 +61,42 @@ class JwtAuthenticationFilterTest {
 
         assertThat(response.getStatus()).isEqualTo(401);
         assertThat(response.getContentAsString()).contains("\"code\":\"COMMON401_1\"");
+    }
+
+    @Test
+    void skipsAccessTokenAuthenticationForOAuthOnboardingRequest()
+            throws ServletException, IOException {
+        MockHttpServletRequest request = new MockHttpServletRequest(
+                HttpMethod.PATCH.name(),
+                "/api/members/me/onboarding"
+        );
+        request.addHeader("Authorization", "Bearer " + TOKEN);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        MockFilterChain filterChain = new MockFilterChain();
+
+        filter.doFilter(request, response, filterChain);
+
+        assertThat(filterChain.getRequest()).isSameAs(request);
+        assertThat(response.getStatus()).isEqualTo(200);
+        verify(jwtTokenProvider, never()).validateToken(TOKEN);
+    }
+
+    @Test
+    void doesNotSkipAccessTokenAuthenticationForOtherPatchRequest()
+            throws ServletException, IOException {
+        MockHttpServletRequest request = new MockHttpServletRequest(
+                HttpMethod.PATCH.name(),
+                "/api/members/me"
+        );
+        request.addHeader("Authorization", "Bearer " + TOKEN);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        given(jwtTokenProvider.validateToken(TOKEN)).willReturn(false);
+
+        filter.doFilter(request, response, new MockFilterChain());
+
+        assertThat(response.getStatus()).isEqualTo(401);
+        verify(jwtTokenProvider).validateToken(TOKEN);
     }
 
     private MockHttpServletRequest requestWithBearerToken() {
