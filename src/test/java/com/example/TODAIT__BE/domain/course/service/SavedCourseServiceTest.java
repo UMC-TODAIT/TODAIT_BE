@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -71,7 +72,12 @@ class SavedCourseServiceTest {
         );
 
         List<CourseMoodTag> courseMoodTags = List.of(
-                courseMoodTag(course, 10L, "ROMANTIC", "로맨틱")
+                courseMoodTag(
+                        course,
+                        10L,
+                        "ROMANTIC",
+                        "로맨틱"
+                )
         );
 
         List<CoursePlace> coursePlaces = List.of(
@@ -96,12 +102,17 @@ class SavedCourseServiceTest {
         given(courseRepository.findSavedCourseDetailById(100L))
                 .willReturn(Optional.of(course));
 
-        given(courseMoodTagRepository.findAllWithCourseAndMoodTagByCourseIds(
-                List.of(100L)
-        )).willReturn(courseMoodTags);
+        given(
+                courseMoodTagRepository
+                        .findAllWithCourseAndMoodTagByCourseIds(
+                                List.of(100L)
+                        )
+        ).willReturn(courseMoodTags);
 
-        given(coursePlaceRepository.findAllByCourseIdOrderByVisitOrderAsc(100L))
-                .willReturn(coursePlaces);
+        given(
+                coursePlaceRepository
+                        .findAllByCourseIdOrderByVisitOrderAsc(100L)
+        ).willReturn(coursePlaces);
 
         given(courseRepository.increaseViewCount(100L))
                 .willReturn(1);
@@ -110,25 +121,43 @@ class SavedCourseServiceTest {
                 .willReturn(6);
 
         DetailResponse response =
-                savedCourseService.getSavedCourseDetail(1L, 100L);
+                savedCourseService.getSavedCourseDetail(
+                        1L,
+                        100L
+                );
 
-        assertThat(response.courseId()).isEqualTo(100L);
-        assertThat(response.title()).isEqualTo("성수 데이트");
-        assertThat(response.savedDate()).isEqualTo(LocalDate.of(2026, 7, 29));
-        assertThat(response.memo()).isEqualTo("전체 메모");
+        assertThat(response.courseId())
+                .isEqualTo(100L);
 
-        assertThat(response.representativeMoodTag().code())
-                .isEqualTo("ROMANTIC");
+        assertThat(response.title())
+                .isEqualTo("성수 데이트");
 
-        assertThat(response.representativePlaceCategory().name())
-                .isEqualTo("전시");
+        assertThat(response.savedDate())
+                .isEqualTo(LocalDate.of(2026, 7, 29));
 
-        assertThat(response.placeCount()).isEqualTo(2);
-        assertThat(response.viewCount()).isEqualTo(6);
+        assertThat(response.memo())
+                .isEqualTo("전체 메모");
+
+        assertThat(
+                response.representativeMoodTag().code()
+        ).isEqualTo("ROMANTIC");
+
+        assertThat(
+                response.representativePlaceCategory().name()
+        ).isEqualTo("전시");
+
+        assertThat(response.placeCount())
+                .isEqualTo(2);
+
+        assertThat(response.viewCount())
+                .isEqualTo(6);
 
         assertThat(response.places())
                 .extracting("visitOrder")
-                .containsExactly(2, 3);
+                .containsExactly(
+                        2,
+                        3
+                );
 
         assertThat(response.places())
                 .extracting("name")
@@ -152,14 +181,20 @@ class SavedCourseServiceTest {
                 );
 
         InOrder inOrder = inOrder(courseRepository);
-        inOrder.verify(courseRepository).increaseViewCount(100L);
-        inOrder.verify(courseRepository).findViewCountById(100L);
+
+        inOrder.verify(courseRepository)
+                .increaseViewCount(100L);
+
+        inOrder.verify(courseRepository)
+                .findViewCountById(100L);
     }
 
     @Test
     void throwsNotFoundWhenSavedCourseIsDeletedOrMissing() {
-        given(courseRepository.findSavedCourseDetailById(100L))
-                .willReturn(Optional.empty());
+        given(
+                courseRepository
+                        .findSavedCourseDetailById(100L)
+        ).willReturn(Optional.empty());
 
         assertThatThrownBy(() ->
                 savedCourseService.getSavedCourseDetail(
@@ -170,28 +205,38 @@ class SavedCourseServiceTest {
                 .isInstanceOfSatisfying(
                         CourseException.class,
                         exception ->
-                                assertThat(exception.getErrorCode())
-                                        .isEqualTo(
-                                                SavedCourseErrorCode.SAVED_COURSE_NOT_FOUND
-                                        )
+                                assertThat(
+                                        exception.getErrorCode()
+                                ).isEqualTo(
+                                        SavedCourseErrorCode
+                                                .SAVED_COURSE_NOT_FOUND
+                                )
                 );
 
-        verify(courseMoodTagRepository, never())
-                .findAllWithCourseAndMoodTagByCourseIds(any());
+        verify(
+                courseMoodTagRepository,
+                never()
+        ).findAllWithCourseAndMoodTagByCourseIds(any());
 
-        verify(coursePlaceRepository, never())
-                .findAllByCourseIdOrderByVisitOrderAsc(any());
+        verify(
+                coursePlaceRepository,
+                never()
+        ).findAllByCourseIdOrderByVisitOrderAsc(any());
 
-        verify(courseRepository, never())
-                .increaseViewCount(any());
+        verify(
+                courseRepository,
+                never()
+        ).increaseViewCount(any());
     }
 
     @Test
     void throwsAccessDeniedWhenCourseBelongsToAnotherMember() {
         Course course = courseOwnedBy(2L);
 
-        given(courseRepository.findSavedCourseDetailById(100L))
-                .willReturn(Optional.of(course));
+        given(
+                courseRepository
+                        .findSavedCourseDetailById(100L)
+        ).willReturn(Optional.of(course));
 
         assertThatThrownBy(() ->
                 savedCourseService.getSavedCourseDetail(
@@ -202,47 +247,67 @@ class SavedCourseServiceTest {
                 .isInstanceOfSatisfying(
                         CourseException.class,
                         exception ->
-                                assertThat(exception.getErrorCode())
-                                        .isEqualTo(
-                                                SavedCourseErrorCode.SAVED_COURSE_ACCESS_DENIED
-                                        )
+                                assertThat(
+                                        exception.getErrorCode()
+                                ).isEqualTo(
+                                        SavedCourseErrorCode
+                                                .SAVED_COURSE_ACCESS_DENIED
+                                )
                 );
 
-        verify(courseMoodTagRepository, never())
-                .findAllWithCourseAndMoodTagByCourseIds(any());
+        verify(
+                courseMoodTagRepository,
+                never()
+        ).findAllWithCourseAndMoodTagByCourseIds(any());
 
-        verify(coursePlaceRepository, never())
-                .findAllByCourseIdOrderByVisitOrderAsc(any());
+        verify(
+                coursePlaceRepository,
+                never()
+        ).findAllByCourseIdOrderByVisitOrderAsc(any());
 
-        verify(courseRepository, never())
-                .increaseViewCount(any());
+        verify(
+                courseRepository,
+                never()
+        ).increaseViewCount(any());
     }
 
     @Test
     void returnsEmptyListsWithoutLoadingRelatedData() {
-        given(courseRepository.findRecentSavedCourses(
-                eq(1L),
-                eq(CourseSourceType.USER_CREATED),
-                any(Pageable.class)
-        )).willReturn(List.of());
+        given(
+                courseRepository.findRecentSavedCourses(
+                        eq(1L),
+                        eq(CourseSourceType.USER_CREATED),
+                        any(Pageable.class)
+                )
+        ).willReturn(List.of());
 
-        given(courseRepository.findPopularSavedCourses(
-                eq(1L),
-                eq(CourseSourceType.USER_CREATED),
-                any(Pageable.class)
-        )).willReturn(List.of());
+        given(
+                courseRepository.findPopularSavedCourses(
+                        eq(1L),
+                        eq(CourseSourceType.USER_CREATED),
+                        any(Pageable.class)
+                )
+        ).willReturn(List.of());
 
         OverviewResponse response =
-                savedCourseService.getSavedCourseOverview(1L);
+                savedCourseService
+                        .getSavedCourseOverview(1L);
 
-        assertThat(response.recentCourses()).isEmpty();
-        assertThat(response.popularCourses()).isEmpty();
+        assertThat(response.recentCourses())
+                .isEmpty();
 
-        verify(courseMoodTagRepository, never())
-                .findAllWithCourseAndMoodTagByCourseIds(any());
+        assertThat(response.popularCourses())
+                .isEmpty();
 
-        verify(coursePlaceRepository, never())
-                .findAllWithCourseAndPlaceByCourseIds(any());
+        verify(
+                courseMoodTagRepository,
+                never()
+        ).findAllWithCourseAndMoodTagByCourseIds(any());
+
+        verify(
+                coursePlaceRepository,
+                never()
+        ).findAllWithCourseAndPlaceByCourseIds(any());
     }
 
     @Test
@@ -268,22 +333,26 @@ class SavedCourseServiceTest {
                 15
         );
 
-        given(courseRepository.findRecentSavedCourses(
-                eq(1L),
-                eq(CourseSourceType.USER_CREATED),
-                any(Pageable.class)
-        )).willReturn(
+        given(
+                courseRepository.findRecentSavedCourses(
+                        eq(1L),
+                        eq(CourseSourceType.USER_CREATED),
+                        any(Pageable.class)
+                )
+        ).willReturn(
                 List.of(
                         recentOnly,
                         sharedCourse
                 )
         );
 
-        given(courseRepository.findPopularSavedCourses(
-                eq(1L),
-                eq(CourseSourceType.USER_CREATED),
-                any(Pageable.class)
-        )).willReturn(
+        given(
+                courseRepository.findPopularSavedCourses(
+                        eq(1L),
+                        eq(CourseSourceType.USER_CREATED),
+                        any(Pageable.class)
+                )
+        ).willReturn(
                 List.of(
                         sharedCourse,
                         popularOnly
@@ -342,6 +411,7 @@ class SavedCourseServiceTest {
                         5,
                         PlaceRole.SELECTED
                 ),
+
                 coursePlace(
                         sharedCourse,
                         200L,
@@ -355,6 +425,7 @@ class SavedCourseServiceTest {
                         "공유 장소",
                         2
                 ),
+
                 coursePlace(
                         popularOnly,
                         300L,
@@ -370,33 +441,49 @@ class SavedCourseServiceTest {
                 )
         );
 
-        given(courseMoodTagRepository.findAllWithCourseAndMoodTagByCourseIds(
-                List.of(
-                        1L,
-                        2L,
-                        3L
-                )
-        )).willReturn(courseMoodTags);
+        given(
+                courseMoodTagRepository
+                        .findAllWithCourseAndMoodTagByCourseIds(
+                                List.of(
+                                        1L,
+                                        2L,
+                                        3L
+                                )
+                        )
+        ).willReturn(courseMoodTags);
 
-        given(coursePlaceRepository.findAllWithCourseAndPlaceByCourseIds(
-                List.of(
-                        1L,
-                        2L,
-                        3L
-                )
-        )).willReturn(coursePlaces);
+        given(
+                coursePlaceRepository
+                        .findAllWithCourseAndPlaceByCourseIds(
+                                List.of(
+                                        1L,
+                                        2L,
+                                        3L
+                                )
+                        )
+        ).willReturn(coursePlaces);
 
         OverviewResponse response =
-                savedCourseService.getSavedCourseOverview(1L);
+                savedCourseService
+                        .getSavedCourseOverview(1L);
 
-        assertThat(response.recentCourses()).hasSize(2);
-        assertThat(response.popularCourses()).hasSize(2);
+        assertThat(response.recentCourses())
+                .hasSize(2);
 
-        assertThat(response.recentCourses().get(0).courseId())
-                .isEqualTo(1L);
+        assertThat(response.popularCourses())
+                .hasSize(2);
 
-        assertThat(response.popularCourses().get(0).courseId())
-                .isEqualTo(2L);
+        assertThat(
+                response.recentCourses()
+                        .get(0)
+                        .courseId()
+        ).isEqualTo(1L);
+
+        assertThat(
+                response.popularCourses()
+                        .get(0)
+                        .courseId()
+        ).isEqualTo(2L);
 
         assertThat(
                 response.recentCourses()
@@ -432,9 +519,21 @@ class SavedCourseServiceTest {
         )
                 .extracting("placeId")
                 .containsExactly(
+                        100L,
                         101L,
-                        102L,
-                        103L
+                        102L
+                );
+
+        assertThat(
+                response.recentCourses()
+                        .get(0)
+                        .previewPlaces()
+        )
+                .extracting("visitOrder")
+                .containsExactly(
+                        1,
+                        2,
+                        3
                 );
 
         assertThat(
@@ -456,14 +555,15 @@ class SavedCourseServiceTest {
                         .code()
         ).isEqualTo("CALM");
 
-        verify(courseMoodTagRepository)
-                .findAllWithCourseAndMoodTagByCourseIds(
-                        List.of(
-                                1L,
-                                2L,
-                                3L
-                        )
-                );
+        verify(
+                courseMoodTagRepository
+        ).findAllWithCourseAndMoodTagByCourseIds(
+                List.of(
+                        1L,
+                        2L,
+                        3L
+                )
+        );
     }
 
     private Course course(
@@ -473,8 +573,10 @@ class SavedCourseServiceTest {
             Integer viewCount
     ) {
         Place basePlace = mock(Place.class);
-        given(basePlace.getSubCategory())
-                .willReturn(subCategory);
+
+        given(
+                basePlace.getSubCategory()
+        ).willReturn(subCategory);
 
         Course course = mock(Course.class);
 
@@ -512,12 +614,15 @@ class SavedCourseServiceTest {
             String subCategory
     ) {
         Member member = mock(Member.class);
+
         given(member.getId())
                 .willReturn(memberId);
 
         Place basePlace = mock(Place.class);
-        given(basePlace.getSubCategory())
-                .willReturn(subCategory);
+
+        given(
+                basePlace.getSubCategory()
+        ).willReturn(subCategory);
 
         Course course = mock(Course.class);
 
@@ -552,10 +657,12 @@ class SavedCourseServiceTest {
 
     private Course courseOwnedBy(Long memberId) {
         Member member = mock(Member.class);
+
         given(member.getId())
                 .willReturn(memberId);
 
         Course course = mock(Course.class);
+
         given(course.getMember())
                 .willReturn(member);
 
@@ -609,10 +716,8 @@ class SavedCourseServiceTest {
     ) {
         Place place = mock(Place.class);
 
-        if (placeRole == PlaceRole.SELECTED) {
-            given(place.getId())
-                    .willReturn(placeId);
-        }
+        lenient().when(place.getId())
+                .thenReturn(placeId);
 
         return CoursePlace.builder()
                 .course(course)
