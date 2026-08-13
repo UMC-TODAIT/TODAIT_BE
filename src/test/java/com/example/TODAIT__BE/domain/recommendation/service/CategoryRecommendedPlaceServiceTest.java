@@ -535,4 +535,109 @@ class CategoryRecommendedPlaceServiceTest {
                 )
                 .containsExactly(2L, 3L);
     }
+
+    @Test
+    void supportsOtherPlaceCategory() {
+        CourseDraft draft =
+                draft(CourseDraftStatus.PLACE_SELECTING);
+
+        Place basePlace = basePlace();
+        CourseDraftPlace baseDraftPlace =
+                baseDraftPlace(basePlace);
+
+        PlaceCategory category = mock(PlaceCategory.class);
+        given(category.getCode()).willReturn("OTHER");
+        given(category.getIsActive()).willReturn(true);
+
+        given(courseDraftRepository.findById(COURSE_DRAFT_ID))
+                .willReturn(Optional.of(draft));
+
+        given(courseDraftPlaceRepository
+                .findByCourseDraftWithPlaceOrderByVisitOrderAsc(draft))
+                .willReturn(List.of(baseDraftPlace));
+
+        given(placeCategoryRepository.findByCode("OTHER"))
+                .willReturn(Optional.of(category));
+
+        given(courseDraftMoodTagRepository
+                .findMoodTagIdsByCourseDraftId(COURSE_DRAFT_ID))
+                .willReturn(List.of());
+
+        given(courseDraftFoodCategoryRepository
+                .findFoodCategoryIdsByCourseDraftId(COURSE_DRAFT_ID))
+                .willReturn(List.of());
+
+        CandidateData candidateData =
+                new CandidateData(
+                        List.of(),
+                        java.util.Map.of(),
+                        java.util.Map.of()
+                );
+
+        given(candidateLoader.load(
+                anyList(),
+                eq("OTHER"),
+                anySet()
+        )).willReturn(candidateData);
+
+        NearBasePlaceRecommendationSelection emptySelection =
+                new NearBasePlaceRecommendationSelection(
+                        List.of(),
+                        4
+                );
+
+        given(rankingPolicy.evaluateAndSelect(
+                eq(candidateData),
+                eq(basePlace),
+                anySet(),
+                anySet(),
+                any(),
+                eq("OTHER"),
+                anyInt()
+        )).willReturn(emptySelection);
+
+        RecommendationLog savedLog =
+                mock(RecommendationLog.class);
+
+        given(recommendationLogRepository.save(any(RecommendationLog.class)))
+                .willReturn(savedLog);
+
+        CategoryRecommendedPlaceResponse response =
+                mock(CategoryRecommendedPlaceResponse.class);
+
+        given(responseAssembler.assemble(
+                savedLog,
+                basePlace,
+                emptySelection
+        )).willReturn(response);
+
+        CategoryRecommendedPlaceResponse result =
+                service.getRecommendedPlaces(
+                        MEMBER_ID,
+                        COURSE_DRAFT_ID,
+                        "OTHER",
+                        10
+                );
+
+        assertThat(result).isSameAs(response);
+
+        verify(candidateLoader).load(
+                anyList(),
+                eq("OTHER"),
+                anySet()
+        );
+
+        verify(rankingPolicy).evaluateAndSelect(
+                eq(candidateData),
+                eq(basePlace),
+                anySet(),
+                anySet(),
+                any(),
+                eq("OTHER"),
+                eq(10)
+        );
+
+        verify(recommendationLogRepository)
+                .save(any(RecommendationLog.class));
+    }
 }
