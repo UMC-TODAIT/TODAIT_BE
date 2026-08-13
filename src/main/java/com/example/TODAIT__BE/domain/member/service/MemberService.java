@@ -1,5 +1,6 @@
 package com.example.TODAIT__BE.domain.member.service;
 
+import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.dto.response.MemberResponse;
@@ -37,7 +38,10 @@ public class MemberService {
         validateActiveMember(member);
 
         long savedCourseCount =
-                courseRepository.countByMemberIdAndDeletedAtIsNull(memberId);
+                courseRepository.countByMemberIdAndSourceTypeAndDeletedAtIsNull(
+                        memberId,
+                        CourseSourceType.USER_CREATED
+                );
 
         return new MemberResponse.Me(
                 member.getId(),
