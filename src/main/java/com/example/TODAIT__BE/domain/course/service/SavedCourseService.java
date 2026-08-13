@@ -16,7 +16,6 @@ import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
 import com.example.TODAIT__BE.domain.course.entity.CoursePlace;
 import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
-import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
 import com.example.TODAIT__BE.domain.course.repository.CourseMoodTagRepository;
 import com.example.TODAIT__BE.domain.course.repository.CoursePlaceRepository;
@@ -235,9 +234,6 @@ public class SavedCourseService {
 
         List<PreviewPlaceResponse> previewPlaces =
                 coursePlaces.stream()
-                        .filter(coursePlace ->
-                                coursePlace.getPlaceRole() == PlaceRole.SELECTED
-                        )
                         .limit(PREVIEW_PLACE_LIMIT)
                         .map(this::toPreviewPlaceResponse)
                         .toList();
