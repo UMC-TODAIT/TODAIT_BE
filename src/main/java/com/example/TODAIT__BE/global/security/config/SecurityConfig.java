@@ -65,7 +65,8 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(
                                 "/course-images/**",
-                                "/place-images/**"
+                                "/place-images/**",
+                                "/additional-place-images/**"
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.PATCH,
