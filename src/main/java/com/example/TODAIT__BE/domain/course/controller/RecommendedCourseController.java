@@ -1,0 +1,83 @@
+package com.example.TODAIT__BE.domain.course.controller;
+
+import com.example.TODAIT__BE.domain.course.code.RecommendedCourseSuccessCode;
+import com.example.TODAIT__BE.domain.course.controller.docs.RecommendedCourseControllerDocs;
+import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseResponse.DetailResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.RecommendedCourseResponse.SaveResponse;
+import com.example.TODAIT__BE.domain.course.service.RecommendedCourseSaveService;
+import com.example.TODAIT__BE.domain.course.service.RecommendedCourseService;
+import com.example.TODAIT__BE.global.apiPayload.ApiResponse;
+import com.example.TODAIT__BE.global.security.principal.AuthMember;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/recommended-courses")
+public class RecommendedCourseController
+        implements RecommendedCourseControllerDocs {
+
+    private final RecommendedCourseService recommendedCourseService;
+    private final RecommendedCourseSaveService
+            recommendedCourseSaveService;
+
+    @Override
+    @GetMapping("/{courseId}")
+    public ResponseEntity<ApiResponse<DetailResponse>>
+    getRecommendedCourseDetail(
+            @PathVariable Long courseId
+    ) {
+        DetailResponse result =
+                recommendedCourseService
+                        .getRecommendedCourseDetail(courseId);
+
+        return ResponseEntity
+                .status(
+                        RecommendedCourseSuccessCode
+                                .RECOMMENDED_COURSE_DETAIL_OK
+                                .getStatus()
+                )
+                .body(
+                        ApiResponse.onSuccess(
+                                RecommendedCourseSuccessCode
+                                        .RECOMMENDED_COURSE_DETAIL_OK,
+                                result
+                        )
+                );
+    }
+
+    @Override
+    @PostMapping("/{courseId}/save")
+    public ResponseEntity<ApiResponse<SaveResponse>>
+    saveRecommendedCourse(
+            @PathVariable Long courseId,
+            @AuthenticationPrincipal AuthMember authMember
+    ) {
+        SaveResponse result =
+                recommendedCourseSaveService
+                        .saveRecommendedCourse(
+                                courseId,
+                                authMember.memberId()
+                        );
+
+        return ResponseEntity
+                .status(
+                        RecommendedCourseSuccessCode
+                                .RECOMMENDED_COURSE_SAVE_OK
+                                .getStatus()
+                )
+                .body(
+                        ApiResponse.onSuccess(
+                                RecommendedCourseSuccessCode
+                                        .RECOMMENDED_COURSE_SAVE_OK,
+                                result
+                        )
+                );
+    }
+}

@@ -1,0 +1,93 @@
+package com.example.TODAIT__BE.domain.member.code;
+
+import com.example.TODAIT__BE.global.apiPayload.code.BaseErrorCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+
+@Getter
+@RequiredArgsConstructor
+public enum PasswordResetErrorCode implements BaseErrorCode {
+
+    INVALID_EMAIL_FORMAT(
+            HttpStatus.BAD_REQUEST,
+            "AUTH400_3",
+            "올바르지 않은 이메일 형식입니다."
+    ),
+
+    CODE_MISMATCH(
+            HttpStatus.BAD_REQUEST,
+            "AUTH400_4",
+            "인증번호가 일치하지 않습니다."
+    ),
+
+    NEW_PASSWORD_MISMATCH(
+            HttpStatus.BAD_REQUEST,
+            "AUTH400_5",
+            "새 비밀번호와 새 비밀번호 확인이 일치하지 않습니다."
+    ),
+
+    EMAIL_MEMBER_ONLY(
+            HttpStatus.BAD_REQUEST,
+            "AUTH400_2",
+            "일반 이메일 회원만 비밀번호 재설정이 가능합니다."
+    ),
+
+    EMAIL_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "AUTH404_1",
+            "해당 이메일로 가입된 회원이 없습니다."
+    ),
+
+    CODE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "AUTH404_2",
+            "해당 이메일로 발송된 인증번호가 없습니다."
+    ),
+
+    INVALID_RESET_TOKEN(
+            HttpStatus.UNAUTHORIZED,
+            "AUTH401_4",
+            "유효하지 않은 resetToken입니다."
+    ),
+
+    CODE_EXPIRED(
+            HttpStatus.GONE,
+            "AUTH410_2",
+            "인증번호가 만료되었습니다."
+    ),
+
+    RESET_TOKEN_EXPIRED(
+            HttpStatus.GONE,
+            "AUTH410_3",
+            "resetToken이 만료되었습니다."
+    ),
+
+    RESEND_COOLDOWN(
+            HttpStatus.TOO_MANY_REQUESTS,
+            "AUTH429_1",
+            "인증번호 발송 요청이 너무 많습니다."
+    ),
+
+    VERIFY_ATTEMPT_EXCEEDED(
+            HttpStatus.TOO_MANY_REQUESTS,
+            "AUTH429_2",
+            "인증번호 확인 요청이 너무 많습니다."
+    ),
+
+    SEND_FAILED(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "AUTH500_1",
+            "비밀번호 재설정 인증번호 이메일 발송에 실패했습니다."
+    ),
+
+    STORE_FAILED(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "AUTH500_2",
+            "비밀번호 재설정 인증번호 저장에 실패했습니다."
+    );
+
+    private final HttpStatus status;
+    private final String code;
+    private final String message;
+}
