@@ -50,7 +50,7 @@
 ## 시스템 아키텍처
 
 <div align="center">
-  <img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/cfac325e-ddf2-42cc-9141-f2d35bf7d015" />
+  <img width="1448" height="1086" alt="image" src="https://github.com/user-attachments/assets/41f92768-dd10-4750-ad36-ed88394ca953" />
 </div>
 
 ## 기술 스택
