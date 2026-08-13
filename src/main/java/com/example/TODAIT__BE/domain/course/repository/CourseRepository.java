@@ -13,7 +13,10 @@ import org.springframework.data.repository.query.Param;
 
 public interface CourseRepository extends JpaRepository<Course, Long> {
 
-    long countByMemberIdAndDeletedAtIsNull(Long memberId);
+    long countByMemberIdAndSourceTypeAndDeletedAtIsNull(
+            Long memberId,
+            CourseSourceType sourceType
+    );
 
     @Query("""
         select c
@@ -33,31 +36,31 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     );
 
     @Query("""
-            select c
-            from Course c
-            join fetch c.member
-            join fetch c.basePlace
-            where c.id = :courseId
-              and c.deletedAt is null
-            """)
+        select c
+        from Course c
+        join fetch c.member
+        join fetch c.basePlace
+        where c.id = :courseId
+          and c.deletedAt is null
+        """)
     Optional<Course> findSavedCourseDetailById(
             @Param("courseId") Long courseId
     );
 
     @Query("""
-            select c
-            from Course c
-            join fetch c.area a
-            where c.visibility = :visibility
-              and c.sourceType = :sourceType
-              and c.deletedAt is null
-              and a.isActive = true
-              and a.code in :areaCodes
-            order by a.code asc,
-                     c.operatorPriority asc,
-                     c.createdAt asc,
-                     c.id asc
-            """)
+        select c
+        from Course c
+        join fetch c.area a
+        where c.visibility = :visibility
+          and c.sourceType = :sourceType
+          and c.deletedAt is null
+          and a.isActive = true
+          and a.code in :areaCodes
+        order by a.code asc,
+                 c.operatorPriority asc,
+                 c.createdAt asc,
+                 c.id asc
+        """)
     List<Course> findRecommendedCourseCandidates(
             @Param("visibility") CourseVisibility visibility,
             @Param("sourceType") CourseSourceType sourceType,
@@ -65,46 +68,50 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     );
 
     @Query("""
-            select c
-            from Course c
-            join fetch c.basePlace
-            where c.member.id = :memberId
-              and c.deletedAt is null
-            order by c.createdAt desc, c.id desc
-            """)
+        select c
+        from Course c
+        join fetch c.basePlace
+        where c.member.id = :memberId
+          and c.sourceType = :sourceType
+          and c.deletedAt is null
+        order by c.createdAt desc, c.id desc
+        """)
     List<Course> findRecentSavedCourses(
             @Param("memberId") Long memberId,
+            @Param("sourceType") CourseSourceType sourceType,
             Pageable pageable
     );
 
     @Query("""
-            select c
-            from Course c
-            join fetch c.basePlace
-            where c.member.id = :memberId
-              and c.deletedAt is null
-            order by c.viewCount desc, c.updatedAt desc, c.id desc
-            """)
+        select c
+        from Course c
+        join fetch c.basePlace
+        where c.member.id = :memberId
+          and c.sourceType = :sourceType
+          and c.deletedAt is null
+        order by c.viewCount desc, c.updatedAt desc, c.id desc
+        """)
     List<Course> findPopularSavedCourses(
             @Param("memberId") Long memberId,
+            @Param("sourceType") CourseSourceType sourceType,
             Pageable pageable
     );
 
     @Modifying(clearAutomatically = true)
     @Query("""
-            update Course c
-            set c.viewCount = coalesce(c.viewCount, 0) + 1
-            where c.id = :courseId
-            """)
+        update Course c
+        set c.viewCount = coalesce(c.viewCount, 0) + 1
+        where c.id = :courseId
+        """)
     int increaseViewCount(
             @Param("courseId") Long courseId
     );
 
     @Query("""
-            select c.viewCount
-            from Course c
-            where c.id = :courseId
-            """)
+        select c.viewCount
+        from Course c
+        where c.id = :courseId
+        """)
     Integer findViewCountById(
             @Param("courseId") Long courseId
     );

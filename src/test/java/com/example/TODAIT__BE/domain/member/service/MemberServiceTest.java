@@ -1,5 +1,6 @@
 package com.example.TODAIT__BE.domain.member.service;
 
+import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.repository.CourseRepository;
 import com.example.TODAIT__BE.domain.member.code.MemberErrorCode;
 import com.example.TODAIT__BE.domain.member.dto.response.MemberResponse;
@@ -82,7 +83,11 @@ class MemberServiceTest {
                 .build();
 
         given(memberRepository.findById(1L)).willReturn(Optional.of(member));
-        given(courseRepository.countByMemberIdAndDeletedAtIsNull(1L)).willReturn(3L);
+
+        given(courseRepository.countByMemberIdAndSourceTypeAndDeletedAtIsNull(
+                1L,
+                CourseSourceType.USER_CREATED
+        )).willReturn(3L);
 
         MemberResponse.Me response = memberService.getMyInfo(1L);
 
@@ -99,7 +104,8 @@ class MemberServiceTest {
 
         assertThatThrownBy(() -> memberService.getMyInfo(1L))
                 .isInstanceOfSatisfying(MemberException.class, exception ->
-                        assertThat(exception.getErrorCode()).isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND)
+                        assertThat(exception.getErrorCode())
+                                .isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND)
                 );
     }
 
@@ -116,7 +122,8 @@ class MemberServiceTest {
 
         assertThatThrownBy(() -> memberService.getMyInfo(1L))
                 .isInstanceOfSatisfying(MemberException.class, exception ->
-                        assertThat(exception.getErrorCode()).isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND)
+                        assertThat(exception.getErrorCode())
+                                .isEqualTo(MemberErrorCode.MEMBER_NOT_FOUND)
                 );
     }
 
@@ -132,7 +139,8 @@ class MemberServiceTest {
 
         assertThatThrownBy(() -> memberService.getMyInfo(1L))
                 .isInstanceOfSatisfying(MemberException.class, exception ->
-                        assertThat(exception.getErrorCode()).isEqualTo(MemberErrorCode.INVALID_MEMBER_STATUS)
+                        assertThat(exception.getErrorCode())
+                                .isEqualTo(MemberErrorCode.INVALID_MEMBER_STATUS)
                 );
     }
 }

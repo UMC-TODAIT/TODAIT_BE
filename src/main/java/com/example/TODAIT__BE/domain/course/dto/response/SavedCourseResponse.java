@@ -31,7 +31,8 @@ public final class SavedCourseResponse {
     public record PreviewPlaceResponse(
             Long placeId,
             String name,
-            Integer visitOrder
+            Integer visitOrder,
+            String imageUrl
     ) {
     }
 
@@ -55,7 +56,8 @@ public final class SavedCourseResponse {
             Integer visitOrder,
             String name,
             String address,
-            String memo
+            String memo,
+            String imageUrl
     ) {
     }
 

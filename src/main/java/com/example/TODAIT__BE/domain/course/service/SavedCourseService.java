@@ -1,16 +1,20 @@
 package com.example.TODAIT__BE.domain.course.service;
 
-import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.RepresentativeMoodTag;
-import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.RepresentativeSubCategory;
+import com.example.TODAIT__BE.domain.course.code.SavedCourseErrorCode;
+import com.example.TODAIT__BE.domain.course.dto.request.SavedCourseMemoUpdateRequest;
+import com.example.TODAIT__BE.domain.course.dto.request.SavedCoursePlaceMemoUpdateRequest;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseMemoUpdateResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCoursePlaceMemoUpdateResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.CardResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.DetailPlaceResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.DetailResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.OverviewResponse;
 import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.PreviewPlaceResponse;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.RepresentativeMoodTag;
+import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseResponse.RepresentativeSubCategory;
 import com.example.TODAIT__BE.domain.course.entity.Course;
 import com.example.TODAIT__BE.domain.course.entity.CourseMoodTag;
 import com.example.TODAIT__BE.domain.course.entity.CoursePlace;
-import com.example.TODAIT__BE.domain.course.code.SavedCourseErrorCode;
 import com.example.TODAIT__BE.domain.course.enums.CourseSourceType;
 import com.example.TODAIT__BE.domain.course.enums.PlaceRole;
 import com.example.TODAIT__BE.domain.course.exception.CourseException;
@@ -28,10 +32,6 @@ import java.util.Set;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.example.TODAIT__BE.domain.course.dto.request.SavedCourseMemoUpdateRequest;
-import com.example.TODAIT__BE.domain.course.dto.request.SavedCoursePlaceMemoUpdateRequest;
-import com.example.TODAIT__BE.domain.course.dto.response.SavedCourseMemoUpdateResponse;
-import com.example.TODAIT__BE.domain.course.dto.response.SavedCoursePlaceMemoUpdateResponse;
 
 @Service
 public class SavedCourseService {
@@ -58,18 +58,18 @@ public class SavedCourseService {
         PageRequest limitTwo = PageRequest.of(0, COURSE_LIMIT);
 
         List<Course> recentCourses =
-                courseRepository
-                        .findRecentSavedCourses(
-                                memberId,
-                                limitTwo
-                        );
+                courseRepository.findRecentSavedCourses(
+                        memberId,
+                        CourseSourceType.USER_CREATED,
+                        limitTwo
+                );
 
         List<Course> popularCourses =
-                courseRepository
-                        .findPopularSavedCourses(
-                                memberId,
-                                limitTwo
-                        );
+                courseRepository.findPopularSavedCourses(
+                        memberId,
+                        CourseSourceType.USER_CREATED,
+                        limitTwo
+                );
 
         Set<Long> courseIdSet = new LinkedHashSet<>();
 
@@ -165,9 +165,7 @@ public class SavedCourseService {
                 toRepresentativePlaceCategory(course.getBasePlace()),
                 course.getMemo(),
                 places.size(),
-                viewCount != null
-                        ? viewCount
-                        : 0,
+                viewCount != null ? viewCount : 0,
                 places
         );
     }
@@ -238,8 +236,7 @@ public class SavedCourseService {
         List<PreviewPlaceResponse> previewPlaces =
                 coursePlaces.stream()
                         .filter(coursePlace ->
-                                coursePlace.getPlaceRole()
-                                        == PlaceRole.SELECTED
+                                coursePlace.getPlaceRole() == PlaceRole.SELECTED
                         )
                         .limit(PREVIEW_PLACE_LIMIT)
                         .map(this::toPreviewPlaceResponse)
@@ -288,7 +285,8 @@ public class SavedCourseService {
                 coursePlace.getVisitOrder(),
                 name,
                 address,
-                coursePlace.getMemo()
+                coursePlace.getMemo(),
+                place.getDefaultImageUrl()
         );
     }
 
@@ -300,6 +298,7 @@ public class SavedCourseService {
         }
 
         String subCategory = basePlace.getSubCategory();
+
         return new RepresentativeSubCategory(
                 subCategory,
                 subCategory
@@ -318,7 +317,8 @@ public class SavedCourseService {
         return new PreviewPlaceResponse(
                 place.getId(),
                 name,
-                coursePlace.getVisitOrder()
+                coursePlace.getVisitOrder(),
+                place.getDefaultImageUrl()
         );
     }
 
