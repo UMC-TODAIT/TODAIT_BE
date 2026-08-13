@@ -61,7 +61,9 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.GET,
-                                "/api/members/nickname-availability",
+                                "/api/members/nickname-availability"
+                        ).permitAll()
+                        .requestMatchers(
                                 "/course-images/**",
                                 "/place-images/**"
                         ).permitAll()
